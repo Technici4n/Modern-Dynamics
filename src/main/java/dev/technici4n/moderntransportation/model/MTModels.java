@@ -9,17 +9,18 @@ import net.minecraft.util.math.Quaternion;
 import net.minecraftforge.client.model.data.ModelProperty;
 
 public class MTModels {
-    public static final ModelProperty<Byte> CONNECTIONS = new ModelProperty<>();
+    public static final ModelProperty<Byte> CONNECTIONS_PIPE = new ModelProperty<>();
+    public static final ModelProperty<Byte> CONNECTIONS_INVENTORY = new ModelProperty<>();
 
     /**
      * The model rotation to rotate a model facing NORTH to the correct facing direction.
      * Rotations are indexed by {@link Direction} id.
      */
     public static final ModelBakeSettings[] PIPE_BAKE_SETTINGS = new ModelBakeSettings[] {
-            ModelRotation.X90_Y0,
+            preRotated(ModelRotation.X90_Y0, 270),
             ModelRotation.X270_Y0,
             ModelRotation.X0_Y0,
-            ModelRotation.X0_Y180,
+            preRotated(ModelRotation.X0_Y180, 90),
             preRotated(ModelRotation.X0_Y270, 90),
             ModelRotation.X0_Y90,
     };

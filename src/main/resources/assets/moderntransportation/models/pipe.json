@@ -1,6 +1,0 @@
-{
-  "loader": "moderntransportation:pipe",
-  "texture": "minecraft:block/stone",
-  "center": "moderntransportation:pipe_center",
-  "side": "moderntransportation:pipe_side"
-}

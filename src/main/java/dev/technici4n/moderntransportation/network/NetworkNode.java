@@ -1,8 +1,5 @@
-package dev.technici4n.moderntransportation.impl.network;
+package dev.technici4n.moderntransportation.network;
 
-import dev.technici4n.moderntransportation.api.network.INetworkCache;
-import dev.technici4n.moderntransportation.api.network.INetworkNode;
-import dev.technici4n.moderntransportation.api.network.INodeHost;
 import net.minecraft.util.math.Direction;
 
 import java.util.ArrayList;
@@ -10,7 +7,7 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 
-public class NetworkNode<H extends INodeHost, C extends INetworkCache<H>> implements INetworkNode<H, C> {
+public class NetworkNode<H extends NodeHost, C extends NetworkCache<H, C>> {
     private final H host;
     Network<H, C> network;
     private final List<Connection<H, C>> connections = new ArrayList<>();
@@ -19,24 +16,16 @@ public class NetworkNode<H extends INodeHost, C extends INetworkCache<H>> implem
         this.host = host;
     }
 
-    @Override
     public List<Connection<H, C>> getConnections() {
         return connections;
     }
 
-    @Override
     public H getHost() {
         return host;
     }
 
-    @Override
     public C getNetworkCache() {
         return network.cache;
-    }
-
-    @Override
-    public boolean isTicking() {
-        return true; // FIXME: do the check
     }
 
     void addConnection(Direction direction, NetworkNode<H, C> target) {
@@ -76,5 +65,15 @@ public class NetworkNode<H extends INodeHost, C extends INetworkCache<H>> implem
         }
 
         host.setConnections(connections);
+    }
+
+    public static class Connection<H extends NodeHost, C extends NetworkCache<H, C>> {
+        public final Direction direction;
+        public final NetworkNode<H, C> target;
+
+        public Connection(Direction direction, NetworkNode<H, C> target) {
+            this.direction = direction;
+            this.target = target;
+        }
     }
 }

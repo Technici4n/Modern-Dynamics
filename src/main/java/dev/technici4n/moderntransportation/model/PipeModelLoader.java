@@ -15,10 +15,10 @@ public class PipeModelLoader implements IModelLoader<PipeModelGeometry> {
 
     @Override
     public PipeModelGeometry read(JsonDeserializationContext jsonDeserializationContext, JsonObject jsonObject) {
-        Identifier textureId = new Identifier(JsonHelper.getString(jsonObject, "texture"));
-        Identifier centerModel = new Identifier(JsonHelper.getString(jsonObject, "center"));
-        Identifier connectionModel = new Identifier(JsonHelper.getString(jsonObject, "side"));
+        Identifier connectionNone = new Identifier(JsonHelper.getString(jsonObject, "connection_none"));
+        Identifier connectionPipe = new Identifier(JsonHelper.getString(jsonObject, "connection_pipe"));
+        Identifier connectionInventory = new Identifier(JsonHelper.getString(jsonObject, "connection_inventory"));
 
-        return new PipeModelGeometry(textureId, centerModel, connectionModel);
+        return new PipeModelGeometry(connectionNone, connectionPipe, connectionInventory);
     }
 }

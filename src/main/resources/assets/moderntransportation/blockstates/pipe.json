@@ -2,7 +2,7 @@
   "variants": {
     "": [
       {
-        "model": "moderntransportation:pipe"
+        "model": "moderntransportation:item/pipe"
       }
     ]
   }

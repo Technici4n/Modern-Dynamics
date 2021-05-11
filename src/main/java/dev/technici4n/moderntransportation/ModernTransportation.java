@@ -1,21 +1,16 @@
 package dev.technici4n.moderntransportation;
 
-import dev.technici4n.moderntransportation.api.energy.IEnergyCache;
-import dev.technici4n.moderntransportation.api.network.INetworkCache;
-import dev.technici4n.moderntransportation.api.network.INetworkManager;
-import dev.technici4n.moderntransportation.impl.energy.EnergyCache;
-import dev.technici4n.moderntransportation.impl.network.NetworkManager;
+import dev.technici4n.moderntransportation.network.energy.EnergyCache;
+import dev.technici4n.moderntransportation.network.NetworkManager;
 import dev.technici4n.moderntransportation.init.MtBlocks;
 import dev.technici4n.moderntransportation.init.MtItems;
 import net.minecraft.block.Block;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
@@ -30,9 +25,7 @@ public class ModernTransportation {
     public static final Logger LOGGER = LogManager.getLogger("Modern Transportation");
 
     public ModernTransportation() {
-        LOGGER.info("It works! EPIC");
-
-        INetworkCache.register(IEnergyCache.class, nodes -> new EnergyCache(nodes));
+        NetworkManager.registerCacheClass(EnergyCache.class, EnergyCache::new);
 
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.addGenericListener(Block.class, (Consumer<RegistryEvent.Register<Block>>) event -> MtBlocks.init());
@@ -49,5 +42,7 @@ public class ModernTransportation {
         if (Dist.CLIENT.isClient()) {
             ModernTransportationClient.initClient();
         }
+
+        LOGGER.info("Successfully constructed Modern Transportation!");
     }
 }

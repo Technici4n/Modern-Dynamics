@@ -1,6 +1,6 @@
 package dev.technici4n.moderntransportation.block;
 
-import dev.technici4n.moderntransportation.util.MTId;
+import dev.technici4n.moderntransportation.util.MtId;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 public class PipeBlock extends Block {
     public PipeBlock(String id) {
         super(Settings.of(Material.METAL).nonOpaque());
-        this.setRegistryName(MTId.of(id));
+        this.setRegistryName(MtId.of(id));
     }
 
     @Override
@@ -27,8 +27,19 @@ public class PipeBlock extends Block {
         return new PipeBlockEntity();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
-    public void onStateReplaced(BlockState p_196243_1_, World p_196243_2_, BlockPos p_196243_3_, BlockState p_196243_4_, boolean p_196243_5_) {
-        super.onStateReplaced(p_196243_1_, p_196243_2_, p_196243_3_, p_196243_4_, p_196243_5_);
+    public int getOpacity(BlockState p_200011_1_, BlockView p_200011_2_, BlockPos p_200011_3_) {
+        return 0;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void neighborUpdate(BlockState state, World world, BlockPos pos, Block param4, BlockPos param5, boolean param6) {
+        BlockEntity be = world.getBlockEntity(pos);
+
+        if (be instanceof PipeBlockEntity) {
+            ((PipeBlockEntity) be).neighborUpdate();
+        }
     }
 }

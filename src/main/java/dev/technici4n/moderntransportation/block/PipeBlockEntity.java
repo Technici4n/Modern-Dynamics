@@ -1,43 +1,42 @@
 package dev.technici4n.moderntransportation.block;
 
-import dev.technici4n.moderntransportation.MTBlockEntity;
-import dev.technici4n.moderntransportation.impl.energy.EnergyHost;
+import dev.technici4n.moderntransportation.MtBlockEntity;
+import dev.technici4n.moderntransportation.network.energy.EnergyHost;
 import dev.technici4n.moderntransportation.init.MtBlocks;
 import dev.technici4n.moderntransportation.model.MTModels;
 import dev.technici4n.moderntransportation.util.SerializationHelper;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
-import net.minecraft.util.math.Direction;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.client.model.data.ModelDataMap;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.EnumSet;
-
-public class PipeBlockEntity extends MTBlockEntity {
+public class PipeBlockEntity extends MtBlockEntity {
     public PipeBlockEntity() {
         super(MtBlocks.Bet.PIPE);
     }
 
-    private final EnergyHost energy = new EnergyHost(this, 1000);
+    public final EnergyHost energy = new EnergyHost(this, 1000);
     private boolean hostRegistered = false;
 
     private IModelData modelData = EmptyModelData.INSTANCE;
 
     @Override
     public void toClientTag(CompoundTag tag) {
-        tag.putByte("connections", SerializationHelper.directionsToMask(energy.connections));
+        tag.putByte("connections", SerializationHelper.directionsToMask(energy.pipeConnections));
+        tag.putByte("inventoryConnections", energy.inventoryConnections.getConnectionMask());
     }
 
     @Override
     public void fromClientTag(CompoundTag tag) {
         byte connections = tag.getByte("connections");
+        byte inventoryConnections = tag.getByte("inventoryConnections");
 
-        modelData = new ModelDataMap.Builder().withInitial(MTModels.CONNECTIONS, connections).build();
+        modelData = new ModelDataMap.Builder()
+                .withInitial(MTModels.CONNECTIONS_PIPE, connections)
+                .withInitial(MTModels.CONNECTIONS_INVENTORY, inventoryConnections)
+                .build();
         requestModelDataUpdate();
         remesh();
     }
@@ -45,6 +44,8 @@ public class PipeBlockEntity extends MTBlockEntity {
     @Override
     public CompoundTag toTag(CompoundTag nbt) {
         super.toTag(nbt);
+
+        energy.separateNetwork();
 
         nbt.putInt("energy", energy.getEnergy());
 
@@ -64,6 +65,10 @@ public class PipeBlockEntity extends MTBlockEntity {
 
     protected void removeHosts() {
         energy.removeSelf();
+    }
+
+    public void neighborUpdate() {
+        energy.scheduleUpdate();
     }
 
     @Override

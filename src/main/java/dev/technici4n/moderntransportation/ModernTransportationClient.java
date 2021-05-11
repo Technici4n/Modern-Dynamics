@@ -1,7 +1,7 @@
 package dev.technici4n.moderntransportation;
 
 import dev.technici4n.moderntransportation.model.PipeModelLoader;
-import dev.technici4n.moderntransportation.util.MTId;
+import dev.technici4n.moderntransportation.util.MtId;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
 
 public final class ModernTransportationClient {
@@ -14,6 +14,6 @@ public final class ModernTransportationClient {
     }
 
     private static void setupModels() {
-        ModelLoaderRegistry.registerLoader(MTId.of("pipe"), new PipeModelLoader());
+        ModelLoaderRegistry.registerLoader(MtId.of("pipe"), new PipeModelLoader());
     }
 }
