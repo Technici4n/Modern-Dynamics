@@ -6,6 +6,7 @@ import dev.technici4n.moderntransportation.init.MtBlocks;
 import dev.technici4n.moderntransportation.model.MTModels;
 import dev.technici4n.moderntransportation.util.SerializationHelper;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
@@ -13,8 +14,8 @@ import net.minecraftforge.client.model.data.ModelDataMap;
 import org.jetbrains.annotations.NotNull;
 
 public class PipeBlockEntity extends MtBlockEntity {
-    public PipeBlockEntity() {
-        super(MtBlocks.Bet.PIPE);
+    public PipeBlockEntity(BlockEntityType<?> type) {
+        super(type);
     }
 
     public final EnergyHost energy = new EnergyHost(this, 1000);

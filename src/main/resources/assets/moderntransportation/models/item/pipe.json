@@ -1,6 +1,0 @@
-{
-  "loader": "moderntransportation:pipe",
-  "connection_none": "moderntransportation:pipe_none",
-  "connection_pipe": "moderntransportation:pipe_pipe",
-  "connection_inventory": "moderntransportation:pipe_inventory"
-}

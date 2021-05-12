@@ -1,0 +1,31 @@
+{
+  "block.moderntransportation.basic_item_pipe": "Basic Item Pipe",
+  "block.moderntransportation.basic_item_pipe_opaque": "Basic Item Pipe (Opaque)",
+  "block.moderntransportation.fast_item_pipe": "Fast Item Pipe",
+  "block.moderntransportation.fast_item_pipe_opaque": "Fast Item Pipe (Opaque)",
+  "block.moderntransportation.conductive_item_pipe": "Conductive Item Pipe",
+  "block.moderntransportation.conductive_item_pipe_opaque": "Conductive Item Pipe (Opaque)",
+  "block.moderntransportation.conductive_fast_item_pipe": "Conductive Fast Item Pipe",
+  "block.moderntransportation.conductive_fast_item_pipe_opaque": "Conductive Fast Item Pipe (Opaque)",
+  
+  "block.moderntransportation.basic_fluid_pipe": "Basic Fluid Pipe",
+  "block.moderntransportation.basic_fluid_pipe_opaque": "Basic Fluid Pipe (Opaque)",
+  "block.moderntransportation.fast_fluid_pipe": "Fast Fluid Pipe",
+  "block.moderntransportation.fast_fluid_pipe_opaque": "Fast Fluid Pipe (Opaque)",
+  "block.moderntransportation.conductive_fluid_pipe": "Conductive Fluid Pipe",
+  "block.moderntransportation.conductive_fluid_pipe_opaque": "Conductive Fluid Pipe (Opaque)",
+  "block.moderntransportation.conductive_fast_fluid_pipe": "Conductive Fast Fluid Pipe",
+  "block.moderntransportation.conductive_fast_fluid_pipe_opaque": "Conductive Fast Fluid Pipe (Opaque)",
+
+  "block.moderntransportation.basic_energy_pipe": "Basic Energy Pipe",
+  "block.moderntransportation.hardened_energy_pipe": "Hardened Energy Pipe",
+  "block.moderntransportation.reinforced_energy_pipe": "Reinforced Energy Pipe",
+  "block.moderntransportation.signalum_energy_pipe": "Signalum Energy Pipe",
+  "block.moderntransportation.resonant_energy_pipe": "Resonant Energy Pipe",
+  "block.moderntransportation.superconducting_pipe": "Superconducting Pipe",
+
+  "block.moderntransportation.empty_reinforced_energy_pipe": "Reinforced Energy Pipe (Empty)",
+  "block.moderntransportation.empty_signalum_energy_pipe": "Signalum Energy Pipe (Empty)",
+  "block.moderntransportation.empty_resonant_energy_pipe": "Resonant Energy Pipe (Empty)",
+  "block.moderntransportation.empty_superconducting_pipe": "Superconducting Pipe (Empty)"
+}
