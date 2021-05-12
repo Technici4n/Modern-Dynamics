@@ -3,6 +3,7 @@ package dev.technici4n.moderntransportation.debug;
 import dev.technici4n.moderntransportation.block.PipeBlockEntity;
 import dev.technici4n.moderntransportation.network.NetworkCache;
 import dev.technici4n.moderntransportation.network.NetworkNode;
+import dev.technici4n.moderntransportation.network.NodeHost;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemUsageContext;
@@ -25,11 +26,18 @@ public class DebugToolItem extends Item {
             } else {
                 PipeBlockEntity pipe = (PipeBlockEntity) be;
                 StringBuilder message = new StringBuilder();
+                boolean foundNode = false;
 
-                NetworkNode<?, ? extends NetworkCache<?, ?>> node = pipe.energy.getManager().findNode((ServerWorld) pipe.getWorld(), pipe.getPos());
-                if (node != null) {
-                    node.getNetworkCache().appendDebugInfo(message);
-                } else {
+                for (NodeHost host : pipe.getHosts()) {
+                    @SuppressWarnings("unchecked")
+                    NetworkNode<?, ? extends NetworkCache<?, ?>> node = host.getManager().findNode((ServerWorld) pipe.getWorld(), pipe.getPos());
+                    if (node != null) {
+                        node.getNetworkCache().appendDebugInfo(message);
+                        foundNode = true;
+                    }
+                }
+
+                if (!foundNode) {
                     message.append("No node found.\n");
                 }
 

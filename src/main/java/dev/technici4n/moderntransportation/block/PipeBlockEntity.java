@@ -1,64 +1,41 @@
 package dev.technici4n.moderntransportation.block;
 
 import dev.technici4n.moderntransportation.MtBlockEntity;
-import dev.technici4n.moderntransportation.network.energy.EnergyHost;
-import dev.technici4n.moderntransportation.init.MtBlocks;
-import dev.technici4n.moderntransportation.model.MTModels;
-import dev.technici4n.moderntransportation.util.SerializationHelper;
+import dev.technici4n.moderntransportation.network.NodeHost;
+import dev.technici4n.moderntransportation.network.TickHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraftforge.client.model.data.EmptyModelData;
-import net.minecraftforge.client.model.data.IModelData;
-import net.minecraftforge.client.model.data.ModelDataMap;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class PipeBlockEntity extends MtBlockEntity {
+/**
+ * Abstract base BE class for all pipes.
+ * Subclasses must have a static list of {@link NodeHost}s that will be used for all the registration and saving logic.
+ */
+public abstract class PipeBlockEntity extends MtBlockEntity {
     public PipeBlockEntity(BlockEntityType<?> type) {
         super(type);
     }
 
-    public final EnergyHost energy = new EnergyHost(this, 1000);
-    private boolean hostRegistered = false;
+    private boolean hostsRegistered = false;
 
-    private IModelData modelData = EmptyModelData.INSTANCE;
-    VoxelShape cachedShape = PipeBoundingBoxes.CORE_SHAPE;
+    public abstract NodeHost[] getHosts();
 
-    @Override
-    public void sync() {
-        super.sync();
-        updateCachedShape(SerializationHelper.directionsToMask(energy.pipeConnections), energy.inventoryConnections);
-    }
-
-    @Override
-    public void toClientTag(CompoundTag tag) {
-        tag.putByte("connections", SerializationHelper.directionsToMask(energy.pipeConnections));
-        tag.putByte("inventoryConnections", (byte) energy.inventoryConnections);
-    }
-
-    @Override
-    public void fromClientTag(CompoundTag tag) {
-        byte connections = tag.getByte("connections");
-        byte inventoryConnections = tag.getByte("inventoryConnections");
-
-        updateCachedShape(connections, inventoryConnections);
-        modelData = new ModelDataMap.Builder()
-                .withInitial(MTModels.CONNECTIONS_PIPE, connections)
-                .withInitial(MTModels.CONNECTIONS_INVENTORY, inventoryConnections)
-                .build();
-        requestModelDataUpdate();
-        remesh();
-    }
+    public abstract VoxelShape getCachedShape();
 
     @Override
     public CompoundTag toTag(CompoundTag nbt) {
         super.toTag(nbt);
 
-        energy.separateNetwork();
-
-        nbt.putInt("energy", energy.getEnergy());
+        for (NodeHost host : getHosts()) {
+            host.separateNetwork();
+            host.writeNbt(nbt);
+        }
 
         return nbt;
     }
@@ -67,19 +44,16 @@ public class PipeBlockEntity extends MtBlockEntity {
     public void fromTag(BlockState state, CompoundTag nbt) {
         super.fromTag(state, nbt);
 
-        energy.setEnergy(nbt.getInt("energy"), false);
-    }
-
-    protected void addHosts() {
-        energy.addSelf();
-    }
-
-    protected void removeHosts() {
-        energy.removeSelf();
+        for (NodeHost host : getHosts()) {
+            host.separateNetwork();
+            host.readNbt(nbt);
+        }
     }
 
     public void neighborUpdate() {
-        energy.scheduleUpdate();
+        for (NodeHost host : getHosts()) {
+            host.scheduleUpdate();
+        }
     }
 
     @Override
@@ -87,9 +61,16 @@ public class PipeBlockEntity extends MtBlockEntity {
         super.cancelRemoval();
 
         if (!world.isClient()) {
-            if (!hostRegistered) {
-                hostRegistered = true;
-                addHosts();
+            if (!hostsRegistered) {
+                TickHelper.runLater(() -> {
+                    if (!hostsRegistered) {
+                        hostsRegistered = true;
+
+                        for (NodeHost host : getHosts()) {
+                            host.addSelf();
+                        }
+                    }
+                });
             }
         }
     }
@@ -99,9 +80,12 @@ public class PipeBlockEntity extends MtBlockEntity {
         super.onChunkUnloaded();
 
         if (!world.isClient()) {
-            if (hostRegistered) {
-                hostRegistered = false;
-                removeHosts();
+            if (hostsRegistered) {
+                hostsRegistered = false;
+
+                for (NodeHost host : getHosts()) {
+                    host.removeSelf();
+                }
             }
         }
     }
@@ -111,34 +95,36 @@ public class PipeBlockEntity extends MtBlockEntity {
         super.markRemoved();
 
         if (!world.isClient()) {
-            if (hostRegistered) {
-                hostRegistered = false;
-                removeHosts();
+            if (hostsRegistered) {
+                hostsRegistered = false;
+
+                for (NodeHost host : getHosts()) {
+                    host.removeSelf();
+                }
             }
         }
     }
 
     @NotNull
     @Override
-    public IModelData getModelData() {
-        return modelData;
-    }
+    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+        for (NodeHost host : getHosts()) {
+            LazyOptional<T> returnedCap = host.getCapability(cap, side);
 
-    public void updateCachedShape(int pipeConnections, int inventoryConnections) {
-        int allConnections = pipeConnections | inventoryConnections;
-
-        VoxelShape shape = PipeBoundingBoxes.CORE_SHAPE;
-
-        for (int i = 0; i < 6; ++i) {
-            if ((allConnections & (1 << i)) > 0) {
-                shape = VoxelShapes.union(shape, PipeBoundingBoxes.PIPE_CONNECTIONS[i]);
-            }
-
-            if ((inventoryConnections & (1 << i)) > 0) {
-                shape = VoxelShapes.union(shape, PipeBoundingBoxes.INVENTORY_CONNECTIONS[i]);
+            if (returnedCap.isPresent()) {
+                return returnedCap;
             }
         }
 
-        cachedShape = shape.simplify();
+        return super.getCapability(cap, side);
+    }
+
+    @Override
+    protected void invalidateCaps() {
+        for (NodeHost host : getHosts()) {
+            host.invalidateCapabilities();
+        }
+
+        super.invalidateCaps();
     }
 }

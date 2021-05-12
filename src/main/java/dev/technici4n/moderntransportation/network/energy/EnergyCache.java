@@ -31,6 +31,40 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
         inventoryConnectionHosts.add(host);
     }
 
+    public int getEnergyStored() {
+        combine();
+        return Ints.saturatedCast(energy);
+    }
+
+    public int getMaxEnergyStored() {
+        combine();
+        return Ints.saturatedCast(maxEnergy);
+    }
+
+    public int insertEnergy(int maxAmount, boolean simulate) {
+        combine();
+
+        int inserted = (int) Math.min(maxAmount, maxEnergy - energy);
+
+        if (!simulate) {
+            energy += inserted;
+        }
+
+        return inserted;
+    }
+
+    public int extractEnergy(int maxAmount, boolean simulate) {
+        combine();
+
+        int extracted = (int) Math.min(maxAmount, energy);
+
+        if (!simulate) {
+            energy -= extracted;
+        }
+
+        return extracted;
+    }
+
     @Override
     protected void doCombine() {
         // Gather energy from nodes
@@ -118,7 +152,7 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
         return transferredAmount;
     }
 
-    private interface TransferOperation {
+    interface TransferOperation {
         int transfer(IEnergyStorage storage, int maxTransfer, boolean simulate);
     }
 

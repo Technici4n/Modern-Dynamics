@@ -1,6 +1,7 @@
 package dev.technici4n.moderntransportation.network;
 
 import net.minecraft.util.math.Direction;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.EnumSet;

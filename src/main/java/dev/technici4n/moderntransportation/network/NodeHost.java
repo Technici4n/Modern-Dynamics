@@ -3,6 +3,8 @@ package dev.technici4n.moderntransportation.network;
 import dev.technici4n.moderntransportation.block.PipeBlockEntity;
 import dev.technici4n.moderntransportation.network.energy.EnergyCache;
 import dev.technici4n.moderntransportation.network.energy.EnergyHost;
+import dev.technici4n.moderntransportation.util.SerializationHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Direction;
 import net.minecraftforge.common.capabilities.Capability;
@@ -22,7 +24,7 @@ public abstract class NodeHost {
     /**
      * Current connections to adjacent pipes.
      */
-    public EnumSet<Direction> pipeConnections = EnumSet.noneOf(Direction.class);
+    public byte pipeConnections = 0;
     /**
      * True if the host needs an update.
      * The update is done by the network when the host is in a ticking chunk.
@@ -39,22 +41,22 @@ public abstract class NodeHost {
     }
 
     /**
-     * Return the list of allowed directions for connections to adjacent nodes.
+     * Return true if this node can connect to the target (adjacent) node as part of a network.
      */
-    public final EnumSet<Direction> getAllowedNodeConnections() {
-        return EnumSet.allOf(Direction.class);
+    public boolean canConnectTo(Direction connectionDirection, NodeHost adjacentHost) {
+        return true;
     }
 
     /**
      * Set the list of current connections.
      */
     public final void setConnections(EnumSet<Direction> connections) {
-        pipeConnections = connections;
+        pipeConnections = SerializationHelper.directionsToMask(connections);
         pipe.sync();
     }
 
     @SuppressWarnings("rawtypes")
-    protected abstract NetworkManager getManager();
+    public abstract NetworkManager getManager();
 
     @SuppressWarnings("unchecked")
     public void addSelf() {
@@ -66,8 +68,13 @@ public abstract class NodeHost {
         getManager().removeNode((ServerWorld) pipe.getWorld(), pipe.getPos(), this);
     }
 
+    public abstract <T> LazyOptional<T> getCapability(Capability<T> capability, Direction side);
+
+    public abstract void invalidateCapabilities();
+
+    @SuppressWarnings("unchecked")
     @Nullable
-    protected final NetworkNode<?, ?> findNode() {
+    protected final <H extends NodeHost, C extends NetworkCache<H, C>> NetworkNode<H, C> findNode() {
         return getManager().findNode((ServerWorld) pipe.getWorld(), pipe.getPos());
     }
 
@@ -109,4 +116,8 @@ public abstract class NodeHost {
     public final boolean needsUpdate() {
         return needsUpdate;
     }
+
+    public abstract void writeNbt(CompoundTag tag);
+
+    public abstract void readNbt(CompoundTag tag);
 }

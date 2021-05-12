@@ -46,9 +46,13 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
         for (NetworkManager<?, ?> manager : MANAGERS.values()) {
             manager.updateNetworks();
 
+            manager.iteratingOverNetworks = true;
+
             for (Network<?, ?> network : manager.networks) {
                 network.cache.tick();
             }
+
+            manager.iteratingOverNetworks = false;
         }
     }
 
@@ -58,6 +62,7 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
     private final IdentityHashMap<ServerWorld, Long2ObjectOpenHashMap<NetworkNode<H, C>>> nodes = new IdentityHashMap<>();
     private final Set<NetworkNode<H, C>> pendingUpdates = Collections.newSetFromMap(new IdentityHashMap<>());
     private final Set<Network<H, C>> networks = Collections.newSetFromMap(new IdentityHashMap<>());
+    private boolean iteratingOverNetworks = false;
 
     NetworkManager(Class<C> cacheClass, NetworkCache.Factory<H, C> cacheFactory) {
         this.cacheClass = cacheClass;
@@ -65,10 +70,13 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
     }
 
     public void addNode(ServerWorld world, BlockPos pos, H host) {
+        if (iteratingOverNetworks) {
+            throw new ConcurrentModificationException("Node at position " + pos + " in world " + world + " can't be added: networks are being iterated over.");
+        }
+
         Long2ObjectOpenHashMap<NetworkNode<H, C>> worldNodes = nodes.computeIfAbsent(world, w -> new Long2ObjectOpenHashMap<>());
 
         NetworkNode<H, C> newNode = new NetworkNode<>(host);
-        EnumSet<Direction> allowedConnections = host.getAllowedNodeConnections();
 
         if (worldNodes.put(pos.asLong(), newNode) != null) {
             throw new IllegalArgumentException("Node at position " + pos + " in world " + world + " already exists.");
@@ -76,12 +84,12 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
 
         pendingUpdates.add(newNode);
 
-        for (Direction direction : allowedConnections) {
+        for (Direction direction : Direction.values()) {
             BlockPos adjacentPos = pos.offset(direction);
             @Nullable
             NetworkNode<H, C> adjacentNode = worldNodes.get(adjacentPos.asLong());
 
-            if (adjacentNode != null && adjacentNode.getHost().getAllowedNodeConnections().contains(direction.getOpposite())) {
+            if (adjacentNode != null && host.canConnectTo(direction, adjacentNode.getHost()) && adjacentNode.getHost().canConnectTo(direction.getOpposite(), host)) {
                 if (adjacentNode.network != null) {
                     // The network of the adjacent node may be null during loading.
                     adjacentNode.network.cache.separate();
@@ -94,6 +102,10 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
     }
 
     public void removeNode(ServerWorld world, BlockPos pos, H host) {
+        if (iteratingOverNetworks) {
+            throw new ConcurrentModificationException("Node at position " + pos + " in world " + world + " can't be removed: networks are being iterated over.");
+        }
+
         Long2ObjectOpenHashMap<NetworkNode<H, C>> worldNodes = nodes.computeIfAbsent(world, w -> new Long2ObjectOpenHashMap<>());
 
         NetworkNode<H, C> node = worldNodes.remove(pos.asLong());

@@ -4,6 +4,7 @@ import dev.technici4n.moderntransportation.init.MtBlockEntities;
 import dev.technici4n.moderntransportation.init.MtBlocks;
 import dev.technici4n.moderntransportation.init.MtItems;
 import dev.technici4n.moderntransportation.network.NetworkManager;
+import dev.technici4n.moderntransportation.network.TickHelper;
 import dev.technici4n.moderntransportation.network.energy.EnergyCache;
 import dev.technici4n.moderntransportation.util.MtItemGroup;
 import net.minecraft.block.Block;
@@ -41,6 +42,7 @@ public class ModernTransportation {
 		MinecraftForge.EVENT_BUS.addListener((Consumer<FMLServerStoppedEvent>) event -> NetworkManager.onServerStopped());
 		MinecraftForge.EVENT_BUS.addListener((Consumer<TickEvent.ServerTickEvent>) event -> {
 			if (event.phase == TickEvent.Phase.END) {
+				TickHelper.onEndTick();
 				NetworkManager.onEndTick();
 			}
 		});

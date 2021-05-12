@@ -8,15 +8,8 @@ import net.minecraft.block.Material;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -83,12 +76,13 @@ public class PipeBlock extends Block {
 		return true;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext ctx) {
 		BlockEntity be = world.getBlockEntity(pos);
 
 		if (be instanceof PipeBlockEntity) {
-			return ((PipeBlockEntity) be).cachedShape;
+			return ((PipeBlockEntity) be).getCachedShape();
 		} else {
 			return PipeBoundingBoxes.CORE_SHAPE;
 		}
