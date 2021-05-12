@@ -16,7 +16,7 @@ public abstract class MtBlockEntity extends BlockEntity {
     }
 
     // Thank you Fabric API
-    public final void sync() {
+    public void sync() {
         Preconditions.checkNotNull(world); //Maintain distinct failure case from below
         if (!(world instanceof ServerWorld)) throw new IllegalStateException("Cannot call sync() on the logical client! Did you check world.isClient first?");
 

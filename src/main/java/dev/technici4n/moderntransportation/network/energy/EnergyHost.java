@@ -1,11 +1,13 @@
 package dev.technici4n.moderntransportation.network.energy;
 
 import dev.technici4n.moderntransportation.block.PipeBlockEntity;
-import dev.technici4n.moderntransportation.network.CapabilityConnections;
 import dev.technici4n.moderntransportation.network.NetworkManager;
 import dev.technici4n.moderntransportation.network.NodeHost;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.util.math.Direction;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -14,7 +16,7 @@ public class EnergyHost extends NodeHost {
 
     private final int maxEnergy;
     private int energy;
-    public final CapabilityConnections<IEnergyStorage> inventoryConnections = new CapabilityConnections<>(CapabilityEnergy.ENERGY, this);
+    public int inventoryConnections = 0;
 
     public EnergyHost(PipeBlockEntity pipe, int maxEnergy) {
         super(pipe);
@@ -53,7 +55,7 @@ public class EnergyHost extends NodeHost {
 
     @Override
     protected void doUpdate() {
-        inventoryConnections.updateConnections();
+        updateConnections();
 
         if (hasInventoryConnections()) {
             ((EnergyCache) findNode().getNetworkCache()).addInventoryConnectionHost(this);
@@ -61,10 +63,54 @@ public class EnergyHost extends NodeHost {
     }
 
     protected void addEnergyStorages(List<IEnergyStorage> out) {
-        inventoryConnections.gatherCapabilities(out);
+        gatherCapabilities(out);
     }
 
     public boolean hasInventoryConnections() {
-        return inventoryConnections.getConnectionMask() != 0;
+        return inventoryConnections != 0;
+    }
+
+    public void gatherCapabilities(@Nullable List<IEnergyStorage> out) {
+        int oldConnections = inventoryConnections;
+
+        for (int i = 0; i < 6; ++i) {
+            if ((inventoryConnections & (1 << i)) > 0) {
+                Direction dir = Direction.byId(i);
+                @SuppressWarnings("ConstantConditions")
+                BlockEntity adjacentBe = pipe.getWorld().getBlockEntity(pipe.getPos().offset(dir));
+                IEnergyStorage adjacentCap = null;
+
+                if (adjacentBe != null) {
+                    adjacentCap = adjacentBe.getCapability(CapabilityEnergy.ENERGY, dir.getOpposite()).orElse(null);
+                }
+
+                if (adjacentCap != null) {
+                    if (out != null) {
+                        out.add(adjacentCap);
+                    }
+                } else {
+                    // Remove the direction from the bitmask
+                    inventoryConnections ^= 1 << i;
+                }
+            }
+        }
+
+        if (oldConnections != inventoryConnections) {
+            pipe.sync();
+        }
+    }
+
+    public void updateConnections() {
+        // Store old connections
+        int oldConnections = inventoryConnections;
+
+        // Compute new connections
+        inventoryConnections = (1 << 6) - 1;
+        gatherCapabilities(null);
+
+        // Update render
+        if (oldConnections != inventoryConnections) {
+            pipe.sync();
+        }
     }
 }

@@ -33,11 +33,11 @@ public class BlockStateGenerator extends BlockStateProvider {
 		registerPipeModel(MtBlocks.CONDUCTIVE_FAST_FLUID_PIPE, "lead", "connection_lead");
 		registerPipeModel(MtBlocks.CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE, "lead", "connection_lead");
 
-		registerPipeModel(MtBlocks.BASIC_ENERGY_PIPE, "lead", "connection_lead");
-		registerPipeModel(MtBlocks.HARDENED_ENERGY_PIPE, "lead", "connection_lead");
-		registerPipeModel(MtBlocks.REINFORCED_ENERGY_PIPE, "lead", "connection_lead");
-		registerPipeModel(MtBlocks.SIGNALUM_ENERGY_PIPE, "lead", "connection_lead");
-		registerPipeModel(MtBlocks.RESONANT_ENERGY_PIPE, "lead", "connection_lead");
+		registerPipeModel(MtBlocks.BASIC_ENERGY_PIPE, "base/energy/lead", "connector/lead");
+		registerPipeModel(MtBlocks.HARDENED_ENERGY_PIPE, "base/energy/invar", "connector/invar");
+		registerPipeModel(MtBlocks.REINFORCED_ENERGY_PIPE, "base/energy/electrum", "connector/electrum");
+		registerPipeModel(MtBlocks.SIGNALUM_ENERGY_PIPE, "base/energy/signalum", "connector/signalum");
+		registerPipeModel(MtBlocks.RESONANT_ENERGY_PIPE, "base/energy/enderium", "connector/enderium");
 		registerPipeModel(MtBlocks.SUPERCONDUCTING_PIPE, "lead", "connection_lead");
 
 		registerPipeModel(MtBlocks.EMPTY_REINFORCED_ENERGY_PIPE, "lead", "connection_lead");

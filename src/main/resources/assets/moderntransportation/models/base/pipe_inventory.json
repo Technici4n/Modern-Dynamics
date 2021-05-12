@@ -1,7 +1,6 @@
 {
 	"credit": "Made with Blockbench",
 	"textures": {
-		"0": "moderntransportation:connection_lead",
 		"particle": "#0"
 	},
 	"elements": [

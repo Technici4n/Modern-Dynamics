@@ -8,6 +8,8 @@ import dev.technici4n.moderntransportation.util.SerializationHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.client.model.data.ModelDataMap;
@@ -22,11 +24,18 @@ public class PipeBlockEntity extends MtBlockEntity {
     private boolean hostRegistered = false;
 
     private IModelData modelData = EmptyModelData.INSTANCE;
+    VoxelShape cachedShape = PipeBoundingBoxes.CORE_SHAPE;
+
+    @Override
+    public void sync() {
+        super.sync();
+        updateCachedShape(SerializationHelper.directionsToMask(energy.pipeConnections), energy.inventoryConnections);
+    }
 
     @Override
     public void toClientTag(CompoundTag tag) {
         tag.putByte("connections", SerializationHelper.directionsToMask(energy.pipeConnections));
-        tag.putByte("inventoryConnections", energy.inventoryConnections.getConnectionMask());
+        tag.putByte("inventoryConnections", (byte) energy.inventoryConnections);
     }
 
     @Override
@@ -34,6 +43,7 @@ public class PipeBlockEntity extends MtBlockEntity {
         byte connections = tag.getByte("connections");
         byte inventoryConnections = tag.getByte("inventoryConnections");
 
+        updateCachedShape(connections, inventoryConnections);
         modelData = new ModelDataMap.Builder()
                 .withInitial(MTModels.CONNECTIONS_PIPE, connections)
                 .withInitial(MTModels.CONNECTIONS_INVENTORY, inventoryConnections)
@@ -112,5 +122,23 @@ public class PipeBlockEntity extends MtBlockEntity {
     @Override
     public IModelData getModelData() {
         return modelData;
+    }
+
+    public void updateCachedShape(int pipeConnections, int inventoryConnections) {
+        int allConnections = pipeConnections | inventoryConnections;
+
+        VoxelShape shape = PipeBoundingBoxes.CORE_SHAPE;
+
+        for (int i = 0; i < 6; ++i) {
+            if ((allConnections & (1 << i)) > 0) {
+                shape = VoxelShapes.union(shape, PipeBoundingBoxes.PIPE_CONNECTIONS[i]);
+            }
+
+            if ((inventoryConnections & (1 << i)) > 0) {
+                shape = VoxelShapes.union(shape, PipeBoundingBoxes.INVENTORY_CONNECTIONS[i]);
+            }
+        }
+
+        cachedShape = shape.simplify();
     }
 }

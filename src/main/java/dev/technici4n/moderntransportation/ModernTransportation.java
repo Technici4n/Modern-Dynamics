@@ -25,7 +25,8 @@ import java.util.function.Consumer;
 
 @Mod("moderntransportation")
 public class ModernTransportation {
-	public static final Logger LOGGER = LogManager.getLogger("Modern Transportation");
+    public static final Logger LOGGER = LogManager.getLogger("Modern Transportation");
+    public static final String ID = "moderntransportation";
 
 	public ModernTransportation() {
 		MtItemGroup.init();
