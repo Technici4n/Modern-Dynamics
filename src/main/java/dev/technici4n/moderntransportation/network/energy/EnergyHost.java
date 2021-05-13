@@ -1,7 +1,6 @@
 package dev.technici4n.moderntransportation.network.energy;
 
 import dev.technici4n.moderntransportation.block.PipeBlockEntity;
-import dev.technici4n.moderntransportation.init.MtPipes;
 import dev.technici4n.moderntransportation.network.NetworkManager;
 import dev.technici4n.moderntransportation.network.NetworkNode;
 import dev.technici4n.moderntransportation.network.NodeHost;
@@ -48,9 +47,9 @@ public class EnergyHost extends NodeHost {
 
     @Override
     public <T> LazyOptional<T> getCapability(Capability<T> capability, Direction side) {
-        // we don't check for inventoryConnections here or it would cause "deadlocks" when two pipes of different tiers
-        // try to connect to each other.
-        if (capability == CapabilityEnergy.ENERGY && side != null) {
+        // We don't check for inventoryConnections here or it would cause "deadlocks" when two pipes of different tiers
+        // try to connect to each other, but we check for blacklisted connections.
+        if (capability == CapabilityEnergy.ENERGY && side != null && (pipe.connectionBlacklist & (1 << side.getId())) == 0) {
             return caps[side.getId()].cast();
         } else {
             return LazyOptional.empty();
@@ -94,7 +93,7 @@ public class EnergyHost extends NodeHost {
 
     @Override
     public boolean canConnectTo(Direction connectionDirection, NodeHost adjacentHost) {
-        return ((EnergyHost) adjacentHost).tier == this.tier;
+        return super.canConnectTo(connectionDirection, adjacentHost) && ((EnergyHost) adjacentHost).tier == this.tier;
     }
 
     protected void addEnergyStorages(List<IEnergyStorage> out) {
@@ -121,7 +120,7 @@ public class EnergyHost extends NodeHost {
 
                 if (adjacentCap != null) {
                     if (out != null) {
-                        out.add(adjacentCap);
+                        out.add(new ExternalEnergyStorage(adjacentCap, i));
                     }
                 } else {
                     // Remove the direction from the bitmask
@@ -139,8 +138,8 @@ public class EnergyHost extends NodeHost {
         // Store old connections
         int oldConnections = inventoryConnections;
 
-        // Compute new connections (exluding existing adjacent pipe connections)
-        inventoryConnections = (1 << 6) - 1 - pipeConnections;
+        // Compute new connections (excluding existing adjacent pipe connections, and the blacklist)
+        inventoryConnections = (1 << 6) - 1 - (pipeConnections | pipe.connectionBlacklist);
         gatherCapabilities(null);
 
         // Update render
@@ -176,9 +175,9 @@ public class EnergyHost extends NodeHost {
         private final IEnergyStorage delegate;
         private final int directionId;
 
-        private ExternalEnergyStorage(IEnergyStorage delegate, Direction direction) {
+        private ExternalEnergyStorage(IEnergyStorage delegate, int directionId) {
             this.delegate = delegate;
-            this.directionId = direction.getId();
+            this.directionId = directionId;
         }
 
         @Override

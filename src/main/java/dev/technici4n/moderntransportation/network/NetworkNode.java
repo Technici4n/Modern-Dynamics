@@ -36,8 +36,7 @@ public class NetworkNode<H extends NodeHost, C extends NetworkCache<H, C>> {
             }
         }
 
-        connections.add(new Connection<H, C>(direction, target));
-        updateHostConnections();
+        connections.add(new Connection<>(direction, target));
     }
 
     void removeConnection(Direction direction, NetworkNode<H, C> target) {
@@ -50,7 +49,6 @@ public class NetworkNode<H extends NodeHost, C extends NetworkCache<H, C>> {
                 }
 
                 it.remove();
-                updateHostConnections();
                 return;
             }
         }

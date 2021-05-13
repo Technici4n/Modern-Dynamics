@@ -44,7 +44,7 @@ public abstract class NodeHost {
      * Return true if this node can connect to the target (adjacent) node as part of a network.
      */
     public boolean canConnectTo(Direction connectionDirection, NodeHost adjacentHost) {
-        return true;
+        return (pipe.connectionBlacklist & (1 << connectionDirection.getId())) == 0;
     }
 
     /**
@@ -59,13 +59,18 @@ public abstract class NodeHost {
     public abstract NetworkManager getManager();
 
     @SuppressWarnings("unchecked")
-    public void addSelf() {
+    public final void addSelf() {
         getManager().addNode((ServerWorld) pipe.getWorld(), pipe.getPos(), this);
     }
 
     @SuppressWarnings("unchecked")
-    public void removeSelf() {
+    public final void removeSelf() {
         getManager().removeNode((ServerWorld) pipe.getWorld(), pipe.getPos(), this);
+    }
+
+    @SuppressWarnings("unchecked")
+    public final void refreshSelf() {
+        getManager().refreshNode((ServerWorld) pipe.getWorld(), pipe.getPos(), this);
     }
 
     public abstract <T> LazyOptional<T> getCapability(Capability<T> capability, Direction side);

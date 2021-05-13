@@ -10,7 +10,8 @@ public class PipeBoundingBoxes {
 
     public static final VoxelShape CORE_SHAPE = VoxelShapes.cuboid(CORE_START, CORE_START, CORE_START, CORE_END, CORE_END, CORE_END);
     public static final VoxelShape[] PIPE_CONNECTIONS = buildSideShapes(CORE_SIZE, CORE_START);
-    public static final VoxelShape[] INVENTORY_CONNECTIONS = buildSideShapes(8.0 / 16, 4.0 / 16);
+    public static final VoxelShape[] CONNECTOR_SHAPES = buildSideShapes(8.0 / 16, 4.0 / 16);
+    public static final VoxelShape[] INVENTORY_CONNECTIONS = combinePiecewise(PIPE_CONNECTIONS, CONNECTOR_SHAPES);
     
     public static VoxelShape[] buildSideShapes(double connectorSide, double connectorDepth) {
         double connectorSideStart = (1 - connectorSide) / 2;
@@ -38,6 +39,16 @@ public class PipeBoundingBoxes {
             }
 
             combinedShapes[mask] = currentShape.simplify();
+        }
+
+        return combinedShapes;
+    }
+
+    public static VoxelShape[] combinePiecewise(VoxelShape[] part1, VoxelShape[] part2) {
+        VoxelShape[] combinedShapes = new VoxelShape[6];
+
+        for (int i = 0; i < 6; ++i) {
+            combinedShapes[i] = VoxelShapes.union(part1[i], part2[i]).simplify();
         }
 
         return combinedShapes;

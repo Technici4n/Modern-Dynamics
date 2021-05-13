@@ -97,8 +97,11 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
 
                 newNode.addConnection(direction, adjacentNode);
                 adjacentNode.addConnection(direction.getOpposite(), newNode);
+                adjacentNode.updateHostConnections();
             }
         }
+
+        newNode.updateHostConnections();
     }
 
     public void removeNode(ServerWorld world, BlockPos pos, H host) {
@@ -126,8 +129,14 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
         for (NetworkNode.Connection<H, C> connection : node.getConnections()) {
             NetworkNode<H, C> target = connection.target;
             target.removeConnection(connection.direction.getOpposite(), node);
+            target.updateHostConnections();
             pendingUpdates.add(target);
         }
+    }
+
+    public void refreshNode(ServerWorld world, BlockPos pos, H host) {
+        removeNode(world, pos, host);
+        addNode(world, pos, host);
     }
 
     @Nullable

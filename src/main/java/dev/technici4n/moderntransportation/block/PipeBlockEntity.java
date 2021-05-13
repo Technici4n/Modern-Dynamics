@@ -1,11 +1,17 @@
 package dev.technici4n.moderntransportation.block;
 
+import com.google.common.base.Preconditions;
 import dev.technici4n.moderntransportation.MtBlockEntity;
 import dev.technici4n.moderntransportation.network.NodeHost;
 import dev.technici4n.moderntransportation.network.TickHelper;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraftforge.common.capabilities.Capability;
@@ -23,14 +29,29 @@ public abstract class PipeBlockEntity extends MtBlockEntity {
     }
 
     private boolean hostsRegistered = false;
+    public int connectionBlacklist = 0;
 
     public abstract NodeHost[] getHosts();
 
     public abstract VoxelShape getCachedShape();
 
+    public abstract ActionResult onUse(PlayerEntity player, Hand hand, BlockHitResult hitResult);
+
+    @Override
+    public void toClientTag(CompoundTag tag) {
+        tag.putByte("connectionBlacklist", (byte) connectionBlacklist);
+    }
+
+    @Override
+    public void fromClientTag(CompoundTag tag) {
+        connectionBlacklist = tag.getByte("connectionBlacklist");
+    }
+
     @Override
     public CompoundTag toTag(CompoundTag nbt) {
         super.toTag(nbt);
+
+        nbt.putByte("connectionBlacklist", (byte) connectionBlacklist);
 
         for (NodeHost host : getHosts()) {
             host.separateNetwork();
@@ -44,13 +65,15 @@ public abstract class PipeBlockEntity extends MtBlockEntity {
     public void fromTag(BlockState state, CompoundTag nbt) {
         super.fromTag(state, nbt);
 
+        connectionBlacklist = nbt.getByte("connectionBlacklist");
+
         for (NodeHost host : getHosts()) {
             host.separateNetwork();
             host.readNbt(nbt);
         }
     }
 
-    public void neighborUpdate() {
+    public void scheduleHostUpdates() {
         for (NodeHost host : getHosts()) {
             host.scheduleUpdate();
         }
@@ -105,6 +128,14 @@ public abstract class PipeBlockEntity extends MtBlockEntity {
         }
     }
 
+    public void refreshHosts() {
+        if (hostsRegistered) {
+            for (NodeHost host : getHosts()) {
+                host.refreshSelf();
+            }
+        }
+    }
+
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
@@ -126,5 +157,43 @@ public abstract class PipeBlockEntity extends MtBlockEntity {
         }
 
         super.invalidateCaps();
+    }
+
+    /**
+     * Update connection blacklist for a side, and schedule a node update, on the server side.
+     */
+    protected void updateConnection(Direction side, boolean addConnection) {
+        if (world.isClient()) {
+            throw new IllegalStateException("updateConnections() should not be called client-side.");
+        }
+
+        // Update mask
+        if (addConnection) {
+            connectionBlacklist &= ~(1 << side.getId());
+        } else {
+            connectionBlacklist |= 1 << side.getId();
+        }
+
+        // Schedule inventory and network updates.
+        refreshHosts();
+        // The call to getNode() causes a network rebuild, but that shouldn't be an issue. (?)
+        scheduleHostUpdates();
+
+        // Update neighbor's mask as well
+        BlockEntity be = world.getBlockEntity(pos.offset(side));
+
+        if (be instanceof PipeBlockEntity) {
+            PipeBlockEntity neighborPipe = (PipeBlockEntity) be;
+            if (addConnection) {
+                neighborPipe.connectionBlacklist &= ~(1 << side.getOpposite().getId());
+            } else {
+                neighborPipe.connectionBlacklist |= 1 << side.getOpposite().getId();
+            }
+            neighborPipe.markDirty();
+        }
+
+        world.updateNeighbors(pos, getCachedState().getBlock());
+        markDirty();
+        // no need to sync(), that's already handled by the refresh or update if necessary
     }
 }

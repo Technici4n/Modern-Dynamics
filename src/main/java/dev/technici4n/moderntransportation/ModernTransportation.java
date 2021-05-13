@@ -7,6 +7,7 @@ import dev.technici4n.moderntransportation.network.NetworkManager;
 import dev.technici4n.moderntransportation.network.TickHelper;
 import dev.technici4n.moderntransportation.network.energy.EnergyCache;
 import dev.technici4n.moderntransportation.util.MtItemGroup;
+import dev.technici4n.moderntransportation.util.WrenchHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.Item;
@@ -46,6 +47,7 @@ public class ModernTransportation {
 				NetworkManager.onEndTick();
 			}
 		});
+		WrenchHelper.registerEvents();
 
 		DistExecutor.safeRunWhenOn(Dist.CLIENT, ()->ModernTransportationClient::registerClientEvents);
 

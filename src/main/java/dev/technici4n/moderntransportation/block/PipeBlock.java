@@ -8,6 +8,10 @@ import net.minecraft.block.Material;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
@@ -67,7 +71,7 @@ public class PipeBlock extends Block {
 		BlockEntity be = world.getBlockEntity(pos);
 
 		if (be instanceof PipeBlockEntity) {
-			((PipeBlockEntity) be).neighborUpdate();
+			((PipeBlockEntity) be).scheduleHostUpdates();
 		}
 	}
 
@@ -85,6 +89,18 @@ public class PipeBlock extends Block {
 			return ((PipeBlockEntity) be).getCachedShape();
 		} else {
 			return PipeBoundingBoxes.CORE_SHAPE;
+		}
+	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hitResult) {
+		BlockEntity be = world.getBlockEntity(pos);
+
+		if (be instanceof PipeBlockEntity) {
+			return ((PipeBlockEntity) be).onUse(player, hand, hitResult);
+		} else  {
+			return ActionResult.PASS;
 		}
 	}
 }
