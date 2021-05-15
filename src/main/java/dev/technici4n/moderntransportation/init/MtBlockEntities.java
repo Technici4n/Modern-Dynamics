@@ -2,11 +2,9 @@ package dev.technici4n.moderntransportation.init;
 
 import com.google.common.base.Preconditions;
 import dev.technici4n.moderntransportation.MtBlockEntity;
-import dev.technici4n.moderntransportation.block.EnergyPipeBlockEntity;
-import dev.technici4n.moderntransportation.block.NyiPipeBlockEntity;
-import dev.technici4n.moderntransportation.block.PipeBlock;
-import dev.technici4n.moderntransportation.block.PipeBlockEntity;
+import dev.technici4n.moderntransportation.block.*;
 import dev.technici4n.moderntransportation.network.energy.EnergyPipeTier;
+import dev.technici4n.moderntransportation.network.item.ItemPipeTier;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraftforge.registries.IForgeRegistry;
 
@@ -15,8 +13,8 @@ import java.util.function.Supplier;
 
 public final class MtBlockEntities {
 
-	public static final BlockEntityType<PipeBlockEntity> BASIC_ITEM_PIPE = create(NyiPipeBlockEntity::new, MtBlocks.BASIC_ITEM_PIPE);
-	public static final BlockEntityType<PipeBlockEntity> BASIC_ITEM_PIPE_OPAQUE = create(NyiPipeBlockEntity::new, MtBlocks.BASIC_ITEM_PIPE_OPAQUE);
+	public static final BlockEntityType<PipeBlockEntity> BASIC_ITEM_PIPE = createItemPipe(ItemPipeTier.BASIC, MtBlocks.BASIC_ITEM_PIPE);
+	public static final BlockEntityType<PipeBlockEntity> BASIC_ITEM_PIPE_OPAQUE = createItemPipe(ItemPipeTier.BASIC, MtBlocks.BASIC_ITEM_PIPE_OPAQUE);
 	public static final BlockEntityType<PipeBlockEntity> FAST_ITEM_PIPE = create(NyiPipeBlockEntity::new, MtBlocks.FAST_ITEM_PIPE);
 	public static final BlockEntityType<PipeBlockEntity> FAST_ITEM_PIPE_OPAQUE = create(NyiPipeBlockEntity::new, MtBlocks.FAST_ITEM_PIPE_OPAQUE);
 	public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_ITEM_PIPE = create(NyiPipeBlockEntity::new, MtBlocks.CONDUCTIVE_ITEM_PIPE);
@@ -49,6 +47,10 @@ public final class MtBlockEntities {
 		type.setRegistryName(block.getRegistryName());
 		block.setBlockEntityProvider(type);
 		return type;
+	}
+
+	private static BlockEntityType<PipeBlockEntity> createItemPipe(ItemPipeTier tier, PipeBlock block) {
+		return create(type -> new ItemPipeBlockEntity(type, tier), block);
 	}
 
 	private static BlockEntityType<PipeBlockEntity> createEnergyPipe(EnergyPipeTier tier, PipeBlock block) {

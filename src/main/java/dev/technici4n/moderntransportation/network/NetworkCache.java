@@ -1,5 +1,8 @@
 package dev.technici4n.moderntransportation.network;
 
+import dev.technici4n.moderntransportation.network.energy.EnergyCache;
+import dev.technici4n.moderntransportation.network.energy.EnergyHost;
+
 import java.util.*;
 
 /**
@@ -16,6 +19,11 @@ public abstract class NetworkCache<H extends NodeHost, C extends NetworkCache<H,
      */
     private boolean combined = false;
     private final Set<NodeHost> hostsToUpdate = Collections.newSetFromMap(new IdentityHashMap<>());
+    /**
+     * Hosts that have inventory connections, to avoid iterating over all hosts every tick.
+     * THE CACHE IS RESPONSIBLE FOR REMOVING FROM THIS MAP WHEN NECESSARY.
+     */
+    protected final Set<H> inventoryConnectionHosts = new HashSet<>();
 
     protected NetworkCache(List<NetworkNode<H, C>> nodes) {
         this.nodes = nodes;
@@ -23,6 +31,10 @@ public abstract class NetworkCache<H extends NodeHost, C extends NetworkCache<H,
         for (NetworkNode<H, C> node : nodes) {
             if (node.getHost().needsUpdate()) {
                 hostsToUpdate.add(node.getHost());
+            }
+
+            if (node.getHost().hasInventoryConnections()) {
+                inventoryConnectionHosts.add(node.getHost());
             }
         }
     }
@@ -50,6 +62,14 @@ public abstract class NetworkCache<H extends NodeHost, C extends NetworkCache<H,
 
     public final void scheduleHostUpdate(NodeHost host) {
         hostsToUpdate.add(host);
+    }
+
+    public void addInventoryConnectionHost(H host) {
+        if (!host.hasInventoryConnections()) {
+            throw new IllegalArgumentException("Host has no inventory connections!");
+        }
+
+        inventoryConnectionHosts.add(host);
     }
 
     protected void doCombine() {

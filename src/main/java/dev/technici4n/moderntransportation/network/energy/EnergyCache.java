@@ -11,24 +11,8 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
     private long energy = 0;
     private long maxEnergy = 0;
 
-    private final Set<EnergyHost> inventoryConnectionHosts = new HashSet<>();
-
     public EnergyCache(List<NetworkNode<EnergyHost, EnergyCache>> nodes) {
         super(nodes);
-
-        for (NetworkNode<EnergyHost, EnergyCache> node : nodes) {
-            if (node.getHost().hasInventoryConnections()) {
-                inventoryConnectionHosts.add(node.getHost());
-            }
-        }
-    }
-
-    public void addInventoryConnectionHost(EnergyHost host) {
-        if (!host.hasInventoryConnections()) {
-            throw new IllegalArgumentException("Host has no inventory connections!");
-        }
-
-        inventoryConnectionHosts.add(host);
     }
 
     public int getEnergyStored() {

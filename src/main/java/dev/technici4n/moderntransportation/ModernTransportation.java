@@ -6,6 +6,7 @@ import dev.technici4n.moderntransportation.init.MtItems;
 import dev.technici4n.moderntransportation.network.NetworkManager;
 import dev.technici4n.moderntransportation.network.TickHelper;
 import dev.technici4n.moderntransportation.network.energy.EnergyCache;
+import dev.technici4n.moderntransportation.network.item.ItemCache;
 import dev.technici4n.moderntransportation.util.MtItemGroup;
 import dev.technici4n.moderntransportation.util.WrenchHelper;
 import net.minecraft.block.Block;
@@ -28,12 +29,12 @@ import java.util.function.Consumer;
 @Mod("moderntransportation")
 public class ModernTransportation {
     public static final Logger LOGGER = LogManager.getLogger("Modern Transportation");
-    public static final String ID = "moderntransportation";
 
 	public ModernTransportation() {
 		MtItemGroup.init();
 
 		NetworkManager.registerCacheClass(EnergyCache.class, EnergyCache::new);
+		NetworkManager.registerCacheClass(ItemCache.class, ItemCache::new);
 
 		IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 		modEventBus.addGenericListener(Block.class, (RegistryEvent.Register<Block> e) -> MtBlocks.init(e.getRegistry()));

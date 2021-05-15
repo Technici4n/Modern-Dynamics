@@ -15,8 +15,8 @@ public class BlockStateGenerator extends BlockStateProvider {
 
 	@Override
 	protected void registerStatesAndModels() {
-		registerPipeModel(MtBlocks.BASIC_ITEM_PIPE, "lead", "connection_lead");
-		registerPipeModel(MtBlocks.BASIC_ITEM_PIPE_OPAQUE, "lead", "connection_lead");
+		registerPipeModel(MtBlocks.BASIC_ITEM_PIPE, "base/item/basic", "connector/tin");
+		registerPipeModel(MtBlocks.BASIC_ITEM_PIPE_OPAQUE, "base/item/basic_opaque", "connector/tin");
 		registerPipeModel(MtBlocks.FAST_ITEM_PIPE, "lead", "connection_lead");
 		registerPipeModel(MtBlocks.FAST_ITEM_PIPE_OPAQUE, "lead", "connection_lead");
 		registerPipeModel(MtBlocks.CONDUCTIVE_ITEM_PIPE, "lead", "connection_lead");

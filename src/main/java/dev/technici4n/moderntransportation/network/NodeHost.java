@@ -25,6 +25,7 @@ public abstract class NodeHost {
      * Current connections to adjacent pipes.
      */
     public byte pipeConnections = 0;
+    public int inventoryConnections = 0;
     /**
      * True if the host needs an update.
      * The update is done by the network when the host is in a ticking chunk.
@@ -121,6 +122,8 @@ public abstract class NodeHost {
     public final boolean needsUpdate() {
         return needsUpdate;
     }
+
+    public abstract boolean hasInventoryConnections();
 
     public abstract void writeNbt(CompoundTag tag);
 

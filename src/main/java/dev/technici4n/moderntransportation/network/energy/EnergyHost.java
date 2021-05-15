@@ -21,7 +21,6 @@ public class EnergyHost extends NodeHost {
 
     private final EnergyPipeTier tier;
     private int energy;
-    public int inventoryConnections = 0;
     // Rate limiting
     private long lastRateUpdate = 0;
     private final int[] insertedEnergy = new int[6]; // inserted INTO the neighbor inventories
@@ -100,6 +99,7 @@ public class EnergyHost extends NodeHost {
         gatherCapabilities(out);
     }
 
+    @Override
     public boolean hasInventoryConnections() {
         return inventoryConnections != 0;
     }
