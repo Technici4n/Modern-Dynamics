@@ -1,17 +1,31 @@
+/*
+ * Modern Transportation
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderntransportation.model;
 
 import net.minecraft.client.render.model.ModelBakeSettings;
 import net.minecraft.client.render.model.ModelRotation;
-import net.minecraft.client.util.math.AffineTransformation;
-import net.minecraft.client.util.math.Vector3f;
+import net.minecraft.util.math.AffineTransformation;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Quaternion;
-import net.minecraftforge.client.model.data.ModelProperty;
+import net.minecraft.util.math.Vec3f;
 
-public class MTModels {
-    public static final ModelProperty<Byte> CONNECTIONS_PIPE = new ModelProperty<>();
-    public static final ModelProperty<Byte> CONNECTIONS_INVENTORY = new ModelProperty<>();
-
+public class MtModels {
     /**
      * The model rotation to rotate a model facing NORTH to the correct facing direction.
      * Rotations are indexed by {@link Direction} id.
@@ -26,7 +40,7 @@ public class MTModels {
     };
 
     public static ModelBakeSettings preRotated(ModelRotation rotation, float preAngle) {
-        AffineTransformation preRotation = new AffineTransformation(null, new Quaternion(new Vector3f(0, 0, 1), preAngle, true), null, null);
+        AffineTransformation preRotation = new AffineTransformation(null, new Quaternion(new Vec3f(0, 0, 1), preAngle, true), null, null);
         AffineTransformation combined = rotation.getRotation().multiply(preRotation);
         return new ModelBakeSettings() {
             @Override

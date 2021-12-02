@@ -16,31 +16,3 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderntransportation.util;
-
-import java.util.EnumSet;
-import net.minecraft.util.math.Direction;
-
-public class SerializationHelper {
-    public static byte directionsToMask(EnumSet<Direction> directions) {
-        byte result = 0;
-
-        for (Direction direction : directions) {
-            result |= 1 << direction.getId();
-        }
-
-        return result;
-    }
-
-    public static EnumSet<Direction> directionsFromMask(byte mask) {
-        EnumSet<Direction> result = EnumSet.noneOf(Direction.class);
-
-        for (int i = 0; i < 6; ++i) {
-            if ((mask & (1 << i)) > 0) {
-                result.add(Direction.byId(i));
-            }
-        }
-
-        return result;
-    }
-}

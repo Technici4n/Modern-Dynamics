@@ -1,63 +1,62 @@
+/*
+ * Modern Transportation
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderntransportation.util;
 
 import dev.technici4n.moderntransportation.block.PipeBlock;
-import net.minecraft.block.BlockState;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.tag.TagFactory;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tag.Tag;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeTagHandler;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.registries.ForgeRegistries;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Helper to detect if items are wrenches, and to make wrench shift-clicking dismantle MT pipes.
  */
 public class WrenchHelper {
-    private static final Set<Identifier> MODDED_WRENCHES;
-    private static final Tag<Item> WRENCH_TAG = ForgeTagHandler.createOptionalTag(ForgeRegistries.ITEMS, new Identifier("forge:tools/wrench"));
-
-    static {
-        MODDED_WRENCHES = new HashSet<>();
-        MODDED_WRENCHES.add(new Identifier("immersiveengineering:hammer"));
-    }
+    private static final Tag<Item> WRENCH_TAG = TagFactory.ITEM.create(new Identifier("c:wrenches"));
 
     public static boolean isWrench(ItemStack stack) {
-        Item item = stack.getItem();
-
-        return WRENCH_TAG.contains(item) || MODDED_WRENCHES.contains(item.getRegistryName());
-    }
-
-    public static void registerEvents() {
-        MinecraftForge.EVENT_BUS.addListener(WrenchHelper::onPlayerInteract);
+        return WRENCH_TAG.contains(stack.getItem());
     }
 
     /**
-     * Dismantle target pipe on shift-click.
+     * Dismantle target pipe on shift right-click with a wrench.
      */
-    private static void onPlayerInteract(PlayerInteractEvent event) {
-        if (event.getPlayer().isSneaking()) {
-            World world = event.getWorld();
-            BlockPos pos = event.getPos();
-            BlockState state = world.getBlockState(pos);
-
-            if (state.getBlock() instanceof PipeBlock && isWrench(event.getItemStack())) {
-                world.setBlockState(pos, Blocks.AIR.getDefaultState());
-                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(state.getBlock().asItem()));
-                // TODO: play a cool sound
-                event.setCanceled(true);
-                event.setCancellationResult(ActionResult.success(world.isClient()));
+    public static void registerEvents() {
+        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+            if (player.isSpectator() || !world.canPlayerModifyAt(player, hitResult.getBlockPos()) || !isWrench(player.getStackInHand(hand))) {
+                return ActionResult.PASS;
             }
-        }
+
+            var pos = hitResult.getBlockPos();
+            if (world.getBlockState(pos).getBlock() instanceof PipeBlock block) {
+                world.setBlockState(pos, Blocks.AIR.getDefaultState());
+                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(block.asItem()));
+                // TODO: play a cool sound
+                return ActionResult.success(world.isClient);
+            }
+
+            return ActionResult.PASS;
+        });
     }
 }

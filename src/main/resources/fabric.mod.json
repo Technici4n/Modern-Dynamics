@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "moderntransportation",
+  "version": "${version}",
+  "name": "Modern Transportation",
+  "description": "Modern item, fluid and energy transport Minecraft mod.",
+  "authors": [
+    "Technici4n"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/modern-transportation",
+    "sources": "https://github.com/Technici4n/Modern-Transportation"
+  },
+
+  "license": "MPLv2",
+  "icon": "assets/moderntransportation/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.technici4n.moderntransportation.ModernTransportation"
+    ],
+    "client": [
+      "dev.technici4n.moderntransportation.ModernTransportationClient"
+    ],
+    "fabric-datagen": [
+      "dev.technici4n.moderntransportation.data.DataGenerators"
+    ]
+  },
+
+  "depends": {
+    "fabricloader": ">=0.11.3",
+    "fabric": "*",
+    "minecraft": "1.18.x",
+    "java": ">=17"
+  }
+}

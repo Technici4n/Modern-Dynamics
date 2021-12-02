@@ -1,3 +1,21 @@
+/*
+ * Modern Transportation
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderntransportation.block;
 
 import dev.technici4n.moderntransportation.util.MtItemGroup;
@@ -13,35 +31,37 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 public class PipeItem extends BlockItem {
-	public PipeItem(PipeBlock block) {
-		super(block, new Item.Settings().group(MtItemGroup.getInstance()));
-		setRegistryName(block.getRegistryName());
-		block.setItem(this);
-	}
+    public PipeItem(PipeBlock block) {
+        super(block, new Item.Settings().group(MtItemGroup.getInstance()));
+        block.setItem(this);
+    }
 
-	@Override
-	protected boolean postPlacement(BlockPos pos, World world, @Nullable PlayerEntity placer, ItemStack stack, BlockState state) {
-		if (!world.isClient()) {
-			// If adjacent pipes have us blacklisted, we blacklist them here.
-			BlockEntity be = world.getBlockEntity(pos);
+    @Override
+    public PipeBlock getBlock() {
+        return (PipeBlock) super.getBlock();
+    }
 
-			if (be instanceof PipeBlockEntity) {
-				PipeBlockEntity pipe = (PipeBlockEntity) be;
+    @Override
+    protected boolean postPlacement(BlockPos pos, World world, @Nullable PlayerEntity placer, ItemStack stack, BlockState state) {
+        if (!world.isClient()) {
+            // If adjacent pipes have us blacklisted, we blacklist them here.
+            BlockEntity be = world.getBlockEntity(pos);
 
-				for (Direction direction : Direction.values()) {
-					BlockEntity adjBe = world.getBlockEntity(pos.offset(direction));
+            if (be instanceof PipeBlockEntity pipe) {
+                for (Direction direction : Direction.values()) {
+                    BlockEntity adjBe = world.getBlockEntity(pos.offset(direction));
 
-					if (adjBe instanceof PipeBlockEntity) {
-						if ((((PipeBlockEntity) adjBe).connectionBlacklist & (1 << direction.getOpposite().getId())) > 0) {
-							pipe.connectionBlacklist |= 1 << direction.getId();
-						}
-					}
-				}
-			}
-			// else warn?
-		}
+                    if (adjBe instanceof PipeBlockEntity adjPipe) {
+                        if ((adjPipe.connectionBlacklist & (1 << direction.getOpposite().getId())) > 0) {
+                            pipe.connectionBlacklist |= 1 << direction.getId();
+                        }
+                    }
+                }
+            }
+            // else warn?
+        }
 
-		// No clue what the return is for, vanilla doesn't seem to use it.
-		return true;
-	}
+        // No clue what the return is for, vanilla doesn't seem to use it.
+        return true;
+    }
 }

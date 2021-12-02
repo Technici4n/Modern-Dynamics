@@ -1,40 +1,37 @@
+/*
+ * Modern Transportation
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderntransportation;
 
 import dev.technici4n.moderntransportation.block.PipeBlock;
 import dev.technici4n.moderntransportation.init.MtBlocks;
-import dev.technici4n.moderntransportation.model.PipeModelLoader;
-import dev.technici4n.moderntransportation.util.MtId;
+import dev.technici4n.moderntransportation.model.MtModelLoader;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.ModelRegistryEvent;
-import net.minecraftforge.client.model.ModelLoaderRegistry;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-@OnlyIn(Dist.CLIENT)
-public final class ModernTransportationClient {
-    private ModernTransportationClient() {
-        throw new UnsupportedOperationException();
-    }
+public final class ModernTransportationClient implements ClientModInitializer {
+    @Override
+    public void onInitializeClient() {
+        MtModelLoader.init();
 
-    public static void registerClientEvents() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
-        modEventBus.addListener(ModernTransportationClient::clientSetup);
-        modEventBus.addListener(ModernTransportationClient::registerModelLoaders);
-    }
-
-    private static void registerModelLoaders(ModelRegistryEvent event) {
-        ModelLoaderRegistry.registerLoader(PipeModelLoader.ID, new PipeModelLoader());
-    }
-
-    private static void clientSetup(FMLClientSetupEvent event) {
         for (PipeBlock pipeBlock : MtBlocks.ALL_PIPES) {
-            RenderLayers.setRenderLayer(pipeBlock, RenderLayer.getCutout());
+            BlockRenderLayerMap.INSTANCE.putBlock(pipeBlock, RenderLayer.getCutout());
         }
     }
 }

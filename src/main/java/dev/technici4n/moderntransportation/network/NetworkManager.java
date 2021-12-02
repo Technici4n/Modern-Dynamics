@@ -1,12 +1,29 @@
+/*
+ * Modern Transportation
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderntransportation.network;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import java.util.*;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 /**
  * The manager of all networks for a given cache class.
@@ -25,7 +42,8 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
         return manager;
     }
 
-    public static synchronized <H extends NodeHost, C extends NetworkCache<H, C>> void registerCacheClass(Class<C> cacheClass, NetworkCache.Factory<H, C> factory) {
+    public static synchronized <H extends NodeHost, C extends NetworkCache<H, C>> void registerCacheClass(Class<C> cacheClass,
+            NetworkCache.Factory<H, C> factory) {
         Objects.requireNonNull(cacheClass, "Cache class may not be null.");
         Objects.requireNonNull(factory, "Factory may not be null.");
 
@@ -71,7 +89,8 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
 
     public void addNode(ServerWorld world, BlockPos pos, H host) {
         if (iteratingOverNetworks) {
-            throw new ConcurrentModificationException("Node at position " + pos + " in world " + world + " can't be added: networks are being iterated over.");
+            throw new ConcurrentModificationException(
+                    "Node at position " + pos + " in world " + world + " can't be added: networks are being iterated over.");
         }
 
         Long2ObjectOpenHashMap<NetworkNode<H, C>> worldNodes = nodes.computeIfAbsent(world, w -> new Long2ObjectOpenHashMap<>());
@@ -89,7 +108,8 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
             @Nullable
             NetworkNode<H, C> adjacentNode = worldNodes.get(adjacentPos.asLong());
 
-            if (adjacentNode != null && host.canConnectTo(direction, adjacentNode.getHost()) && adjacentNode.getHost().canConnectTo(direction.getOpposite(), host)) {
+            if (adjacentNode != null && host.canConnectTo(direction, adjacentNode.getHost())
+                    && adjacentNode.getHost().canConnectTo(direction.getOpposite(), host)) {
                 if (adjacentNode.network != null) {
                     // The network of the adjacent node may be null during loading.
                     adjacentNode.network.cache.separate();
@@ -106,7 +126,8 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
 
     public void removeNode(ServerWorld world, BlockPos pos, H host) {
         if (iteratingOverNetworks) {
-            throw new ConcurrentModificationException("Node at position " + pos + " in world " + world + " can't be removed: networks are being iterated over.");
+            throw new ConcurrentModificationException(
+                    "Node at position " + pos + " in world " + world + " can't be removed: networks are being iterated over.");
         }
 
         Long2ObjectOpenHashMap<NetworkNode<H, C>> worldNodes = nodes.computeIfAbsent(world, w -> new Long2ObjectOpenHashMap<>());
@@ -147,7 +168,8 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
     }
 
     private void updateNetworks() {
-        if (pendingUpdates.size() == 0) return;
+        if (pendingUpdates.size() == 0)
+            return;
 
         List<NetworkNode<H, C>> pendingUpdatesCopy = new ArrayList<>(pendingUpdates);
         pendingUpdates.clear();
@@ -170,7 +192,8 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
     private void assignNetworkDfs(NetworkNode<H, C> u, Network<H, C> network) {
         if (pendingUpdates.add(u)) {
             // Remove previous network
-            if (u.network != null) networks.remove(u.network);
+            if (u.network != null)
+                networks.remove(u.network);
 
             // Link node to new network
             u.network = network;

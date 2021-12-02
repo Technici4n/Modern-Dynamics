@@ -1,20 +1,31 @@
+/*
+ * Modern Transportation
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderntransportation.network;
 
 import dev.technici4n.moderntransportation.block.PipeBlockEntity;
-import dev.technici4n.moderntransportation.network.energy.EnergyCache;
-import dev.technici4n.moderntransportation.network.energy.EnergyHost;
 import dev.technici4n.moderntransportation.util.SerializationHelper;
-import net.minecraft.nbt.CompoundTag;
+import java.util.EnumSet;
+import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Direction;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.common.util.NonNullConsumer;
-import net.minecraftforge.energy.IEnergyStorage;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.EnumSet;
 
 /**
  * A node host is what gives its behavior to a {@link NetworkNode}.
@@ -38,7 +49,7 @@ public abstract class NodeHost {
 
     @SuppressWarnings("ConstantConditions")
     public boolean isTicking() {
-        return ((ServerWorld) pipe.getWorld()).getChunkManager().shouldTickBlock(pipe.getPos());
+        return ((ServerWorld) pipe.getWorld()).shouldTickEntity(pipe.getPos());
     }
 
     /**
@@ -74,9 +85,8 @@ public abstract class NodeHost {
         getManager().refreshNode((ServerWorld) pipe.getWorld(), pipe.getPos(), this);
     }
 
-    public abstract <T> LazyOptional<T> getCapability(Capability<T> capability, Direction side);
-
-    public abstract void invalidateCapabilities();
+    @Nullable
+    public abstract Object getApiInstance(BlockApiLookup<?, Direction> lookup, Direction side);
 
     @SuppressWarnings("unchecked")
     @Nullable
@@ -106,7 +116,7 @@ public abstract class NodeHost {
     /**
      * Schedule an update.
      */
-    @SuppressWarnings({"rawtypes"})
+    @SuppressWarnings({ "rawtypes" })
     public final void scheduleUpdate() {
         if (!needsUpdate) {
             needsUpdate = true;
@@ -125,7 +135,7 @@ public abstract class NodeHost {
 
     public abstract boolean hasInventoryConnections();
 
-    public abstract void writeNbt(CompoundTag tag);
+    public abstract void writeNbt(NbtCompound tag);
 
-    public abstract void readNbt(CompoundTag tag);
+    public abstract void readNbt(NbtCompound tag);
 }

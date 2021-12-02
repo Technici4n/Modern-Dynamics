@@ -1,25 +1,39 @@
+/*
+ * Modern Transportation
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderntransportation.model;
 
 import com.mojang.datafixers.util.Pair;
+import java.util.*;
+import java.util.function.Function;
 import net.minecraft.client.render.model.*;
 import net.minecraft.client.render.model.json.JsonUnbakedModel;
-import net.minecraft.client.render.model.json.ModelOverrideList;
 import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.util.Identifier;
-import net.minecraftforge.client.model.IModelConfiguration;
-import net.minecraftforge.client.model.geometry.IModelGeometry;
 
-import java.util.*;
-import java.util.function.Function;
-
-public class PipeModelGeometry implements IModelGeometry<PipeModelGeometry> {
+public class PipeUnbakedModel implements UnbakedModel {
     private final Identifier connectionNone;
     private final Identifier connectionPipe;
     private final Identifier connectionInventory;
 
-    public PipeModelGeometry(Identifier connectionNone, Identifier connectionPipe, Identifier connectionInventory) {
+    public PipeUnbakedModel(Identifier connectionNone, Identifier connectionPipe, Identifier connectionInventory) {
         this.connectionNone = connectionNone;
         this.connectionPipe = connectionPipe;
         this.connectionInventory = connectionInventory;
@@ -30,14 +44,15 @@ public class PipeModelGeometry implements IModelGeometry<PipeModelGeometry> {
         BakedModel[] models = new BakedModel[6];
 
         for (int i = 0; i < 6; ++i) {
-            models[i] = modelLoader.getBakedModel(modelId, MTModels.PIPE_BAKE_SETTINGS[i], textureGetter);
+            models[i] = modelLoader.bake(modelId, MtModels.PIPE_BAKE_SETTINGS[i]);
         }
 
         return models;
     }
 
     @Override
-    public BakedModel bake(IModelConfiguration iModelConfiguration, ModelLoader modelLoader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings arg2, ModelOverrideList arg3, Identifier arg4) {
+    public BakedModel bake(ModelLoader modelLoader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer,
+            Identifier modelId) {
         // Load transform from the vanilla block model
         ModelTransformation transformation = ((JsonUnbakedModel) modelLoader.getOrLoadModel(new Identifier("block/cube"))).getTransformations();
 
@@ -45,16 +60,20 @@ public class PipeModelGeometry implements IModelGeometry<PipeModelGeometry> {
                 transformation,
                 loadRotatedModels(connectionNone, modelLoader, textureGetter),
                 loadRotatedModels(connectionPipe, modelLoader, textureGetter),
-                loadRotatedModels(connectionInventory, modelLoader, textureGetter)
-        );
+                loadRotatedModels(connectionInventory, modelLoader, textureGetter));
     }
 
     @Override
-    public Collection<SpriteIdentifier> getTextures(IModelConfiguration iModelConfiguration, Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> set) {
+    public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> set) {
         List<SpriteIdentifier> textures = new ArrayList<>();
         textures.addAll(unbakedModelGetter.apply(connectionNone).getTextureDependencies(unbakedModelGetter, set));
         textures.addAll(unbakedModelGetter.apply(connectionPipe).getTextureDependencies(unbakedModelGetter, set));
         textures.addAll(unbakedModelGetter.apply(connectionInventory).getTextureDependencies(unbakedModelGetter, set));
         return textures;
+    }
+
+    @Override
+    public Collection<Identifier> getModelDependencies() {
+        return List.of(connectionNone, connectionPipe, connectionInventory);
     }
 }

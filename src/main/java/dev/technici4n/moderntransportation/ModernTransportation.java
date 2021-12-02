@@ -1,3 +1,21 @@
+/*
+ * Modern Transportation
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderntransportation;
 
 import dev.technici4n.moderntransportation.init.MtBlockEntities;
@@ -6,53 +24,33 @@ import dev.technici4n.moderntransportation.init.MtItems;
 import dev.technici4n.moderntransportation.network.NetworkManager;
 import dev.technici4n.moderntransportation.network.TickHelper;
 import dev.technici4n.moderntransportation.network.energy.EnergyCache;
-import dev.technici4n.moderntransportation.network.item.ItemCache;
 import dev.technici4n.moderntransportation.util.MtItemGroup;
 import dev.technici4n.moderntransportation.util.WrenchHelper;
-import net.minecraft.block.Block;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.item.Item;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.function.Consumer;
-
-@Mod("moderntransportation")
-public class ModernTransportation {
+public class ModernTransportation implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("Modern Transportation");
 
-	public ModernTransportation() {
-		MtItemGroup.init();
+    @Override
+    public void onInitialize() {
+        MtItemGroup.init();
 
-		NetworkManager.registerCacheClass(EnergyCache.class, EnergyCache::new);
-		NetworkManager.registerCacheClass(ItemCache.class, ItemCache::new);
+        NetworkManager.registerCacheClass(EnergyCache.class, EnergyCache::new);
 
-		IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-		modEventBus.addGenericListener(Block.class, (RegistryEvent.Register<Block> e) -> MtBlocks.init(e.getRegistry()));
-		modEventBus.addGenericListener(Item.class, (RegistryEvent.Register<Item> e) -> MtItems.init(e.getRegistry()));
-		modEventBus.addGenericListener(BlockEntityType.class, (RegistryEvent.Register<BlockEntityType<?>> e) -> MtBlockEntities.init(e.getRegistry()));
+        MtBlocks.init();
+        MtItems.init();
+        MtBlockEntities.init();
 
-		MinecraftForge.EVENT_BUS.addListener((Consumer<FMLServerStoppedEvent>) event -> NetworkManager.onServerStopped());
-		MinecraftForge.EVENT_BUS.addListener((Consumer<TickEvent.ServerTickEvent>) event -> {
-			if (event.phase == TickEvent.Phase.END) {
-				TickHelper.onEndTick();
-				NetworkManager.onEndTick();
-			}
-		});
-		WrenchHelper.registerEvents();
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> NetworkManager.onServerStopped());
+        ServerTickEvents.END_SERVER_TICK.register(server -> TickHelper.onEndTick());
+        ServerTickEvents.END_SERVER_TICK.register(server -> NetworkManager.onEndTick());
+        WrenchHelper.registerEvents();
 
-		DistExecutor.safeRunWhenOn(Dist.CLIENT, ()->ModernTransportationClient::registerClientEvents);
-
-		LOGGER.info("Successfully constructed Modern Transportation!");
-	}
+        LOGGER.info("Successfully loaded Modern Transportation!");
+    }
 
 }

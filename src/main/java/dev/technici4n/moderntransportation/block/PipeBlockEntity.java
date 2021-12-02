@@ -1,44 +1,59 @@
+/*
+ * Modern Transportation
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderntransportation.block;
 
 import dev.technici4n.moderntransportation.MtBlockEntity;
-import dev.technici4n.moderntransportation.model.MTModels;
+import dev.technici4n.moderntransportation.model.PipeModelData;
 import dev.technici4n.moderntransportation.network.NodeHost;
 import dev.technici4n.moderntransportation.network.TickHelper;
 import dev.technici4n.moderntransportation.util.ShapeHelper;
 import dev.technici4n.moderntransportation.util.WrenchHelper;
+import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
-import net.minecraftforge.client.model.data.EmptyModelData;
-import net.minecraftforge.client.model.data.IModelData;
-import net.minecraftforge.client.model.data.ModelDataMap;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Abstract base BE class for all pipes.
  * Subclasses must have a static list of {@link NodeHost}s that will be used for all the registration and saving logic.
  */
-public abstract class PipeBlockEntity extends MtBlockEntity {
-    public PipeBlockEntity(BlockEntityType<?> type) {
-        super(type);
+public abstract class PipeBlockEntity extends MtBlockEntity implements RenderAttachmentBlockEntity {
+    public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
     }
 
     private boolean hostsRegistered = false;
     public int connectionBlacklist = 0;
     private VoxelShape cachedShape = PipeBoundingBoxes.CORE_SHAPE;
-    private IModelData modelData = EmptyModelData.INSTANCE;
+    private PipeModelData modelData = null;
     private int clientSideConnections = 0;
 
     public abstract NodeHost[] getHosts();
@@ -50,52 +65,42 @@ public abstract class PipeBlockEntity extends MtBlockEntity {
     }
 
     @Override
-    public void toClientTag(CompoundTag tag) {
+    public void toClientTag(NbtCompound tag) {
         tag.putByte("connectionBlacklist", (byte) connectionBlacklist);
         tag.putByte("connections", (byte) getPipeConnections());
         tag.putByte("inventoryConnections", (byte) getInventoryConnections());
     }
 
     @Override
-    public void fromClientTag(CompoundTag tag) {
+    public void fromClientTag(NbtCompound tag) {
         connectionBlacklist = tag.getByte("connectionBlacklist");
         byte connections = tag.getByte("connections");
         byte inventoryConnections = tag.getByte("inventoryConnections");
 
         updateCachedShape(connections, inventoryConnections);
-        modelData = new ModelDataMap.Builder()
-                .withInitial(MTModels.CONNECTIONS_PIPE, connections)
-                .withInitial(MTModels.CONNECTIONS_INVENTORY, inventoryConnections)
-                .build();
+        modelData = new PipeModelData(connections, inventoryConnections);
         clientSideConnections = connections | inventoryConnections;
-        requestModelDataUpdate();
         remesh();
     }
 
-    @NotNull
     @Override
-    public IModelData getModelData() {
+    @Nullable
+    public Object getRenderAttachmentData() {
         return modelData;
     }
 
     @Override
-    public CompoundTag toTag(CompoundTag nbt) {
-        super.toTag(nbt);
-
+    public void toTag(NbtCompound nbt) {
         nbt.putByte("connectionBlacklist", (byte) connectionBlacklist);
 
         for (NodeHost host : getHosts()) {
             host.separateNetwork();
             host.writeNbt(nbt);
         }
-
-        return nbt;
     }
 
     @Override
-    public void fromTag(BlockState state, CompoundTag nbt) {
-        super.fromTag(state, nbt);
-
+    public void fromTag(NbtCompound nbt) {
         connectionBlacklist = nbt.getByte("connectionBlacklist");
 
         for (NodeHost host : getHosts()) {
@@ -130,21 +135,6 @@ public abstract class PipeBlockEntity extends MtBlockEntity {
     }
 
     @Override
-    public void onChunkUnloaded() {
-        super.onChunkUnloaded();
-
-        if (!world.isClient()) {
-            if (hostsRegistered) {
-                hostsRegistered = false;
-
-                for (NodeHost host : getHosts()) {
-                    host.removeSelf();
-                }
-            }
-        }
-    }
-
-    @Override
     public void markRemoved() {
         super.markRemoved();
 
@@ -167,27 +157,15 @@ public abstract class PipeBlockEntity extends MtBlockEntity {
         }
     }
 
-    @NotNull
-    @Override
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        for (NodeHost host : getHosts()) {
-            LazyOptional<T> returnedCap = host.getCapability(cap, side);
-
-            if (returnedCap.isPresent()) {
-                return returnedCap;
+    @Nullable
+    public Object getApiInstance(BlockApiLookup<?, Direction> direction, Direction side) {
+        for (var host : getHosts()) {
+            var api = host.getApiInstance(direction, side);
+            if (api != null) {
+                return api;
             }
         }
-
-        return super.getCapability(cap, side);
-    }
-
-    @Override
-    protected void invalidateCaps() {
-        for (NodeHost host : getHosts()) {
-            host.invalidateCapabilities();
-        }
-
-        super.invalidateCaps();
+        return null;
     }
 
     protected int getPipeConnections() {

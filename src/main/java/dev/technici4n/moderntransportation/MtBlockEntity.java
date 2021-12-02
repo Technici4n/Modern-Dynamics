@@ -1,3 +1,21 @@
+/*
+ * Modern Transportation
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderntransportation;
 
 import com.google.common.base.Preconditions;
@@ -5,55 +23,64 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.ClientConnection;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
 
 public abstract class MtBlockEntity extends BlockEntity {
-    public MtBlockEntity(BlockEntityType<?> bet) {
-        super(bet);
+    public MtBlockEntity(BlockEntityType<?> bet, BlockPos pos, BlockState state) {
+        super(bet, pos, state);
     }
 
     // Thank you Fabric API
     public void sync() {
-        Preconditions.checkNotNull(world); //Maintain distinct failure case from below
-        if (!(world instanceof ServerWorld)) throw new IllegalStateException("Cannot call sync() on the logical client! Did you check world.isClient first?");
+        Preconditions.checkNotNull(world); // Maintain distinct failure case from below
+        if (!(world instanceof ServerWorld))
+            throw new IllegalStateException("Cannot call sync() on the logical client! Did you check world.isClient first?");
 
         ((ServerWorld) world).getChunkManager().markForUpdate(getPos());
     }
 
-    public abstract void toClientTag(CompoundTag tag);
+    public abstract void toTag(NbtCompound tag);
 
-    public abstract void fromClientTag(CompoundTag tag);
+    public abstract void fromTag(NbtCompound tag);
+
+    public abstract void toClientTag(NbtCompound tag);
+
+    public abstract void fromClientTag(NbtCompound tag);
 
     @Override
     public final BlockEntityUpdateS2CPacket toUpdatePacket() {
-        CompoundTag tag = new CompoundTag();
-        toClientTag(tag);
-        return new BlockEntityUpdateS2CPacket(pos, 42, tag);
+        return BlockEntityUpdateS2CPacket.create(this);
     }
 
     @Override
-    public final CompoundTag toInitialChunkDataTag() {
-        CompoundTag tag = super.toInitialChunkDataTag();
-        toClientTag(tag);
-        return tag;
+    public final NbtCompound toInitialChunkDataNbt() {
+        NbtCompound nbt = super.toInitialChunkDataNbt();
+        toClientTag(nbt);
+        nbt.putBoolean("#c", true); // mark client tag
+        return nbt;
     }
 
     @Override
-    public void handleUpdateTag(BlockState state, CompoundTag tag) {
-        fromClientTag(tag);
+    protected final void writeNbt(NbtCompound nbt) {
+        toTag(nbt);
     }
 
     @Override
-    public final void onDataPacket(ClientConnection net, BlockEntityUpdateS2CPacket pkt) {
-        fromClientTag(pkt.getCompoundTag());
+    public final void readNbt(NbtCompound nbt) {
+        if (nbt.contains("#c")) {
+            fromClientTag(nbt);
+        } else {
+            fromTag(nbt);
+        }
     }
 
     public final void remesh() {
         Preconditions.checkNotNull(world);
-        if (!(world instanceof ClientWorld)) throw new IllegalStateException("Cannot call remesh() on the server!");
+        if (!(world instanceof ClientWorld))
+            throw new IllegalStateException("Cannot call remesh() on the server!");
 
         world.updateListeners(pos, null, null, 0);
     }

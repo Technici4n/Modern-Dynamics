@@ -16,31 +16,33 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderntransportation.util;
+package dev.technici4n.moderntransportation.network.energy;
 
-import java.util.EnumSet;
-import net.minecraft.util.math.Direction;
+import java.util.Arrays;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 
-public class SerializationHelper {
-    public static byte directionsToMask(EnumSet<Direction> directions) {
-        byte result = 0;
+class EnergyLimits extends SnapshotParticipant<long[]> {
+    final long[] used = new long[6];
 
-        for (Direction direction : directions) {
-            result |= 1 << direction.getId();
+    void reset() {
+        for (int i = 0; i < 6; ++i) {
+            used[i] = 0;
         }
-
-        return result;
     }
 
-    public static EnumSet<Direction> directionsFromMask(byte mask) {
-        EnumSet<Direction> result = EnumSet.noneOf(Direction.class);
+    void use(int i, long amount, TransactionContext tx) {
+        updateSnapshots(tx);
+        used[i] += amount;
+    }
 
-        for (int i = 0; i < 6; ++i) {
-            if ((mask & (1 << i)) > 0) {
-                result.add(Direction.byId(i));
-            }
-        }
+    @Override
+    protected long[] createSnapshot() {
+        return Arrays.copyOf(used, used.length);
+    }
 
-        return result;
+    @Override
+    protected void readSnapshot(long[] snapshot) {
+        System.arraycopy(snapshot, 0, used, 0, snapshot.length);
     }
 }
