@@ -18,7 +18,7 @@
  */
 package dev.technici4n.moderntransportation.init;
 
-import dev.technici4n.moderntransportation.block.PipeBlock;
+import dev.technici4n.moderntransportation.pipe.PipeBlock;
 import dev.technici4n.moderntransportation.util.MtId;
 import net.minecraft.util.registry.Registry;
 

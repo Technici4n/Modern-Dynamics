@@ -16,16 +16,19 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderntransportation.data;
+package dev.technici4n.moderntransportation.network.item;
 
-import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import dev.technici4n.moderntransportation.network.NetworkCache;
+import dev.technici4n.moderntransportation.network.NetworkNode;
+import java.util.List;
 
-public class DataGenerators implements DataGeneratorEntrypoint {
+public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
+    protected ItemCache(List<NetworkNode<ItemHost, ItemCache>> networkNodes) {
+        super(networkNodes);
+    }
+
     @Override
-    public void onInitializeDataGenerator(FabricDataGenerator fabricDataGenerator) {
-        fabricDataGenerator.addProvider(ItemTagsProvider::new);
+    protected void doTick() {
 
-        fabricDataGenerator.addProvider(PipeModelsProvider::new);
     }
 }

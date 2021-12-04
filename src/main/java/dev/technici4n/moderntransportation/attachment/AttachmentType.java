@@ -16,16 +16,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderntransportation.data;
+package dev.technici4n.moderntransportation.attachment;
 
-import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
-
-public class DataGenerators implements DataGeneratorEntrypoint {
-    @Override
-    public void onInitializeDataGenerator(FabricDataGenerator fabricDataGenerator) {
-        fabricDataGenerator.addProvider(ItemTagsProvider::new);
-
-        fabricDataGenerator.addProvider(PipeModelsProvider::new);
-    }
+public enum AttachmentType {
+    FILTER,
+    SERVO,
+    RETRIEVER,
 }

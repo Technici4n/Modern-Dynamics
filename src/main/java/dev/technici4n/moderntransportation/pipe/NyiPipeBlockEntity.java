@@ -16,16 +16,20 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderntransportation.data;
+package dev.technici4n.moderntransportation.pipe;
 
-import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import dev.technici4n.moderntransportation.network.NodeHost;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.util.math.BlockPos;
 
-public class DataGenerators implements DataGeneratorEntrypoint {
+public class NyiPipeBlockEntity extends PipeBlockEntity {
+    public NyiPipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
+    }
+
     @Override
-    public void onInitializeDataGenerator(FabricDataGenerator fabricDataGenerator) {
-        fabricDataGenerator.addProvider(ItemTagsProvider::new);
-
-        fabricDataGenerator.addProvider(PipeModelsProvider::new);
+    public NodeHost[] getHosts() {
+        return new NodeHost[0];
     }
 }

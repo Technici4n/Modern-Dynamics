@@ -19,15 +19,18 @@
 package dev.technici4n.moderntransportation.model;
 
 import com.google.gson.JsonParser;
+import dev.technici4n.moderntransportation.attachment.Attachment;
 import dev.technici4n.moderntransportation.init.MtBlocks;
 import dev.technici4n.moderntransportation.util.MtId;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
 import net.fabricmc.fabric.api.client.model.ModelProviderContext;
 import net.fabricmc.fabric.api.client.model.ModelProviderException;
+import net.fabricmc.fabric.api.client.model.ModelResourceProvider;
 import net.fabricmc.fabric.api.client.model.ModelVariantProvider;
 import net.minecraft.client.render.model.UnbakedModel;
 import net.minecraft.client.util.ModelIdentifier;
@@ -42,13 +45,14 @@ import org.jetbrains.annotations.Nullable;
 public final class MtModelLoader {
     public static void init() {
         ModelLoadingRegistry.INSTANCE.registerVariantProvider(VariantProvider::new);
+        ModelLoadingRegistry.INSTANCE.registerResourceProvider(ResourceProvider::new);
 
         for (var pipe : MtBlocks.ALL_PIPES) {
             ALL_PIPES.add(pipe.id);
         }
     }
 
-    private static Set<String> ALL_PIPES = new HashSet<>();
+    private static final Set<String> ALL_PIPES = new HashSet<>();
 
     private static class VariantProvider implements ModelVariantProvider {
         private final ResourceManager resourceManager;
@@ -69,14 +73,47 @@ public final class MtModelLoader {
                 // This is a pipe, try to load its json model.
                 try (var resource = this.resourceManager.getResource(MtId.of("models/" + path + "/main.json"))) {
                     var obj = JsonParser.parseReader(new InputStreamReader(resource.getInputStream())).getAsJsonObject();
-                    return new PipeUnbakedModel(
-                            new Identifier(JsonHelper.getString(obj, "connection_none")),
+                    return new PipeUnbakedModel(new Identifier(JsonHelper.getString(obj, "connection_none")),
                             new Identifier(JsonHelper.getString(obj, "connection_pipe")),
                             new Identifier(JsonHelper.getString(obj, "connection_inventory")));
                 } catch (IOException exception) {
-                    throw new ModelProviderException("Failed to find pipe model json for pipe " + modelId);
+                    throw new ModelProviderException("Failed to find pipe model json for pipe " + modelId, exception);
                 } catch (RuntimeException runtimeException) {
                     throw new ModelProviderException("Failed to load pipe model json for pipe " + modelId, runtimeException);
+                }
+            }
+
+            return null;
+        }
+    }
+
+    private static class ResourceProvider implements ModelResourceProvider {
+        private final ResourceManager resourceManager;
+
+        private ResourceProvider(ResourceManager resourceManager) {
+            this.resourceManager = resourceManager;
+        }
+
+        @Override
+        public @Nullable UnbakedModel loadModelResource(Identifier resourceId, ModelProviderContext context) throws ModelProviderException {
+            if (!resourceId.getNamespace().equals(MtId.MOD_ID)) {
+                return null;
+            }
+
+            var path = resourceId.getPath();
+            if (path.equals(AttachmentsUnbakedModel.ID.getPath())) {
+                // Try to load the json model for the attachments
+                try (var resource = this.resourceManager.getResource(MtId.of("models/attachments.json"))) {
+                    var obj = JsonParser.parseReader(new InputStreamReader(resource.getInputStream())).getAsJsonObject();
+                    var modelMap = new HashMap<String, Identifier>();
+                    for (var attachmentId : Attachment.getAttachmentIds()) {
+                        modelMap.put(attachmentId, new Identifier(JsonHelper.getString(obj, attachmentId)));
+                    }
+                    return new AttachmentsUnbakedModel(modelMap);
+                } catch (IOException exception) {
+                    throw new ModelProviderException("Failed to find attachment model json", exception);
+                } catch (RuntimeException runtimeException) {
+                    throw new ModelProviderException("Failed to load attachment model json", runtimeException);
                 }
             }
 

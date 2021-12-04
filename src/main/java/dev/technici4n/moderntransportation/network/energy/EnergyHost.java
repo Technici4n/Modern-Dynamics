@@ -18,14 +18,16 @@
  */
 package dev.technici4n.moderntransportation.network.energy;
 
-import dev.technici4n.moderntransportation.block.PipeBlockEntity;
+import dev.technici4n.moderntransportation.attachment.AttachmentItem;
 import dev.technici4n.moderntransportation.network.NetworkManager;
 import dev.technici4n.moderntransportation.network.NetworkNode;
 import dev.technici4n.moderntransportation.network.NodeHost;
 import dev.technici4n.moderntransportation.network.TickHelper;
+import dev.technici4n.moderntransportation.pipe.PipeBlockEntity;
 import java.util.List;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +35,7 @@ import team.reborn.energy.api.EnergyStorage;
 import team.reborn.energy.api.base.DelegatingEnergyStorage;
 
 public class EnergyHost extends NodeHost {
-    private static final NetworkManager<EnergyHost, EnergyCache> MANAGER = NetworkManager.get(EnergyCache.class);
+    private static final NetworkManager<EnergyHost, EnergyCache> MANAGER = NetworkManager.get(EnergyCache.class, EnergyCache::new);
 
     private final EnergyPipeTier tier;
     private long energy;
@@ -54,7 +56,7 @@ public class EnergyHost extends NodeHost {
     }
 
     @Override
-    public NetworkManager<?, ?> getManager() {
+    public NetworkManager<EnergyHost, EnergyCache> getManager() {
         return MANAGER;
     }
 
@@ -93,6 +95,11 @@ public class EnergyHost extends NodeHost {
             NetworkNode<EnergyHost, EnergyCache> node = findNode();
             node.getNetworkCache().addInventoryConnectionHost(this);
         }
+    }
+
+    @Override
+    public boolean acceptsAttachment(AttachmentItem attachment, ItemStack stack) {
+        return false;
     }
 
     @Override
@@ -149,11 +156,13 @@ public class EnergyHost extends NodeHost {
 
     @Override
     public void writeNbt(NbtCompound tag) {
+        super.writeNbt(tag);
         tag.putLong("energy", energy);
     }
 
     @Override
     public void readNbt(NbtCompound tag) {
+        super.readNbt(tag);
         // Guard against max energy config changes
         energy = Math.max(0, Math.min(tag.getLong("energy"), getMaxEnergy()));
     }

@@ -21,15 +21,17 @@ package dev.technici4n.moderntransportation.data;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import dev.technici4n.moderntransportation.block.PipeBlock;
+import dev.technici4n.moderntransportation.attachment.Attachment;
+import dev.technici4n.moderntransportation.attachment.MtAttachments;
 import dev.technici4n.moderntransportation.init.MtBlocks;
+import dev.technici4n.moderntransportation.pipe.PipeBlock;
 import dev.technici4n.moderntransportation.util.MtId;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.minecraft.data.DataCache;
 import net.minecraft.data.DataProvider;
-import net.minecraft.util.Identifier;
 
 public class PipeModelsProvider implements DataProvider {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
@@ -42,6 +44,11 @@ public class PipeModelsProvider implements DataProvider {
 
     @Override
     public void run(DataCache cache) throws IOException {
+        registerPipeModels(cache);
+        registerAttachments(cache);
+    }
+
+    private void registerPipeModels(DataCache cache) throws IOException {
         registerPipeModel(cache, MtBlocks.BASIC_ITEM_PIPE, "base/item/basic", "connector/tin");
         registerPipeModel(cache, MtBlocks.BASIC_ITEM_PIPE_OPAQUE, "base/item/basic_opaque", "connector/tin");
         registerPipeModel(cache, MtBlocks.FAST_ITEM_PIPE, "lead", "connection_lead");
@@ -103,11 +110,38 @@ public class PipeModelsProvider implements DataProvider {
         return MtId.of(id).toString();
     }
 
+    private void registerAttachments(DataCache cache) throws IOException {
+        registerAttachment(cache, MtAttachments.FILTER, "attachment/filter_0");
+        registerAttachment(cache, MtAttachments.SERVO, "attachment/servo_base_0_0");
+
+        // Now register the base model json.
+        var obj = new JsonObject();
+        for (var attachment : Attachment.getAllAttachments()) {
+            Path modelPath = gen.getOutput().resolve("assets/%s/models/attachments/%s.json".formatted(gen.getModId(), attachment.id));
+            if (!Files.exists(modelPath)) {
+                throw new RuntimeException("Missing attachment json file: " + modelPath);
+            }
+            obj.addProperty(attachment.id, MtId.of("attachments/%s".formatted(attachment.id)).toString());
+        }
+        DataProvider.writeToPath(GSON, cache, obj, gen.getOutput().resolve("assets/%s/models/attachments.json".formatted(gen.getModId())));
+    }
+
+    /**
+     * Register a simple attachment part model, and return the id of the model.
+     */
+    private void registerAttachment(DataCache cache, Attachment attachment, String texture) throws IOException {
+        var obj = new JsonObject();
+        obj.addProperty("parent", MtId.of("base/pipe_inventory").toString());
+        var textures = new JsonObject();
+        obj.add("textures", textures);
+        textures.addProperty("0", MtId.of(texture).toString());
+
+        DataProvider.writeToPath(GSON, cache, obj,
+                gen.getOutput().resolve("assets/%s/models/attachments/%s.json".formatted(gen.getModId(), attachment.id)));
+    }
+
     @Override
     public String getName() {
         return "Pipe Models";
-    }
-
-    private record PipeModel(Identifier connection_none, Identifier connection_inventory, Identifier connection_pipe) {
     }
 }

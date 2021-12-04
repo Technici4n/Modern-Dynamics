@@ -16,20 +16,20 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderntransportation.block;
+package dev.technici4n.moderntransportation.data;
 
-import dev.technici4n.moderntransportation.network.NodeHost;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.util.math.BlockPos;
+import dev.technici4n.moderntransportation.init.MtItems;
+import dev.technici4n.moderntransportation.init.MtTags;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 
-public class NyiPipeBlockEntity extends PipeBlockEntity {
-    public NyiPipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
+public class ItemTagsProvider extends FabricTagProvider.ItemTagProvider {
+    public ItemTagsProvider(FabricDataGenerator dataGenerator) {
+        super(dataGenerator);
     }
 
     @Override
-    public NodeHost[] getHosts() {
-        return new NodeHost[0];
+    protected void generateTags() {
+        getOrCreateTagBuilder(MtTags.WRENCHES).add(MtItems.WRENCH);
     }
 }

@@ -18,9 +18,9 @@
  */
 package dev.technici4n.moderntransportation;
 
-import dev.technici4n.moderntransportation.block.PipeBlock;
 import dev.technici4n.moderntransportation.init.MtBlocks;
 import dev.technici4n.moderntransportation.model.MtModelLoader;
+import dev.technici4n.moderntransportation.pipe.PipeBlock;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.minecraft.client.render.RenderLayer;

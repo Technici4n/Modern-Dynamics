@@ -18,12 +18,13 @@
  */
 package dev.technici4n.moderntransportation;
 
+import dev.technici4n.moderntransportation.attachment.MtAttachments;
 import dev.technici4n.moderntransportation.init.MtBlockEntities;
 import dev.technici4n.moderntransportation.init.MtBlocks;
 import dev.technici4n.moderntransportation.init.MtItems;
+import dev.technici4n.moderntransportation.init.MtTags;
 import dev.technici4n.moderntransportation.network.NetworkManager;
 import dev.technici4n.moderntransportation.network.TickHelper;
-import dev.technici4n.moderntransportation.network.energy.EnergyCache;
 import dev.technici4n.moderntransportation.util.MtItemGroup;
 import dev.technici4n.moderntransportation.util.WrenchHelper;
 import net.fabricmc.api.ModInitializer;
@@ -39,11 +40,11 @@ public class ModernTransportation implements ModInitializer {
     public void onInitialize() {
         MtItemGroup.init();
 
-        NetworkManager.registerCacheClass(EnergyCache.class, EnergyCache::new);
-
         MtBlocks.init();
         MtItems.init();
         MtBlockEntities.init();
+        MtAttachments.init();
+        MtTags.init();
 
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> NetworkManager.onServerStopped());
         ServerTickEvents.END_SERVER_TICK.register(server -> TickHelper.onEndTick());

@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderntransportation.block;
+package dev.technici4n.moderntransportation.pipe;
 
 import com.google.common.base.Preconditions;
 import net.minecraft.block.Block;

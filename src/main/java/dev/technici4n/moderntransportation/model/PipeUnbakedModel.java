@@ -23,7 +23,6 @@ import java.util.*;
 import java.util.function.Function;
 import net.minecraft.client.render.model.*;
 import net.minecraft.client.render.model.json.JsonUnbakedModel;
-import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.util.Identifier;
@@ -39,7 +38,7 @@ public class PipeUnbakedModel implements UnbakedModel {
         this.connectionInventory = connectionInventory;
     }
 
-    private static BakedModel[] loadRotatedModels(Identifier modelId, ModelLoader modelLoader, Function<SpriteIdentifier, Sprite> textureGetter) {
+    public static BakedModel[] loadRotatedModels(Identifier modelId, ModelLoader modelLoader) {
         // Load side models
         BakedModel[] models = new BakedModel[6];
 
@@ -53,19 +52,19 @@ public class PipeUnbakedModel implements UnbakedModel {
     @Override
     public BakedModel bake(ModelLoader modelLoader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer,
             Identifier modelId) {
-        // Load transform from the vanilla block model
-        ModelTransformation transformation = ((JsonUnbakedModel) modelLoader.getOrLoadModel(new Identifier("block/cube"))).getTransformations();
-
         return new PipeBakedModel(
-                transformation,
-                loadRotatedModels(connectionNone, modelLoader, textureGetter),
-                loadRotatedModels(connectionPipe, modelLoader, textureGetter),
-                loadRotatedModels(connectionInventory, modelLoader, textureGetter));
+                // Load transform from the vanilla block model
+                ((JsonUnbakedModel) modelLoader.getOrLoadModel(new Identifier("block/cube"))).getTransformations(),
+                (AttachmentsBakedModel) modelLoader.bake(AttachmentsUnbakedModel.ID, ModelRotation.X0_Y0),
+                loadRotatedModels(connectionNone, modelLoader),
+                loadRotatedModels(connectionPipe, modelLoader),
+                loadRotatedModels(connectionInventory, modelLoader));
     }
 
     @Override
     public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> set) {
         List<SpriteIdentifier> textures = new ArrayList<>();
+        textures.addAll(unbakedModelGetter.apply(AttachmentsUnbakedModel.ID).getTextureDependencies(unbakedModelGetter, set));
         textures.addAll(unbakedModelGetter.apply(connectionNone).getTextureDependencies(unbakedModelGetter, set));
         textures.addAll(unbakedModelGetter.apply(connectionPipe).getTextureDependencies(unbakedModelGetter, set));
         textures.addAll(unbakedModelGetter.apply(connectionInventory).getTextureDependencies(unbakedModelGetter, set));
@@ -74,6 +73,6 @@ public class PipeUnbakedModel implements UnbakedModel {
 
     @Override
     public Collection<Identifier> getModelDependencies() {
-        return List.of(connectionNone, connectionPipe, connectionInventory);
+        return List.of(AttachmentsUnbakedModel.ID, connectionNone, connectionPipe, connectionInventory);
     }
 }

@@ -18,9 +18,13 @@
  */
 package dev.technici4n.moderntransportation.init;
 
-import dev.technici4n.moderntransportation.block.PipeItem;
+import dev.technici4n.moderntransportation.attachment.AttachmentItem;
+import dev.technici4n.moderntransportation.attachment.MtAttachments;
 import dev.technici4n.moderntransportation.debug.DebugToolItem;
+import dev.technici4n.moderntransportation.pipe.PipeItem;
 import dev.technici4n.moderntransportation.util.MtId;
+import dev.technici4n.moderntransportation.util.MtItemGroup;
+import net.minecraft.item.Item;
 import net.minecraft.util.registry.Registry;
 
 public class MtItems {
@@ -52,6 +56,10 @@ public class MtItems {
     public static final PipeItem EMPTY_RESONANT_ENERGY_PIPE = new PipeItem(MtBlocks.EMPTY_RESONANT_ENERGY_PIPE);
     public static final PipeItem EMPTY_SUPERCONDUCTING_PIPE = new PipeItem(MtBlocks.EMPTY_SUPERCONDUCTING_PIPE);
 
+    public static final AttachmentItem SERVO = new AttachmentItem(MtAttachments.SERVO);
+    public static final AttachmentItem FILTER = new AttachmentItem(MtAttachments.FILTER);
+
+    public static final Item WRENCH = new Item(new Item.Settings().group(MtItemGroup.getInstance()));
     public static final DebugToolItem DEBUG_TOOL = new DebugToolItem();
 
     public static final PipeItem[] ALL_PIPES = new PipeItem[] {
@@ -80,15 +88,25 @@ public class MtItems {
             EMPTY_REINFORCED_ENERGY_PIPE,
             EMPTY_SIGNALUM_ENERGY_PIPE,
             EMPTY_RESONANT_ENERGY_PIPE,
-            EMPTY_SUPERCONDUCTING_PIPE
+            EMPTY_SUPERCONDUCTING_PIPE,
+    };
+
+    public static final AttachmentItem[] ALL_ATTACHMENTS = new AttachmentItem[] {
+            SERVO,
+            FILTER,
     };
 
     public static void init() {
-        Registry.register(Registry.ITEM, MtId.of("debug_tool"), DEBUG_TOOL);
-
         for (var pipe : ALL_PIPES) {
             Registry.register(Registry.ITEM, MtId.of(pipe.getBlock().id), pipe);
         }
+
+        for (var attachmentItem : ALL_ATTACHMENTS) {
+            Registry.register(Registry.ITEM, MtId.of(attachmentItem.attachment.id), attachmentItem);
+        }
+
+        Registry.register(Registry.ITEM, MtId.of("wrench"), WRENCH);
+        Registry.register(Registry.ITEM, MtId.of("debug_tool"), DEBUG_TOOL);
     }
 
 }

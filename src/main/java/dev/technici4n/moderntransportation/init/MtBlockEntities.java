@@ -20,8 +20,8 @@ package dev.technici4n.moderntransportation.init;
 
 import com.google.common.base.Preconditions;
 import dev.technici4n.moderntransportation.MtBlockEntity;
-import dev.technici4n.moderntransportation.block.*;
 import dev.technici4n.moderntransportation.network.energy.EnergyPipeTier;
+import dev.technici4n.moderntransportation.pipe.*;
 import dev.technici4n.moderntransportation.util.MtId;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -98,7 +98,7 @@ public final class MtBlockEntities {
     }
 
     private static BlockEntityType<PipeBlockEntity> createItemPipe(PipeBlock block) {
-        return register(NyiPipeBlockEntity::new, block);
+        return register(ItemPipeBlockEntity::new, block);
     }
 
     private static BlockEntityType<PipeBlockEntity> createEnergyPipe(EnergyPipeTier tier, PipeBlock block) {

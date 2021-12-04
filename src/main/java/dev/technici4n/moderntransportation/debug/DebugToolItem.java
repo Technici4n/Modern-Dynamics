@@ -18,10 +18,10 @@
  */
 package dev.technici4n.moderntransportation.debug;
 
-import dev.technici4n.moderntransportation.block.PipeBlockEntity;
 import dev.technici4n.moderntransportation.network.NetworkCache;
 import dev.technici4n.moderntransportation.network.NetworkNode;
 import dev.technici4n.moderntransportation.network.NodeHost;
+import dev.technici4n.moderntransportation.pipe.PipeBlockEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemUsageContext;

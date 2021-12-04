@@ -18,12 +18,16 @@
  */
 package dev.technici4n.moderntransportation.network;
 
-import dev.technici4n.moderntransportation.block.PipeBlockEntity;
+import dev.technici4n.moderntransportation.attachment.AttachmentItem;
+import dev.technici4n.moderntransportation.pipe.PipeBlockEntity;
 import dev.technici4n.moderntransportation.util.SerializationHelper;
 import java.util.EnumSet;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
+import net.minecraft.inventory.Inventories;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class NodeHost {
     protected final PipeBlockEntity pipe;
+    private final DefaultedList<ItemStack> attachments = DefaultedList.ofSize(6, ItemStack.EMPTY);
     /**
      * Current connections to adjacent pipes.
      */
@@ -46,6 +51,19 @@ public abstract class NodeHost {
     protected NodeHost(PipeBlockEntity pipe) {
         this.pipe = pipe;
     }
+
+    public final void setAttachment(Direction side, ItemStack stack) {
+        attachments.set(side.getId(), stack);
+        scheduleUpdate();
+    }
+
+    @Nullable
+    public final ItemStack getAttachment(Direction side) {
+        var stack = attachments.get(side.getId());
+        return stack.isEmpty() ? null : stack;
+    }
+
+    public abstract boolean acceptsAttachment(AttachmentItem attachment, ItemStack stack);
 
     @SuppressWarnings("ConstantConditions")
     public boolean isTicking() {
@@ -135,7 +153,11 @@ public abstract class NodeHost {
 
     public abstract boolean hasInventoryConnections();
 
-    public abstract void writeNbt(NbtCompound tag);
+    public void writeNbt(NbtCompound tag) {
+        Inventories.writeNbt(tag, attachments);
+    }
 
-    public abstract void readNbt(NbtCompound tag);
+    public void readNbt(NbtCompound tag) {
+        Inventories.readNbt(tag, attachments);
+    }
 }

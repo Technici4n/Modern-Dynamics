@@ -40,13 +40,15 @@ import org.jetbrains.annotations.Nullable;
 
 public class PipeBakedModel implements BakedModel, FabricBakedModel {
     private final ModelTransformation transformation;
+    private final AttachmentsBakedModel attachments;
     private final BakedModel[] connectionNone;
     private final BakedModel[] connectionPipe;
     private final BakedModel[] connectionInventory;
 
-    public PipeBakedModel(ModelTransformation transformation, BakedModel[] connectionNone, BakedModel[] connectionPipe,
-            BakedModel[] connectionInventory) {
+    public PipeBakedModel(ModelTransformation transformation, AttachmentsBakedModel attachments, BakedModel[] connectionNone,
+            BakedModel[] connectionPipe, BakedModel[] connectionInventory) {
         this.transformation = transformation;
+        this.attachments = attachments;
         this.connectionNone = connectionNone;
         this.connectionPipe = connectionPipe;
         this.connectionInventory = connectionInventory;
@@ -93,7 +95,7 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
     }
 
     // Pipes in item form only connect to NORTH and SOUTH.
-    private static final PipeModelData ITEM_DATA = new PipeModelData((byte) 12, (byte) 12);
+    private static final PipeModelData ITEM_DATA = new PipeModelData((byte) 12, (byte) 12, new String[6]);
 
     private void appendBitmasked(Consumer<BakedModel> consumer, int mask, BakedModel[] models) {
         for (int i = 0; i < 6; ++i) {
@@ -130,6 +132,12 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
         appendBitmasked(context.fallbackConsumer(), connectionsNone, connectionNone);
         appendBitmasked(context.fallbackConsumer(), connectionsPipe, connectionPipe);
         appendBitmasked(context.fallbackConsumer(), connectionsInventory, connectionInventory);
-
+        for (int i = 0; i < 6; ++i) {
+            var attachment = data.attachments()[i];
+            if (attachment != null) {
+                context.fallbackConsumer().accept(connectionPipe[i]);
+                context.fallbackConsumer().accept(attachments.attachmentModels.get(attachment)[i]);
+            }
+        }
     }
 }

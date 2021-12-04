@@ -18,25 +18,20 @@
  */
 package dev.technici4n.moderntransportation.util;
 
-import dev.technici4n.moderntransportation.block.PipeBlock;
+import dev.technici4n.moderntransportation.init.MtTags;
+import dev.technici4n.moderntransportation.pipe.PipeBlock;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.tag.TagFactory;
 import net.minecraft.block.Blocks;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tag.Tag;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 
 /**
  * Helper to detect if items are wrenches, and to make wrench shift-clicking dismantle MT pipes.
  */
 public class WrenchHelper {
-    private static final Tag<Item> WRENCH_TAG = TagFactory.ITEM.create(new Identifier("c:wrenches"));
-
     public static boolean isWrench(ItemStack stack) {
-        return WRENCH_TAG.contains(stack.getItem());
+        return MtTags.WRENCHES.contains(stack.getItem());
     }
 
     /**

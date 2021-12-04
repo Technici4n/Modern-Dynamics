@@ -32,24 +32,12 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
     private static final Map<Class<?>, NetworkManager<?, ?>> MANAGERS = new IdentityHashMap<>();
 
     @SuppressWarnings("unchecked")
-    public static synchronized <H extends NodeHost, C extends NetworkCache<H, C>> NetworkManager<H, C> get(Class<C> cacheClass) {
-        NetworkManager<H, C> manager = (NetworkManager<H, C>) MANAGERS.get(cacheClass);
-
-        if (manager == null) {
-            throw new IllegalArgumentException("NetworkManager does not exist for cache class " + cacheClass.getCanonicalName());
-        }
-
-        return manager;
-    }
-
-    public static synchronized <H extends NodeHost, C extends NetworkCache<H, C>> void registerCacheClass(Class<C> cacheClass,
+    public static synchronized <H extends NodeHost, C extends NetworkCache<H, C>> NetworkManager<H, C> get(Class<C> cacheClass,
             NetworkCache.Factory<H, C> factory) {
         Objects.requireNonNull(cacheClass, "Cache class may not be null.");
         Objects.requireNonNull(factory, "Factory may not be null.");
-
-        if (MANAGERS.put(cacheClass, new NetworkManager<>(cacheClass, factory)) != null) {
-            throw new IllegalArgumentException("Duplicate registration of cache class " + cacheClass.getCanonicalName());
-        }
+        // TODO: guard against duplicate registrations with different factories? seems quite unlikely...
+        return (NetworkManager<H, C>) MANAGERS.computeIfAbsent(cacheClass, c -> new NetworkManager<>(cacheClass, factory));
     }
 
     public static synchronized void onServerStopped() {
