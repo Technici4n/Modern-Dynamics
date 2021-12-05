@@ -100,6 +100,9 @@ public abstract class PipeBlockEntity extends MtBlockEntity implements RenderAtt
             }
         }
         Inventories.writeNbt(tag, attachments);
+        for (var host : getHosts()) {
+            host.writeClientNbt(tag);
+        }
     }
 
     @Override
@@ -108,11 +111,13 @@ public abstract class PipeBlockEntity extends MtBlockEntity implements RenderAtt
         byte connections = tag.getByte("connections");
         byte inventoryConnections = tag.getByte("inventoryConnections");
         Inventories.readNbt(tag, clientAttachments);
+        for (var host : getHosts()) {
+            host.readClientNbt(tag);
+        }
 
         updateCachedShape(connections, inventoryConnections);
         clientModelData = new PipeModelData(connections, inventoryConnections, clientAttachments);
         clientSideConnections = connections | inventoryConnections;
-        remesh();
     }
 
     @Override

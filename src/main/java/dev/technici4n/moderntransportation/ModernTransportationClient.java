@@ -21,8 +21,10 @@ package dev.technici4n.moderntransportation;
 import dev.technici4n.moderntransportation.init.MtBlocks;
 import dev.technici4n.moderntransportation.model.MtModelLoader;
 import dev.technici4n.moderntransportation.pipe.PipeBlock;
+import dev.technici4n.moderntransportation.pipe.PipeBlockEntityRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.minecraft.client.render.RenderLayer;
 
 public final class ModernTransportationClient implements ClientModInitializer {
@@ -32,6 +34,10 @@ public final class ModernTransportationClient implements ClientModInitializer {
 
         for (PipeBlock pipeBlock : MtBlocks.ALL_PIPES) {
             BlockRenderLayerMap.INSTANCE.putBlock(pipeBlock, RenderLayer.getCutout());
+            var blockEntityType = pipeBlock.getBlockEntityTypeNullable();
+            if (blockEntityType != null) { // some pipes don't have a block entity type (empty high tier energy pipes)
+                BlockEntityRendererRegistry.register(blockEntityType, PipeBlockEntityRenderer::new);
+            }
         }
     }
 }

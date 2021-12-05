@@ -40,7 +40,7 @@ public class PipeBlock extends Block implements BlockEntityProvider {
 
     public final String id;
     private PipeItem item;
-    private BlockEntityType<?> blockEntityType;
+    private BlockEntityType<PipeBlockEntity> blockEntityType;
 
     public PipeBlock(String id) {
         super(Settings.of(Material.METAL).nonOpaque().solidBlock((state, world, pos) -> false));
@@ -57,12 +57,17 @@ public class PipeBlock extends Block implements BlockEntityProvider {
         this.item = item;
     }
 
-    public BlockEntityType<?> getBlockEntityType() {
+    @Nullable
+    public BlockEntityType<PipeBlockEntity> getBlockEntityTypeNullable() {
+        return this.blockEntityType;
+    }
+
+    public BlockEntityType<PipeBlockEntity> getBlockEntityType() {
         Preconditions.checkState(this.blockEntityType != null, "Block entity type has not been set on %s", this);
         return this.blockEntityType;
     }
 
-    public void setBlockEntityProvider(BlockEntityType<?> blockEntityType) {
+    public void setBlockEntityProvider(BlockEntityType<PipeBlockEntity> blockEntityType) {
         Preconditions.checkState(this.blockEntityType == null, "blockEntityType has already been set on %s", this);
         this.blockEntityType = blockEntityType;
     }

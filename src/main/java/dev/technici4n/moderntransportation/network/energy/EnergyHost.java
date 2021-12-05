@@ -111,11 +111,6 @@ public class EnergyHost extends NodeHost {
         gatherCapabilities(out);
     }
 
-    @Override
-    public boolean hasInventoryConnections() {
-        return inventoryConnections != 0;
-    }
-
     public void gatherCapabilities(@Nullable List<EnergyStorage> out) {
         int oldConnections = inventoryConnections;
 

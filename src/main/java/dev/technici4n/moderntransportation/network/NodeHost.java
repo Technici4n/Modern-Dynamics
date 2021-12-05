@@ -109,6 +109,7 @@ public abstract class NodeHost {
     @SuppressWarnings("unchecked")
     @Nullable
     protected final <H extends NodeHost, C extends NetworkCache<H, C>> NetworkNode<H, C> findNode() {
+        // TODO: not the best unchecked cast...
         return getManager().findNode((ServerWorld) pipe.getWorld(), pipe.getPos());
     }
 
@@ -151,7 +152,13 @@ public abstract class NodeHost {
         return needsUpdate;
     }
 
-    public abstract boolean hasInventoryConnections();
+    public final boolean hasInventoryConnections() {
+        return inventoryConnections != 0;
+    }
+
+    public final PipeBlockEntity getPipe() {
+        return pipe;
+    }
 
     public void writeNbt(NbtCompound tag) {
         Inventories.writeNbt(tag, attachments);
@@ -159,5 +166,11 @@ public abstract class NodeHost {
 
     public void readNbt(NbtCompound tag) {
         Inventories.readNbt(tag, attachments);
+    }
+
+    public void writeClientNbt(NbtCompound tag) {
+    }
+
+    public void readClientNbt(NbtCompound tag) {
     }
 }

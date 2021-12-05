@@ -82,7 +82,8 @@ public final class MtBlockEntities {
         BlockEntityType<T> type = FabricBlockEntityTypeBuilder.create(typeFactory, block).build(null);
         typeFactory.type = type;
         Registry.register(Registry.BLOCK_ENTITY_TYPE, MtId.of(block.id), type);
-        block.setBlockEntityProvider(type);
+        // noinspection unchecked
+        block.setBlockEntityProvider((BlockEntityType<PipeBlockEntity>) type);
 
         // Register item, fluid and energy API.
         registerLookup(ItemStorage.SIDED, type);
