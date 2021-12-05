@@ -1,5 +1,5 @@
 /*
- * Modern Transportation
+ * Modern Dynamics
  * Copyright (C) 2021 shartte & Technici4n
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class ModernDynamics implements ModInitializer {
-    public static final Logger LOGGER = LogManager.getLogger("Modern Transportation");
+    public static final Logger LOGGER = LogManager.getLogger("Modern Dynamics");
 
     @Override
     public void onInitialize() {
@@ -51,7 +51,7 @@ public class ModernDynamics implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(server -> NetworkManager.onEndTick());
         WrenchHelper.registerEvents();
 
-        LOGGER.info("Successfully loaded Modern Transportation!");
+        LOGGER.info("Successfully loaded Modern Dynamics!");
     }
 
 }
