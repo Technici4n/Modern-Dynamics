@@ -102,15 +102,9 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
         // Gather inventory connections
         List<EnergyStorage> storages = new ArrayList<>();
 
-        for (Iterator<EnergyHost> it = inventoryConnectionHosts.iterator(); it.hasNext();) {
-            EnergyHost host = it.next();
-
-            if (host.isTicking()) {
-                host.addEnergyStorages(storages);
-
-                if (!host.hasInventoryConnections()) {
-                    it.remove();
-                }
+        for (var node : nodes) {
+            if (node.getHost().isTicking()) {
+                node.getHost().addEnergyStorages(storages);
             }
         }
 
@@ -179,6 +173,5 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
             out.append("energy = ").append(energyStorage.amount).append("\n");
             out.append("max energy = ").append(energyStorage.capacity).append("\n");
         }
-        out.append("number of inventory connection hosts = ").append(inventoryConnectionHosts.size()).append("\n");
     }
 }

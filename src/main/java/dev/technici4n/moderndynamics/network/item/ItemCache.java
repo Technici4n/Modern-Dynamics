@@ -33,7 +33,6 @@ import java.util.PriorityQueue;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Direction;
 
 public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
@@ -48,6 +47,12 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
         for (var node : nodes) {
             if (node.getHost().isTicking()) {
                 node.getHost().tickMovingItems();
+            }
+        }
+
+        for (var node : nodes) {
+            if (node.getHost().isTicking()) {
+                node.getHost().tickAttachments();
             }
         }
     }
@@ -82,7 +87,7 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
                     continue;
                 }
 
-                if (currentNode.getHost().hasInventoryConnections()) {
+                if (currentNode.getHost().hasConnections()) {
                     possibleTargets.add(currentNode);
                 }
 

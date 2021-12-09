@@ -19,8 +19,8 @@
 package dev.technici4n.moderndynamics.attachment;
 
 public class MdAttachments {
-    public static final Attachment SERVO = new Attachment(AttachmentType.SERVO, "servo");
-    public static final Attachment FILTER = new Attachment(AttachmentType.FILTER, "filter");
+    public static final Attachment SERVO = new Attachment("servo");
+    public static final Attachment FILTER = new Attachment("filter");
 
     public static void init() {
         // init static

@@ -19,8 +19,8 @@
 package dev.technici4n.moderndynamics.init;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
-import dev.technici4n.moderndynamics.attachment.ConfigurableAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.MdAttachments;
+import dev.technici4n.moderndynamics.attachment.TickingItem;
 import dev.technici4n.moderndynamics.debug.DebugToolItem;
 import dev.technici4n.moderndynamics.pipe.PipeItem;
 import dev.technici4n.moderndynamics.util.MdId;
@@ -56,7 +56,7 @@ public class MdItems {
     public static final PipeItem EMPTY_RESONANT_ENERGY_PIPE = new PipeItem(MdBlocks.EMPTY_RESONANT_ENERGY_PIPE);
     public static final PipeItem EMPTY_SUPERCONDUCTING_PIPE = new PipeItem(MdBlocks.EMPTY_SUPERCONDUCTING_PIPE);
 
-    public static final AttachmentItem SERVO = new ConfigurableAttachmentItem(MdAttachments.SERVO, 5, 3);
+    public static final AttachmentItem SERVO = new TickingItem(MdAttachments.SERVO, 5, 3, 4, 20, true);
     public static final AttachmentItem FILTER = new AttachmentItem(MdAttachments.FILTER);
 
     public static final Item WRENCH = new Item(new Item.Settings().group(MdItemGroup.getInstance()));

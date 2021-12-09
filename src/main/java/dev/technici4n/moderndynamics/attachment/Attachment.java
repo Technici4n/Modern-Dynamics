@@ -34,11 +34,9 @@ public class Attachment {
         return new ArrayList<>(REGISTERED_ATTACHMENTS.values());
     }
 
-    public final AttachmentType type;
     public final String id;
 
-    public Attachment(AttachmentType type, String id) {
-        this.type = type;
+    public Attachment(String id) {
         this.id = id;
 
         if (REGISTERED_ATTACHMENTS.put(id, this) != null) {

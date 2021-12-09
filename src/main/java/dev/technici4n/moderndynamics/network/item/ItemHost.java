@@ -19,9 +19,11 @@
 package dev.technici4n.moderndynamics.network.item;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
+import dev.technici4n.moderndynamics.attachment.TickingItem;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
+import dev.technici4n.moderndynamics.network.TickHelper;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
@@ -34,6 +36,7 @@ import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
@@ -49,6 +52,7 @@ public class ItemHost extends NodeHost {
     private static final NetworkManager<ItemHost, ItemCache> MANAGER = NetworkManager.get(ItemCache.class, ItemCache::new);
     private final List<TravelingItem> travelingItems = new ArrayList<>();
     private final List<ClientTravelingItem> clientTravelingItems = new ArrayList<>();
+    private final long[] lastOperationTick = new long[6];
 
     public ItemHost(PipeBlockEntity pipe) {
         super(pipe);
@@ -67,26 +71,35 @@ public class ItemHost extends NodeHost {
     @Override
     @Nullable
     public Object getApiInstance(BlockApiLookup<?, Direction> lookup, Direction side) {
-        if (lookup == ItemStorage.SIDED) {
-            return new InsertionOnlyStorage<ItemVariant>() {
-                @Override
-                public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
-                    NetworkNode<ItemHost, ItemCache> node = findNode();
-                    if (node != null) {
-                        // The node can be null if the pipe was just placed, and not initialized yet.
-                        return node.getNetworkCache().insert(side.getOpposite(), node, FailedInsertStrategy.SEND_BACK_TO_SOURCE, resource, maxAmount, transaction);
-                    } else {
-                        return 0;
-                    }
-                }
-
-                @Override
-                public Iterator<StorageView<ItemVariant>> iterator(TransactionContext transaction) {
-                    return Collections.emptyIterator();
-                }
-            };
+        if (lookup == ItemStorage.SIDED && allowItemConnection(side)) {
+            return buildNetworkInjectStorage(side);
         }
         return null;
+    }
+
+    private boolean allowItemConnection(Direction side) {
+        // don't expose the API if there is a servo on this side
+        return getAttachment(side) == null || !(getAttachment(side).getItem() instanceof TickingItem ticking) || !ticking.isServo();
+    }
+
+    private Storage<ItemVariant> buildNetworkInjectStorage(Direction side) {
+        return new InsertionOnlyStorage<>() {
+            @Override
+            public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
+                NetworkNode<ItemHost, ItemCache> node = findNode();
+                if (node != null) {
+                    // The node can be null if the pipe was just placed, and not initialized yet.
+                    return node.getNetworkCache().insert(side.getOpposite(), node, FailedInsertStrategy.SEND_BACK_TO_SOURCE, resource, maxAmount, transaction);
+                } else {
+                    return 0;
+                }
+            }
+
+            @Override
+            public Iterator<StorageView<ItemVariant>> iterator(TransactionContext transaction) {
+                return Collections.emptyIterator();
+            }
+        };
     }
 
     protected long getPathingWeight() {
@@ -99,10 +112,40 @@ public class ItemHost extends NodeHost {
 
     @Nullable
     protected Storage<ItemVariant> getAdjacentStorage(Direction side) {
-        if ((inventoryConnections & (1 << side.getId())) > 0 && (pipeConnections & (1 << side.getId())) == 0) {
+        if ((inventoryConnections & (1 << side.getId())) > 0 && (pipeConnections & (1 << side.getId())) == 0 && allowItemConnection(side)) {
             return ItemStorage.SIDED.find(pipe.getWorld(), pipe.getPos().offset(side), side.getOpposite());
         }
         return null;
+    }
+
+    public boolean hasConnections() {
+        return inventoryConnections != 0;
+    }
+
+    public void tickAttachments() {
+        long currentTick = TickHelper.getTickCounter();
+        for (var side : Direction.values()) {
+            ItemStack attachment = getAttachment(side);
+            if (attachment != null) {
+                if (attachment.getItem() instanceof TickingItem tickingItem) {
+                    if (currentTick - lastOperationTick[side.getId()] < tickingItem.tickFrequency) continue;
+                    lastOperationTick[side.getId()] = currentTick;
+
+                    if (tickingItem.isServo()) {
+                        var adjStorage = ItemStorage.SIDED.find(pipe.getWorld(), pipe.getPos().offset(side), side.getOpposite());
+                        if (adjStorage == null) continue;
+
+                        StorageUtil.move(
+                                adjStorage,
+                                buildNetworkInjectStorage(side),
+                                iv -> tickingItem.matchesFilter(attachment, iv),
+                                tickingItem.batchSize,
+                                null
+                        );
+                    }
+                }
+            }
+        }
     }
 
     public void tickMovingItems() {

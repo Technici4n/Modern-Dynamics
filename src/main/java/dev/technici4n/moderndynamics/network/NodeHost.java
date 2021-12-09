@@ -154,10 +154,6 @@ public abstract class NodeHost {
         return needsUpdate;
     }
 
-    public final boolean hasInventoryConnections() {
-        return inventoryConnections != 0;
-    }
-
     public final PipeBlockEntity getPipe() {
         return pipe;
     }

@@ -86,15 +86,9 @@ public class EnergyHost extends NodeHost {
         pipe.markDirty();
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     protected void doUpdate() {
         updateConnections();
-
-        if (hasInventoryConnections()) {
-            NetworkNode<EnergyHost, EnergyCache> node = findNode();
-            node.getNetworkCache().addInventoryConnectionHost(this);
-        }
     }
 
     @Override

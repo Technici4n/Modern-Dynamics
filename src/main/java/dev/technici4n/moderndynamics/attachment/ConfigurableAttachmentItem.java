@@ -29,4 +29,20 @@ public class ConfigurableAttachmentItem extends AttachmentItem {
 		}
 		list.set(x + y * configWidth, variant.toNbt());
 	}
+
+	public boolean matchesFilter(ItemStack stack, ItemVariant variant) {
+		boolean isEmpty = true;
+		for (int i = 0; i < configHeight; ++i) {
+			for (int j = 0; j < configWidth; ++j) {
+				ItemVariant v = getItemVariant(stack, i, j);
+				if (!v.isBlank()) {
+					if (v.equals(variant)) {
+						return true;
+					}
+					isEmpty = false;
+				}
+			}
+		}
+		return isEmpty;
+	}
 }
