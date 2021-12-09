@@ -19,6 +19,9 @@
 package dev.technici4n.moderndynamics.util;
 
 import java.util.EnumSet;
+
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 public class SerializationHelper {
@@ -42,5 +45,40 @@ public class SerializationHelper {
         }
 
         return result;
+    }
+
+    public static NbtCompound posToNbt(BlockPos pos) {
+        NbtCompound nbt = new NbtCompound();
+        nbt.putInt("x", pos.getX());
+        nbt.putInt("y", pos.getY());
+        nbt.putInt("z", pos.getZ());
+        return nbt;
+    }
+
+    public static BlockPos posFromNbt(NbtCompound nbt) {
+        return new BlockPos(nbt.getInt("x"), nbt.getInt("y"), nbt.getInt("z"));
+    }
+
+    // This is a terrible way of doing it, but at least it's easy to debug.
+    public static String encodePath(Direction[] path) {
+        StringBuilder encoded = new StringBuilder();
+        for (Direction direction : path) {
+            encoded.append(direction.getName().charAt(0));
+        }
+        return encoded.toString();
+    }
+
+    public static Direction[] decodePath(String encoded) {
+        Direction[] path = new Direction[encoded.length()];
+        outer: for (int i = 0; i < encoded.length(); ++i) {
+            for (var direction : Direction.values()) {
+                if (direction.getName().charAt(0) == encoded.charAt(i)) {
+                    path[i] = direction;
+                    continue outer;
+                }
+            }
+            throw new RuntimeException("Unkown direction character in path: " + encoded.charAt(i));
+        }
+        return path;
     }
 }

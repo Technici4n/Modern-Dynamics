@@ -22,9 +22,16 @@ import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.model.MdModelLoader;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntityRenderer;
+import dev.technici4n.moderndynamics.screen.AttachmentScreen;
+import dev.technici4n.moderndynamics.screen.AttachmentScreenHandler;
+import dev.technici4n.moderndynamics.screen.MdPackets;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
+import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.minecraft.client.render.RenderLayer;
 
 public final class ModernDynamicsClient implements ClientModInitializer {
@@ -39,5 +46,9 @@ public final class ModernDynamicsClient implements ClientModInitializer {
                 BlockEntityRendererRegistry.register(blockEntityType, PipeBlockEntityRenderer::new);
             }
         }
+
+        ScreenRegistry.register(AttachmentScreenHandler.TYPE, AttachmentScreen::new);
+
+        ClientPlayNetworking.registerGlobalReceiver(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER::handleS2C);
     }
 }

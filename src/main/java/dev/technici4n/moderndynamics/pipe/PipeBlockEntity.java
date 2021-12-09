@@ -20,9 +20,12 @@ package dev.technici4n.moderndynamics.pipe;
 
 import dev.technici4n.moderndynamics.MdBlockEntity;
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
+import dev.technici4n.moderndynamics.attachment.ConfigurableAttachmentItem;
 import dev.technici4n.moderndynamics.model.PipeModelData;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.TickHelper;
+import dev.technici4n.moderndynamics.screen.PipeScreenFactory;
+import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.ShapeHelper;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
@@ -44,6 +47,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.SpawnHelper;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -66,7 +70,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     public abstract NodeHost[] getHosts();
 
     @Nullable
-    protected final ItemStack getAttachment(Direction side) {
+    public final ItemStack getAttachment(Direction side) {
         if (world.isClient()) {
             var stack = clientAttachments.get(side.getId());
             return stack.isEmpty() ? null : stack;
@@ -110,6 +114,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         connectionBlacklist = tag.getByte("connectionBlacklist");
         byte connections = tag.getByte("connections");
         byte inventoryConnections = tag.getByte("inventoryConnections");
+        clientAttachments.clear();
         Inventories.readNbt(tag, clientAttachments);
         for (var host : getHosts()) {
             host.readClientNbt(tag);
@@ -312,7 +317,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
                                 var attachment = host.getAttachment(side);
                                 if (attachment != null) {
                                     host.setAttachment(side, ItemStack.EMPTY);
-                                    ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), attachment);
+                                    DropHelper.dropStack(this, attachment);
                                     world.updateNeighbors(pos, getCachedState().getBlock());
                                     markDirty();
                                     sync();
@@ -351,23 +356,41 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
 
             if (hitSide != null) {
                 if (getAttachment(hitSide) == null) {
-                    if (world.isClient()) {
-                        return ActionResult.SUCCESS;
-                    } else {
-                        for (var host : getHosts()) {
-                            if (host.acceptsAttachment(attachmentItem, stack)) {
-                                host.setAttachment(hitSide, stack);
+                    for (var host : getHosts()) {
+                        if (host.acceptsAttachment(attachmentItem, stack)) {
+                            if (!world.isClient) {
+                                host.setAttachment(hitSide, stack.copy().split(1));
                                 world.updateNeighbors(pos, getCachedState().getBlock());
                                 markDirty();
                                 sync();
-                                return ActionResult.CONSUME;
                             }
+                            stack.decrement(1);
+                            return ActionResult.success(world.isClient);
                         }
                     }
                 }
             }
         }
 
+        // Handle click on attachment
+        for (int i = 0; i < 6; ++i) {
+            if (ShapeHelper.shapeContains(PipeBoundingBoxes.INVENTORY_CONNECTIONS[i], posInBlock)) {
+                var side = Direction.byId(i);
+                var attachment = getAttachment(side);
+                if (attachment != null && attachment.getItem() instanceof ConfigurableAttachmentItem cai) {
+                    // Open attachment GUI
+                    player.openHandledScreen(new PipeScreenFactory(this, side, attachment));
+                    return ActionResult.success(world.isClient);
+                }
+            }
+        }
+
         return ActionResult.PASS;
+    }
+
+    public void onRemoved() {
+        for (var host : getHosts()) {
+            host.onRemoved();
+        }
     }
 }

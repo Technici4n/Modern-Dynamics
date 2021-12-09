@@ -19,6 +19,27 @@
 package dev.technici4n.moderndynamics.network.item;
 
 public enum FailedInsertStrategy {
-    DROP,
-    SEND_BACK_TO_SOURCE,
+    DROP("drop"),
+    SEND_BACK_TO_SOURCE("source"),
+    BUFFER_IN_TARGET("target"),
+    ;
+
+    private final String serializedName;
+
+    FailedInsertStrategy(String serializedName) {
+        this.serializedName = serializedName;
+    }
+
+    public String getSerializedName() {
+        return serializedName;
+    }
+
+    public static FailedInsertStrategy bySerializedName(String serializedName) {
+        return switch (serializedName) {
+            case "drop" -> DROP;
+            case "source" -> SEND_BACK_TO_SOURCE;
+            case "target" -> BUFFER_IN_TARGET;
+            default -> throw new RuntimeException("Unknown failed insert strategy: " + serializedName);
+        };
+    }
 }

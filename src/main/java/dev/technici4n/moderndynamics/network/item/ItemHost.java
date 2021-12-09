@@ -23,6 +23,7 @@ import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +42,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,8 +72,12 @@ public class ItemHost extends NodeHost {
                 @Override
                 public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
                     NetworkNode<ItemHost, ItemCache> node = findNode();
-                    return node.getNetworkCache().insert(
-                            side.getOpposite(), node, FailedInsertStrategy.SEND_BACK_TO_SOURCE, resource, maxAmount, transaction);
+                    if (node != null) {
+                        // The node can be null if the pipe was just placed, and not initialized yet.
+                        return node.getNetworkCache().insert(side.getOpposite(), node, FailedInsertStrategy.SEND_BACK_TO_SOURCE, resource, maxAmount, transaction);
+                    } else {
+                        return 0;
+                    }
                 }
 
                 @Override
@@ -168,22 +172,75 @@ public class ItemHost extends NodeHost {
 
     private void finishTravel(TravelingItem item, long inserted) {
         // In any case, remove the item from the simulated insertion target
-        var simulatedInsertionTarget = SimulatedInsertionTargets.getTarget((ServerWorld) pipe.getWorld(), item.targetPos,
-                item.path[item.path.length - 1].getOpposite());
-        simulatedInsertionTarget.stopAwaiting(item.variant, item.amount);
-        // TODO
-        // if strategy is to send back to source, send back to source
-        // otherwise just drop the remainder
+        item.getInsertionTarget(pipe.getWorld()).stopAwaiting(item.variant, item.amount);
+        long leftover = item.amount - inserted;
+
+        if (leftover > 0) {
+            if (item.strategy == FailedInsertStrategy.SEND_BACK_TO_SOURCE) {
+                Direction[] revertedPath = new Direction[item.path.length];
+                for (int i = 0; i < item.path.length; ++i) {
+                    revertedPath[revertedPath.length-i-1] = item.path[i].getOpposite();
+                }
+                addTravelingItem(new TravelingItem(
+                        item.variant,
+                        leftover,
+                        item.targetPos,
+                        item.startingPos,
+                        revertedPath,
+                        FailedInsertStrategy.DROP,
+                        item.path.length - 1 - Math.floor(item.traveledDistance)
+                ));
+            } else {
+                DropHelper.dropStack(pipe, item.variant, item.amount - inserted);
+            }
+        }
     }
 
     @Override
     public void writeNbt(NbtCompound tag) {
         super.writeNbt(tag);
+        if (travelingItems.size() > 0) {
+            NbtList list = new NbtList();
+            for (var travelingItem : travelingItems) {
+                list.add(travelingItem.toNbt());
+            }
+            tag.put("travelingItems", list);
+        }
     }
 
     @Override
     public void readNbt(NbtCompound tag) {
         super.readNbt(tag);
+        NbtList list = tag.getList("travelingItems", NbtCompound.COMPOUND_TYPE);
+        for (int i = 0; i < list.size(); ++i) {
+            travelingItems.add(TravelingItem.fromNbt(list.getCompound(i)));
+        }
+    }
+
+    @Override
+    public void addSelf() {
+        super.addSelf();
+        for (var travelingItem : travelingItems) {
+            travelingItem.getInsertionTarget(pipe.getWorld()).startAwaiting(travelingItem.variant, travelingItem.amount);
+        }
+    }
+
+    @Override
+    public void removeSelf() {
+        super.removeSelf();
+        for (var travelingItem : travelingItems) {
+            travelingItem.getInsertionTarget(pipe.getWorld()).stopAwaiting(travelingItem.variant, travelingItem.amount);
+        }
+    }
+
+    @Override
+    public void onRemoved() {
+        super.onRemoved();
+        for (var travelingItem : travelingItems) {
+            travelingItem.getInsertionTarget(pipe.getWorld()).stopAwaiting(travelingItem.variant, travelingItem.amount);
+            DropHelper.dropStack(pipe, travelingItem.variant, travelingItem.amount);
+        }
+        travelingItems.clear();
     }
 
     public void addTravelingItem(TravelingItem travelingItem) {

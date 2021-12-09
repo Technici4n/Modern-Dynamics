@@ -65,9 +65,14 @@ public class SimulatedInsertionTarget {
 
         // Schedule stack to be sent on commit
         participant.updateSnapshots(transaction);
+        // TODO: add to awaitedStacks directly, and remove if the tx is cancelled!
         participant.pendingStacks.add(new PendingStack(variant, maxAmount, callback));
 
         return maxAmount;
+    }
+
+    public void startAwaiting(ItemVariant variant, long amount) {
+        awaitedStacks.mergeLong(variant, amount, Long::sum);
     }
 
     public void stopAwaiting(ItemVariant variant, long amount) {
@@ -100,7 +105,7 @@ public class SimulatedInsertionTarget {
         @Override
         protected void onFinalCommit() {
             for (var pendingStack : pendingStacks) {
-                awaitedStacks.mergeLong(pendingStack.variant, pendingStack.amount, Long::sum);
+                startAwaiting(pendingStack.variant, pendingStack.amount);
                 pendingStack.callback.startTravel(pendingStack.variant, pendingStack.amount);
             }
             pendingStacks.clear();

@@ -18,7 +18,12 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
+import com.mojang.serialization.Codec;
+import dev.technici4n.moderndynamics.util.SerializationHelper;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
@@ -26,7 +31,6 @@ import net.minecraft.world.World;
 public class TravelingItem {
     public final ItemVariant variant;
     public final long amount;
-    public final World world;
     /**
      * Starting position of the items, i.e. the chest they were pulled from. (Not the pipe!)
      */
@@ -36,15 +40,42 @@ public class TravelingItem {
     public final FailedInsertStrategy strategy;
     public double traveledDistance;
 
-    public TravelingItem(ItemVariant variant, long amount, World world, BlockPos startingPos, BlockPos targetPos, Direction[] path,
+    public TravelingItem(ItemVariant variant, long amount, BlockPos startingPos, BlockPos targetPos, Direction[] path,
             FailedInsertStrategy strategy, double traveledDistance) {
         this.variant = variant;
         this.amount = amount;
-        this.world = world;
         this.startingPos = startingPos;
         this.targetPos = targetPos;
         this.path = path;
         this.strategy = strategy;
         this.traveledDistance = traveledDistance;
+    }
+
+    public SimulatedInsertionTarget getInsertionTarget(World world) {
+        return SimulatedInsertionTargets.getTarget(world, targetPos, path[path.length - 1].getOpposite());
+    }
+
+    public NbtCompound toNbt() {
+        NbtCompound nbt = new NbtCompound();
+        nbt.put("v", variant.toNbt());
+        nbt.putLong("a", amount);
+        nbt.put("start", SerializationHelper.posToNbt(startingPos));
+        nbt.put("end", SerializationHelper.posToNbt(targetPos));
+        nbt.putString("path", SerializationHelper.encodePath(path));
+        nbt.putString("strategy", strategy.getSerializedName());
+        nbt.putDouble("d", traveledDistance);
+        return nbt;
+    }
+
+    public static TravelingItem fromNbt(NbtCompound nbt) {
+        return new TravelingItem(
+                ItemVariant.fromNbt(nbt.getCompound("v")),
+                nbt.getLong("a"),
+                SerializationHelper.posFromNbt(nbt.getCompound("start")),
+                SerializationHelper.posFromNbt(nbt.getCompound("end")),
+                SerializationHelper.decodePath(nbt.getString("path")),
+                FailedInsertStrategy.bySerializedName(nbt.getString("strategy")),
+                nbt.getDouble("d")
+        );
     }
 }

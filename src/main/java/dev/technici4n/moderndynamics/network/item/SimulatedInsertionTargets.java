@@ -26,6 +26,7 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 
 public class SimulatedInsertionTargets {
     private static final Map<Coord, SimulatedInsertionTarget> TARGETS = new HashMap<>();
@@ -33,7 +34,8 @@ public class SimulatedInsertionTargets {
     private record Coord(ServerWorld world, BlockPos pos, Direction direction) {
     }
 
-    public static SimulatedInsertionTarget getTarget(ServerWorld world, BlockPos pos, Direction side) {
+    public static SimulatedInsertionTarget getTarget(World w, BlockPos pos, Direction side) {
+        ServerWorld world = (ServerWorld) w;
         return TARGETS.computeIfAbsent(new Coord(world, pos, side), coord -> {
             var cache = BlockApiCache.create(ItemStorage.SIDED, world, pos);
             return new SimulatedInsertionTarget(() -> cache.find(side));

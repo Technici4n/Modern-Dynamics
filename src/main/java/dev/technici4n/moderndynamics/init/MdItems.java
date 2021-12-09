@@ -19,6 +19,7 @@
 package dev.technici4n.moderndynamics.init;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
+import dev.technici4n.moderndynamics.attachment.ConfigurableAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.MdAttachments;
 import dev.technici4n.moderndynamics.debug.DebugToolItem;
 import dev.technici4n.moderndynamics.pipe.PipeItem;
@@ -28,7 +29,6 @@ import net.minecraft.item.Item;
 import net.minecraft.util.registry.Registry;
 
 public class MdItems {
-
     public static final PipeItem BASIC_ITEM_PIPE = new PipeItem(MdBlocks.BASIC_ITEM_PIPE);
     public static final PipeItem BASIC_ITEM_PIPE_OPAQUE = new PipeItem(MdBlocks.BASIC_ITEM_PIPE_OPAQUE);
     public static final PipeItem FAST_ITEM_PIPE = new PipeItem(MdBlocks.FAST_ITEM_PIPE);
@@ -56,7 +56,7 @@ public class MdItems {
     public static final PipeItem EMPTY_RESONANT_ENERGY_PIPE = new PipeItem(MdBlocks.EMPTY_RESONANT_ENERGY_PIPE);
     public static final PipeItem EMPTY_SUPERCONDUCTING_PIPE = new PipeItem(MdBlocks.EMPTY_SUPERCONDUCTING_PIPE);
 
-    public static final AttachmentItem SERVO = new AttachmentItem(MdAttachments.SERVO);
+    public static final AttachmentItem SERVO = new ConfigurableAttachmentItem(MdAttachments.SERVO, 5, 3);
     public static final AttachmentItem FILTER = new AttachmentItem(MdAttachments.FILTER);
 
     public static final Item WRENCH = new Item(new Item.Settings().group(MdItemGroup.getInstance()));
@@ -108,5 +108,4 @@ public class MdItems {
         Registry.register(Registry.ITEM, MdId.of("wrench"), WRENCH);
         Registry.register(Registry.ITEM, MdId.of("debug_tool"), DEBUG_TOOL);
     }
-
 }

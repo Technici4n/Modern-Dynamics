@@ -45,9 +45,10 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
 
     @Override
     protected void doTick() {
-        // TODO: only tick pipes that have items and are in ticking chunks
         for (var node : nodes) {
-            node.getHost().tickMovingItems();
+            if (node.getHost().isTicking()) {
+                node.getHost().tickMovingItems();
+            }
         }
     }
 
@@ -105,7 +106,7 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
                     }
                     var pipe = target.getHost().getPipe();
                     var ajdPos = pipe.getPos().offset(side);
-                    var simulatedTarget = SimulatedInsertionTargets.getTarget((ServerWorld) pipe.getWorld(), ajdPos, side.getOpposite());
+                    var simulatedTarget = SimulatedInsertionTargets.getTarget(pipe.getWorld(), ajdPos, side.getOpposite());
 
                     totalInserted += simulatedTarget.insert(variant, maxAmount - totalInserted, transaction, (v, amount) -> {
                         // Backtrack to find the path.
@@ -124,7 +125,6 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
                         var travelingItem = new TravelingItem(
                                 v,
                                 amount,
-                                pipe.getWorld(),
                                 startingPoint.getHost().getPipe().getPos(),
                                 ajdPos,
                                 path,

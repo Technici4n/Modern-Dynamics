@@ -20,6 +20,7 @@ package dev.technici4n.moderndynamics.network;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.EnumSet;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
@@ -27,6 +28,7 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
@@ -89,12 +91,12 @@ public abstract class NodeHost {
     public abstract NetworkManager getManager();
 
     @SuppressWarnings("unchecked")
-    public final void addSelf() {
+    public void addSelf() {
         getManager().addNode((ServerWorld) pipe.getWorld(), pipe.getPos(), this);
     }
 
     @SuppressWarnings("unchecked")
-    public final void removeSelf() {
+    public void removeSelf() {
         getManager().removeNode((ServerWorld) pipe.getWorld(), pipe.getPos(), this);
     }
 
@@ -172,5 +174,12 @@ public abstract class NodeHost {
     }
 
     public void readClientNbt(NbtCompound tag) {
+    }
+
+    public void onRemoved() {
+        for (var attachment : attachments) {
+            DropHelper.dropStack(pipe, attachment);
+        }
+        attachments.clear();
     }
 }

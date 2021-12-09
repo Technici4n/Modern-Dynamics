@@ -81,10 +81,8 @@ public class PipeBlock extends Block implements BlockEntityProvider {
     @SuppressWarnings("deprecation")
     @Override
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block param4, BlockPos param5, boolean param6) {
-        BlockEntity be = world.getBlockEntity(pos);
-
-        if (be instanceof PipeBlockEntity) {
-            ((PipeBlockEntity) be).scheduleHostUpdates();
+        if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+            pipe.scheduleHostUpdates();
         }
     }
 
@@ -96,10 +94,8 @@ public class PipeBlock extends Block implements BlockEntityProvider {
     @SuppressWarnings("deprecation")
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext ctx) {
-        BlockEntity be = world.getBlockEntity(pos);
-
-        if (be instanceof PipeBlockEntity) {
-            return ((PipeBlockEntity) be).getCachedShape();
+        if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+            return pipe.getCachedShape();
         } else {
             return PipeBoundingBoxes.CORE_SHAPE;
         }
@@ -108,13 +104,22 @@ public class PipeBlock extends Block implements BlockEntityProvider {
     @SuppressWarnings("deprecation")
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hitResult) {
-        BlockEntity be = world.getBlockEntity(pos);
-
-        if (be instanceof PipeBlockEntity) {
-            return ((PipeBlockEntity) be).onUse(player, hand, hitResult);
+        if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+            return pipe.onUse(player, hand, hitResult);
         } else {
             return ActionResult.PASS;
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+        if (!state.isOf(newState.getBlock())) {
+            if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+                pipe.onRemoved();
+            }
+        }
+        super.onStateReplaced(state, world, pos, newState, moved);
     }
 
     @Nullable
