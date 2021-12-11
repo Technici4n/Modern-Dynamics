@@ -120,6 +120,8 @@ public class PipeModelsProvider implements DataProvider {
         registerAttachment(cache, MdAttachments.IMPROVED_RETRIEVER, "attachment/retriever_base_0_1");
         registerAttachment(cache, MdAttachments.ADVANCED_RETRIEVER, "attachment/retriever_base_0_2");
 
+        registerAttachment(cache, MdAttachments.INHIBITOR, "attachment/inhibitor");
+
         // Now register the base model json.
         var obj = new JsonObject();
         for (var attachment : RenderedAttachment.getAllAttachments()) {

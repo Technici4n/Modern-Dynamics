@@ -37,9 +37,14 @@ import net.minecraft.util.math.Direction;
 
 public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
     private boolean inserting = false;
+    private ItemPathCache pathCache = new ItemPathCache();
 
     protected ItemCache(List<NetworkNode<ItemHost, ItemCache>> networkNodes) {
         super(networkNodes);
+    }
+
+    protected void invalidatePathCache() {
+        pathCache = new ItemPathCache();
     }
 
     @Override
@@ -68,86 +73,23 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
 
         inserting = true;
         try {
-            // First, gather all target nodes by priority.
-            PriorityQueue<PqNode> pq = new PriorityQueue<>(Comparator.comparingLong(PqNode::distance));
-            Reference2LongMap<NetworkNode<ItemHost, ItemCache>> distance = new Reference2LongOpenHashMap<>();
-            Map<NetworkNode<ItemHost, ItemCache>, Direction> prevDirection = new IdentityHashMap<>();
-            Map<NetworkNode<ItemHost, ItemCache>, NetworkNode<ItemHost, ItemCache>> prevNode = new IdentityHashMap<>();
-            List<NetworkNode<ItemHost, ItemCache>> possibleTargets = new ArrayList<>();
+            var paths = pathCache.getPaths(startingPoint, initialDirection);
 
-            pq.add(new PqNode(startingPoint, 0));
-            distance.put(startingPoint, 0);
-
-            while (!pq.isEmpty()) {
-                var currentPqNode = pq.poll();
-                var currentNode = currentPqNode.node;
-                long currentDistance = currentPqNode.distance;
-
-                if (currentDistance != distance.getLong(currentNode)) {
-                    continue;
-                }
-
-                if (currentNode.getHost().hasConnections()) {
-                    possibleTargets.add(currentNode);
-                }
-
-                for (var connection : currentNode.getConnections()) {
-                    long newDistance = currentDistance + connection.target.getHost().getPathingWeight();
-                    if (distance.getOrDefault(connection.target, Long.MAX_VALUE) > newDistance) {
-                        distance.put(connection.target, newDistance);
-                        pq.add(new PqNode(connection.target, newDistance));
-                        prevDirection.put(connection.target, connection.direction);
-                        prevNode.put(connection.target, currentNode);
-                    }
-                }
-            }
-
-            // Then, do the actual insertion
             long totalInserted = 0;
-            for (var target : possibleTargets) {
-                for (var side : target.getHost().getInventoryConnections()) {
-                    if (target == startingPoint && side == initialDirection.getOpposite()) {
-                        continue; // prevent insertion back into the source
-                    }
-                    var pipe = target.getHost().getPipe();
-                    var ajdPos = pipe.getPos().offset(side);
-                    var simulatedTarget = SimulatedInsertionTargets.getTarget(pipe.getWorld(), ajdPos, side.getOpposite());
+            for (var path : paths) {
+                var simulatedTarget = path.getInsertionTarget(startingPoint.getHost().getPipe().getWorld());
 
-                    totalInserted += simulatedTarget.insert(variant, maxAmount - totalInserted, transaction, (v, amount) -> {
-                        // Backtrack to find the path.
-                        List<Direction> reversedPath = new ArrayList<>();
-                        var current = target;
-                        var currentDir = side;
-                        while (current != null) {
-                            reversedPath.add(currentDir);
-                            currentDir = prevDirection.get(current);
-                            current = prevNode.get(current);
-                        }
-                        reversedPath.add(initialDirection);
-                        Direction[] path = Lists.reverse(reversedPath).toArray(Direction[]::new);
-
-                        // Construct traveling item.
-                        var travelingItem = new TravelingItem(
-                                v,
-                                amount,
-                                startingPoint.getHost().getPipe().getPos(),
-                                ajdPos,
-                                path,
-                                strategy,
-                                0);
-                        startingPoint.getHost().addTravelingItem(travelingItem);
-                    });
-                    if (totalInserted == maxAmount) {
-                        return totalInserted;
-                    }
+                totalInserted += simulatedTarget.insert(variant, maxAmount - totalInserted, transaction, (v, amount) -> {
+                    var travelingItem = path.makeTravelingItem(v, amount);
+                    startingPoint.getHost().addTravelingItem(travelingItem);
+                });
+                if (totalInserted == maxAmount) {
+                    return totalInserted;
                 }
             }
             return totalInserted;
         } finally {
             inserting = false;
         }
-    }
-
-    private record PqNode(NetworkNode<ItemHost, ItemCache> node, long distance) {
     }
 }

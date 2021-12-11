@@ -28,6 +28,7 @@ public class MdAttachments {
     public static final RenderedAttachment BASIC_FILTER = new RenderedAttachment("basic_filter");
     public static final RenderedAttachment IMPROVED_FILTER = new RenderedAttachment("improved_filter");
     public static final RenderedAttachment ADVANCED_FILTER = new RenderedAttachment("advanced_filter");
+    public static final RenderedAttachment INHIBITOR = new RenderedAttachment("inhibitor");
 
     public static void init() {
         // init static

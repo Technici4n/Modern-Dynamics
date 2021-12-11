@@ -19,7 +19,7 @@
 package dev.technici4n.moderndynamics.network.item;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
-import dev.technici4n.moderndynamics.attachment.TickingItem;
+import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
@@ -79,7 +79,7 @@ public class ItemHost extends NodeHost {
 
     private boolean allowItemConnection(Direction side) {
         // don't expose the API if there is a servo on this side
-        return getAttachment(side) == null || !(getAttachment(side).getItem() instanceof TickingItem ticking) || !ticking.isServo();
+        return getAttachment(side) == null || !(getAttachment(side).getItem() instanceof IoAttachmentItem ticking) || !ticking.isServo();
     }
 
     private Storage<ItemVariant> buildNetworkInjectStorage(Direction side) {
@@ -102,10 +102,6 @@ public class ItemHost extends NodeHost {
         };
     }
 
-    protected long getPathingWeight() {
-        return 1000;
-    }
-
     protected EnumSet<Direction> getInventoryConnections() {
         return SerializationHelper.directionsFromMask((byte) inventoryConnections);
     }
@@ -118,16 +114,12 @@ public class ItemHost extends NodeHost {
         return null;
     }
 
-    public boolean hasConnections() {
-        return inventoryConnections != 0;
-    }
-
     public void tickAttachments() {
         long currentTick = TickHelper.getTickCounter();
         for (var side : Direction.values()) {
             ItemStack attachment = getAttachment(side);
             if (attachment != null) {
-                if (attachment.getItem() instanceof TickingItem tickingItem) {
+                if (attachment.getItem() instanceof IoAttachmentItem tickingItem) {
                     if (currentTick - lastOperationTick[side.getId()] < tickingItem.tier.transferFrequency) continue;
                     lastOperationTick[side.getId()] = currentTick;
 
@@ -173,9 +165,9 @@ public class ItemHost extends NodeHost {
         for (var travelingItem : movedOut) {
             int newIndex = (int) Math.floor(travelingItem.traveledDistance);
 
-            if (newIndex == travelingItem.path.length - 1) {
+            if (newIndex == travelingItem.getPathLength() - 1) {
                 // End of path: inserting into a target storage.
-                var storage = getAdjacentStorage(travelingItem.path[newIndex]);
+                var storage = getAdjacentStorage(travelingItem.path.path[newIndex]);
                 if (storage == null) {
                     storage = Storage.empty();
                 }
@@ -187,7 +179,7 @@ public class ItemHost extends NodeHost {
                 finishTravel(travelingItem, inserted);
             } else {
                 // Otherwise: must be inserting into another pipe. Check that the connection exists.
-                var adjPipeDirection = travelingItem.path[newIndex];
+                var adjPipeDirection = travelingItem.path.path[newIndex];
 
                 @Nullable
                 ItemHost adjacentItemHost = null;
@@ -215,23 +207,25 @@ public class ItemHost extends NodeHost {
 
     private void finishTravel(TravelingItem item, long inserted) {
         // In any case, remove the item from the simulated insertion target
-        item.getInsertionTarget(pipe.getWorld()).stopAwaiting(item.variant, item.amount);
+        item.path.getInsertionTarget(pipe.getWorld()).stopAwaiting(item.variant, item.amount);
         long leftover = item.amount - inserted;
 
         if (leftover > 0) {
             if (item.strategy == FailedInsertStrategy.SEND_BACK_TO_SOURCE) {
-                Direction[] revertedPath = new Direction[item.path.length];
-                for (int i = 0; i < item.path.length; ++i) {
-                    revertedPath[revertedPath.length-i-1] = item.path[i].getOpposite();
+                Direction[] revertedPath = new Direction[item.getPathLength()];
+                for (int i = 0; i < item.getPathLength(); ++i) {
+                    revertedPath[revertedPath.length-i-1] = item.path.path[i].getOpposite();
                 }
                 addTravelingItem(new TravelingItem(
                         item.variant,
                         leftover,
-                        item.targetPos,
-                        item.startingPos,
-                        revertedPath,
+                        new ItemPath(
+                            item.path.targetPos,
+                            item.path.startingPos,
+                            revertedPath
+                        ),
                         FailedInsertStrategy.DROP,
-                        item.path.length - 1 - Math.floor(item.traveledDistance)
+                        item.getPathLength() - 1 - Math.floor(item.traveledDistance)
                 ));
             } else {
                 DropHelper.dropStack(pipe, item.variant, item.amount - inserted);
@@ -264,7 +258,7 @@ public class ItemHost extends NodeHost {
     public void addSelf() {
         super.addSelf();
         for (var travelingItem : travelingItems) {
-            travelingItem.getInsertionTarget(pipe.getWorld()).startAwaiting(travelingItem.variant, travelingItem.amount);
+            travelingItem.path.getInsertionTarget(pipe.getWorld()).startAwaiting(travelingItem.variant, travelingItem.amount);
         }
     }
 
@@ -272,7 +266,7 @@ public class ItemHost extends NodeHost {
     public void removeSelf() {
         super.removeSelf();
         for (var travelingItem : travelingItems) {
-            travelingItem.getInsertionTarget(pipe.getWorld()).stopAwaiting(travelingItem.variant, travelingItem.amount);
+            travelingItem.path.getInsertionTarget(pipe.getWorld()).stopAwaiting(travelingItem.variant, travelingItem.amount);
         }
     }
 
@@ -280,7 +274,7 @@ public class ItemHost extends NodeHost {
     public void onRemoved() {
         super.onRemoved();
         for (var travelingItem : travelingItems) {
-            travelingItem.getInsertionTarget(pipe.getWorld()).stopAwaiting(travelingItem.variant, travelingItem.amount);
+            travelingItem.path.getInsertionTarget(pipe.getWorld()).stopAwaiting(travelingItem.variant, travelingItem.amount);
             DropHelper.dropStack(pipe, travelingItem.variant, travelingItem.amount);
         }
         travelingItems.clear();
@@ -340,8 +334,8 @@ public class ItemHost extends NodeHost {
                 compound.putLong("a", travelingItem.amount);
                 int currentBlock = (int) Math.floor(travelingItem.traveledDistance);
                 compound.putDouble("d", travelingItem.traveledDistance - currentBlock);
-                compound.putByte("in", (byte) travelingItem.path[currentBlock].getId());
-                compound.putByte("out", (byte) travelingItem.path[currentBlock + 1].getId());
+                compound.putByte("in", (byte) travelingItem.path.path[currentBlock].getId());
+                compound.putByte("out", (byte) travelingItem.path.path[currentBlock + 1].getId());
                 list.add(compound);
             }
             tag.put("travelingItems", list);

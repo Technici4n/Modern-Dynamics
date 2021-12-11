@@ -20,8 +20,9 @@ package dev.technici4n.moderndynamics.init;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.AttachmentTier;
+import dev.technici4n.moderndynamics.attachment.InhibitorAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.MdAttachments;
-import dev.technici4n.moderndynamics.attachment.TickingItem;
+import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.debug.DebugToolItem;
 import dev.technici4n.moderndynamics.pipe.PipeItem;
 import dev.technici4n.moderndynamics.util.MdId;
@@ -54,15 +55,16 @@ public class MdItems {
     public static final PipeItem EMPTY_RESONANT_ENERGY_PIPE = new PipeItem(MdBlocks.EMPTY_RESONANT_ENERGY_PIPE);
     public static final PipeItem EMPTY_SUPERCONDUCTING_PIPE = new PipeItem(MdBlocks.EMPTY_SUPERCONDUCTING_PIPE);
 
-    public static final AttachmentItem BASIC_SERVO = new TickingItem(MdAttachments.BASIC_SERVO, AttachmentTier.BASIC, true);
-    public static final AttachmentItem IMPROVED_SERVO = new TickingItem(MdAttachments.IMPROVED_SERVO, AttachmentTier.IMPROVED, true);
-    public static final AttachmentItem ADVANCED_SERVO = new TickingItem(MdAttachments.ADVANCED_SERVO, AttachmentTier.ADVANCED, true);
-    public static final AttachmentItem BASIC_RETRIEVER = new TickingItem(MdAttachments.BASIC_RETRIEVER, AttachmentTier.BASIC, false);
-    public static final AttachmentItem IMPROVED_RETRIEVER = new TickingItem(MdAttachments.IMPROVED_RETRIEVER, AttachmentTier.IMPROVED, false);
-    public static final AttachmentItem ADVANCED_RETRIEVER = new TickingItem(MdAttachments.ADVANCED_RETRIEVER, AttachmentTier.ADVANCED, false);
+    public static final AttachmentItem BASIC_SERVO = new IoAttachmentItem(MdAttachments.BASIC_SERVO, AttachmentTier.BASIC, true);
+    public static final AttachmentItem IMPROVED_SERVO = new IoAttachmentItem(MdAttachments.IMPROVED_SERVO, AttachmentTier.IMPROVED, true);
+    public static final AttachmentItem ADVANCED_SERVO = new IoAttachmentItem(MdAttachments.ADVANCED_SERVO, AttachmentTier.ADVANCED, true);
+    public static final AttachmentItem BASIC_RETRIEVER = new IoAttachmentItem(MdAttachments.BASIC_RETRIEVER, AttachmentTier.BASIC, false);
+    public static final AttachmentItem IMPROVED_RETRIEVER = new IoAttachmentItem(MdAttachments.IMPROVED_RETRIEVER, AttachmentTier.IMPROVED, false);
+    public static final AttachmentItem ADVANCED_RETRIEVER = new IoAttachmentItem(MdAttachments.ADVANCED_RETRIEVER, AttachmentTier.ADVANCED, false);
     public static final AttachmentItem BASIC_FILTER = new AttachmentItem(MdAttachments.BASIC_FILTER);
     public static final AttachmentItem IMPROVED_FILTER = new AttachmentItem(MdAttachments.IMPROVED_FILTER);
     public static final AttachmentItem ADVANCED_FILTER = new AttachmentItem(MdAttachments.ADVANCED_FILTER);
+    public static final AttachmentItem INHIBITOR = new InhibitorAttachmentItem(MdAttachments.INHIBITOR);
 
     public static final Item WRENCH = new Item(new Item.Settings().group(MdItemGroup.getInstance()));
     public static final DebugToolItem DEBUG_TOOL = new DebugToolItem();
@@ -97,6 +99,7 @@ public class MdItems {
             BASIC_SERVO, IMPROVED_SERVO, ADVANCED_SERVO,
             BASIC_RETRIEVER, IMPROVED_RETRIEVER, ADVANCED_RETRIEVER,
             BASIC_FILTER, IMPROVED_FILTER, ADVANCED_FILTER,
+            INHIBITOR,
     };
 
     public static void init() {
