@@ -2,13 +2,12 @@ package dev.technici4n.moderndynamics.attachment;
 
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 
 public class ConfigurableAttachmentItem extends AttachmentItem {
 	public final int configWidth, configHeight;
 
-	public ConfigurableAttachmentItem(Attachment attachment, int configWidth, int configHeight) {
+	public ConfigurableAttachmentItem(RenderedAttachment attachment, int configWidth, int configHeight) {
 		super(attachment);
 		this.configWidth = configWidth;
 		this.configHeight = configHeight;

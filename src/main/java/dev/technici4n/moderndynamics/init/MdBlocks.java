@@ -43,11 +43,8 @@ public class MdBlocks {
     public static final PipeBlock CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE = new PipeBlock("conductive_fast_fluid_pipe_opaque");
 
     public static final PipeBlock BASIC_ENERGY_PIPE = new PipeBlock("basic_energy_pipe");
-    public static final PipeBlock HARDENED_ENERGY_PIPE = new PipeBlock("hardened_energy_pipe");
-    public static final PipeBlock REINFORCED_ENERGY_PIPE = new PipeBlock("reinforced_energy_pipe");
-    public static final PipeBlock SIGNALUM_ENERGY_PIPE = new PipeBlock("signalum_energy_pipe");
-    public static final PipeBlock RESONANT_ENERGY_PIPE = new PipeBlock("resonant_energy_pipe");
-    public static final PipeBlock SUPERCONDUCTING_PIPE = new PipeBlock("superconducting_pipe");
+    public static final PipeBlock IMPROVED_ENERGY_PIPE = new PipeBlock("improved_energy_pipe");
+    public static final PipeBlock ADVANCED_ENERGY_PIPE = new PipeBlock("advanced_energy_pipe");
 
     // These are modeled as blocks because they're placeable, but do not conduct energy
     public static final PipeBlock EMPTY_REINFORCED_ENERGY_PIPE = new PipeBlock("empty_reinforced_energy_pipe");
@@ -76,11 +73,8 @@ public class MdBlocks {
             CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE,
             // Energy transport
             BASIC_ENERGY_PIPE,
-            HARDENED_ENERGY_PIPE,
-            REINFORCED_ENERGY_PIPE,
-            SIGNALUM_ENERGY_PIPE,
-            RESONANT_ENERGY_PIPE,
-            SUPERCONDUCTING_PIPE,
+            IMPROVED_ENERGY_PIPE,
+            ADVANCED_ENERGY_PIPE,
             // Empty higher tier energy pipes (do not conduct energy)
             EMPTY_REINFORCED_ENERGY_PIPE,
             EMPTY_SIGNALUM_ENERGY_PIPE,

@@ -19,8 +19,15 @@
 package dev.technici4n.moderndynamics.attachment;
 
 public class MdAttachments {
-    public static final Attachment SERVO = new Attachment("servo");
-    public static final Attachment FILTER = new Attachment("filter");
+    public static final RenderedAttachment BASIC_SERVO = new RenderedAttachment("basic_servo");
+    public static final RenderedAttachment IMPROVED_SERVO = new RenderedAttachment("improved_servo");
+    public static final RenderedAttachment ADVANCED_SERVO = new RenderedAttachment("advanced_servo");
+    public static final RenderedAttachment BASIC_RETRIEVER = new RenderedAttachment("basic_retriever");
+    public static final RenderedAttachment IMPROVED_RETRIEVER = new RenderedAttachment("improved_retriever");
+    public static final RenderedAttachment ADVANCED_RETRIEVER = new RenderedAttachment("advanced_retriever");
+    public static final RenderedAttachment BASIC_FILTER = new RenderedAttachment("basic_filter");
+    public static final RenderedAttachment IMPROVED_FILTER = new RenderedAttachment("improved_filter");
+    public static final RenderedAttachment ADVANCED_FILTER = new RenderedAttachment("advanced_filter");
 
     public static void init() {
         // init static

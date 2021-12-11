@@ -128,7 +128,7 @@ public class ItemHost extends NodeHost {
             ItemStack attachment = getAttachment(side);
             if (attachment != null) {
                 if (attachment.getItem() instanceof TickingItem tickingItem) {
-                    if (currentTick - lastOperationTick[side.getId()] < tickingItem.tickFrequency) continue;
+                    if (currentTick - lastOperationTick[side.getId()] < tickingItem.tier.transferFrequency) continue;
                     lastOperationTick[side.getId()] = currentTick;
 
                     if (tickingItem.isServo()) {
@@ -139,7 +139,7 @@ public class ItemHost extends NodeHost {
                                 adjStorage,
                                 buildNetworkInjectStorage(side),
                                 iv -> tickingItem.matchesFilter(attachment, iv),
-                                tickingItem.batchSize,
+                                tickingItem.tier.transferCount,
                                 null
                         );
                     }

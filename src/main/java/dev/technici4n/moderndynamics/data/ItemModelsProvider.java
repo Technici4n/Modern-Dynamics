@@ -19,8 +19,9 @@ public class ItemModelsProvider extends FabricBlockStateDefinitionProvider {
 
 	@Override
 	public void generateItemModels(ItemModelGenerator itemGen) {
-		itemGen.register(MdItems.SERVO, Models.GENERATED);
-		itemGen.register(MdItems.FILTER, Models.GENERATED);
+		for (var attachment : MdItems.ALL_ATTACHMENTS) {
+			itemGen.register(attachment, Models.GENERATED);
+		}
 		itemGen.register(MdItems.WRENCH, Models.HANDHELD);
 		itemGen.register(MdItems.DEBUG_TOOL, Models.GENERATED);
 	}

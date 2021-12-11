@@ -19,11 +19,9 @@
 package dev.technici4n.moderndynamics.network.energy;
 
 public enum EnergyPipeTier {
-    BASIC(1000, 1000),
-    HARDENED(4000, 4000),
-    REINFORCED(9000, 9000),
-    SIGNALUM(16000, 16000),
-    RESONANT(25000, 25000);
+    BASIC(256, 256),
+    IMPROVED(1024, 1024),
+    ADVANCED(8192, 8192);
 
     // TODO: config
     private final int capacity;

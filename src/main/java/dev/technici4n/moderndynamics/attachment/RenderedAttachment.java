@@ -23,20 +23,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Attachment {
-    private static final Map<String, Attachment> REGISTERED_ATTACHMENTS = new HashMap<>();
+public class RenderedAttachment {
+    private static final Map<String, RenderedAttachment> REGISTERED_ATTACHMENTS = new HashMap<>();
 
     public static List<String> getAttachmentIds() {
         return new ArrayList<>(REGISTERED_ATTACHMENTS.keySet());
     }
 
-    public static List<Attachment> getAllAttachments() {
+    public static List<RenderedAttachment> getAllAttachments() {
         return new ArrayList<>(REGISTERED_ATTACHMENTS.values());
     }
 
     public final String id;
 
-    public Attachment(String id) {
+    public RenderedAttachment(String id) {
         this.id = id;
 
         if (REGISTERED_ATTACHMENTS.put(id, this) != null) {

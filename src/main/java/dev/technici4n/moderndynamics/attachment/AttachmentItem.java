@@ -22,9 +22,9 @@ import dev.technici4n.moderndynamics.util.MdItemGroup;
 import net.minecraft.item.Item;
 
 public class AttachmentItem extends Item {
-    public final Attachment attachment;
+    public final RenderedAttachment attachment;
 
-    public AttachmentItem(Attachment attachment) {
+    public AttachmentItem(RenderedAttachment attachment) {
         super(new Settings().group(MdItemGroup.getInstance()));
         this.attachment = attachment;
     }

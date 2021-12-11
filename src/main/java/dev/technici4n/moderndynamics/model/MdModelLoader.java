@@ -19,7 +19,7 @@
 package dev.technici4n.moderndynamics.model;
 
 import com.google.gson.JsonParser;
-import dev.technici4n.moderndynamics.attachment.Attachment;
+import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.io.IOException;
@@ -106,7 +106,7 @@ public final class MdModelLoader {
                 try (var resource = this.resourceManager.getResource(MdId.of("models/attachments.json"))) {
                     var obj = JsonParser.parseReader(new InputStreamReader(resource.getInputStream())).getAsJsonObject();
                     var modelMap = new HashMap<String, Identifier>();
-                    for (var attachmentId : Attachment.getAttachmentIds()) {
+                    for (var attachmentId : RenderedAttachment.getAttachmentIds()) {
                         modelMap.put(attachmentId, new Identifier(JsonHelper.getString(obj, attachmentId)));
                     }
                     return new AttachmentsUnbakedModel(modelMap);

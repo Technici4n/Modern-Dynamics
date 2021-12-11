@@ -59,16 +59,12 @@ public final class MdBlockEntities {
             MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE);
     public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
             MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE);
+
     public static final BlockEntityType<PipeBlockEntity> BASIC_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.BASIC, MdBlocks.BASIC_ENERGY_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> HARDENED_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.HARDENED,
-            MdBlocks.HARDENED_ENERGY_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> REINFORCED_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.REINFORCED,
-            MdBlocks.REINFORCED_ENERGY_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> SIGNALUM_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.SIGNALUM,
-            MdBlocks.SIGNALUM_ENERGY_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> RESONANT_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.RESONANT,
-            MdBlocks.RESONANT_ENERGY_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> SUPERCONDUCTING_PIPE = register(NyiPipeBlockEntity::new, MdBlocks.SUPERCONDUCTING_PIPE);
+    public static final BlockEntityType<PipeBlockEntity> IMPROVED_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.IMPROVED,
+            MdBlocks.IMPROVED_ENERGY_PIPE);
+    public static final BlockEntityType<PipeBlockEntity> ADVANCED_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.ADVANCED,
+            MdBlocks.ADVANCED_ENERGY_PIPE);
 
     public static void init() {
         // init static

@@ -19,6 +19,7 @@
 package dev.technici4n.moderndynamics.init;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
+import dev.technici4n.moderndynamics.attachment.AttachmentTier;
 import dev.technici4n.moderndynamics.attachment.MdAttachments;
 import dev.technici4n.moderndynamics.attachment.TickingItem;
 import dev.technici4n.moderndynamics.debug.DebugToolItem;
@@ -46,18 +47,22 @@ public class MdItems {
     public static final PipeItem CONDUCTIVE_FAST_FLUID_PIPE = new PipeItem(MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE);
     public static final PipeItem CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE = new PipeItem(MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE);
     public static final PipeItem BASIC_ENERGY_PIPE = new PipeItem(MdBlocks.BASIC_ENERGY_PIPE);
-    public static final PipeItem HARDENED_ENERGY_PIPE = new PipeItem(MdBlocks.HARDENED_ENERGY_PIPE);
-    public static final PipeItem REINFORCED_ENERGY_PIPE = new PipeItem(MdBlocks.REINFORCED_ENERGY_PIPE);
-    public static final PipeItem SIGNALUM_ENERGY_PIPE = new PipeItem(MdBlocks.SIGNALUM_ENERGY_PIPE);
-    public static final PipeItem RESONANT_ENERGY_PIPE = new PipeItem(MdBlocks.RESONANT_ENERGY_PIPE);
-    public static final PipeItem SUPERCONDUCTING_PIPE = new PipeItem(MdBlocks.SUPERCONDUCTING_PIPE);
+    public static final PipeItem IMPROVED_ENERGY_PIPE = new PipeItem(MdBlocks.IMPROVED_ENERGY_PIPE);
+    public static final PipeItem ADVANCED_ENERGY_PIPE = new PipeItem(MdBlocks.ADVANCED_ENERGY_PIPE);
     public static final PipeItem EMPTY_REINFORCED_ENERGY_PIPE = new PipeItem(MdBlocks.EMPTY_REINFORCED_ENERGY_PIPE);
     public static final PipeItem EMPTY_SIGNALUM_ENERGY_PIPE = new PipeItem(MdBlocks.EMPTY_SIGNALUM_ENERGY_PIPE);
     public static final PipeItem EMPTY_RESONANT_ENERGY_PIPE = new PipeItem(MdBlocks.EMPTY_RESONANT_ENERGY_PIPE);
     public static final PipeItem EMPTY_SUPERCONDUCTING_PIPE = new PipeItem(MdBlocks.EMPTY_SUPERCONDUCTING_PIPE);
 
-    public static final AttachmentItem SERVO = new TickingItem(MdAttachments.SERVO, 5, 3, 4, 20, true);
-    public static final AttachmentItem FILTER = new AttachmentItem(MdAttachments.FILTER);
+    public static final AttachmentItem BASIC_SERVO = new TickingItem(MdAttachments.BASIC_SERVO, AttachmentTier.BASIC, true);
+    public static final AttachmentItem IMPROVED_SERVO = new TickingItem(MdAttachments.IMPROVED_SERVO, AttachmentTier.IMPROVED, true);
+    public static final AttachmentItem ADVANCED_SERVO = new TickingItem(MdAttachments.ADVANCED_SERVO, AttachmentTier.ADVANCED, true);
+    public static final AttachmentItem BASIC_RETRIEVER = new TickingItem(MdAttachments.BASIC_RETRIEVER, AttachmentTier.BASIC, false);
+    public static final AttachmentItem IMPROVED_RETRIEVER = new TickingItem(MdAttachments.IMPROVED_RETRIEVER, AttachmentTier.IMPROVED, false);
+    public static final AttachmentItem ADVANCED_RETRIEVER = new TickingItem(MdAttachments.ADVANCED_RETRIEVER, AttachmentTier.ADVANCED, false);
+    public static final AttachmentItem BASIC_FILTER = new AttachmentItem(MdAttachments.BASIC_FILTER);
+    public static final AttachmentItem IMPROVED_FILTER = new AttachmentItem(MdAttachments.IMPROVED_FILTER);
+    public static final AttachmentItem ADVANCED_FILTER = new AttachmentItem(MdAttachments.ADVANCED_FILTER);
 
     public static final Item WRENCH = new Item(new Item.Settings().group(MdItemGroup.getInstance()));
     public static final DebugToolItem DEBUG_TOOL = new DebugToolItem();
@@ -80,11 +85,8 @@ public class MdItems {
             CONDUCTIVE_FAST_FLUID_PIPE,
             CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE,
             BASIC_ENERGY_PIPE,
-            HARDENED_ENERGY_PIPE,
-            REINFORCED_ENERGY_PIPE,
-            SIGNALUM_ENERGY_PIPE,
-            RESONANT_ENERGY_PIPE,
-            SUPERCONDUCTING_PIPE,
+            IMPROVED_ENERGY_PIPE,
+            ADVANCED_ENERGY_PIPE,
             EMPTY_REINFORCED_ENERGY_PIPE,
             EMPTY_SIGNALUM_ENERGY_PIPE,
             EMPTY_RESONANT_ENERGY_PIPE,
@@ -92,8 +94,9 @@ public class MdItems {
     };
 
     public static final AttachmentItem[] ALL_ATTACHMENTS = new AttachmentItem[] {
-            SERVO,
-            FILTER,
+            BASIC_SERVO, IMPROVED_SERVO, ADVANCED_SERVO,
+            BASIC_RETRIEVER, IMPROVED_RETRIEVER, ADVANCED_RETRIEVER,
+            BASIC_FILTER, IMPROVED_FILTER, ADVANCED_FILTER,
     };
 
     public static void init() {

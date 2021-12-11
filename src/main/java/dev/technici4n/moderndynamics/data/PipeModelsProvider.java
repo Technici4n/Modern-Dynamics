@@ -21,7 +21,7 @@ package dev.technici4n.moderndynamics.data;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import dev.technici4n.moderndynamics.attachment.Attachment;
+import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import dev.technici4n.moderndynamics.attachment.MdAttachments;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
@@ -68,11 +68,8 @@ public class PipeModelsProvider implements DataProvider {
         registerPipeModel(cache, MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE, "lead", "connection_lead");
 
         registerPipeModel(cache, MdBlocks.BASIC_ENERGY_PIPE, "base/energy/lead", "connector/lead");
-        registerPipeModel(cache, MdBlocks.HARDENED_ENERGY_PIPE, "base/energy/invar", "connector/invar");
-        registerPipeModel(cache, MdBlocks.REINFORCED_ENERGY_PIPE, "base/energy/electrum", "connector/electrum");
-        registerPipeModel(cache, MdBlocks.SIGNALUM_ENERGY_PIPE, "base/energy/signalum", "connector/signalum");
-        registerPipeModel(cache, MdBlocks.RESONANT_ENERGY_PIPE, "base/energy/enderium", "connector/enderium");
-        registerPipeModel(cache, MdBlocks.SUPERCONDUCTING_PIPE, "lead", "connection_lead");
+        registerPipeModel(cache, MdBlocks.IMPROVED_ENERGY_PIPE, "base/energy/invar", "connector/invar");
+        registerPipeModel(cache, MdBlocks.ADVANCED_ENERGY_PIPE, "base/energy/electrum", "connector/electrum");
 
         registerPipeModel(cache, MdBlocks.EMPTY_REINFORCED_ENERGY_PIPE, "lead", "connection_lead");
         registerPipeModel(cache, MdBlocks.EMPTY_SIGNALUM_ENERGY_PIPE, "lead", "connection_lead");
@@ -111,12 +108,21 @@ public class PipeModelsProvider implements DataProvider {
     }
 
     private void registerAttachments(DataCache cache) throws IOException {
-        registerAttachment(cache, MdAttachments.FILTER, "attachment/filter_0");
-        registerAttachment(cache, MdAttachments.SERVO, "attachment/servo_base_0_0");
+        registerAttachment(cache, MdAttachments.BASIC_FILTER, "attachment/filter_0");
+        registerAttachment(cache, MdAttachments.IMPROVED_FILTER, "attachment/filter_1");
+        registerAttachment(cache, MdAttachments.ADVANCED_FILTER, "attachment/filter_2");
+
+        registerAttachment(cache, MdAttachments.BASIC_SERVO, "attachment/servo_base_0_0");
+        registerAttachment(cache, MdAttachments.IMPROVED_SERVO, "attachment/servo_base_0_1");
+        registerAttachment(cache, MdAttachments.ADVANCED_SERVO, "attachment/servo_base_0_2");
+
+        registerAttachment(cache, MdAttachments.BASIC_RETRIEVER, "attachment/retriever_base_0_0");
+        registerAttachment(cache, MdAttachments.IMPROVED_RETRIEVER, "attachment/retriever_base_0_1");
+        registerAttachment(cache, MdAttachments.ADVANCED_RETRIEVER, "attachment/retriever_base_0_2");
 
         // Now register the base model json.
         var obj = new JsonObject();
-        for (var attachment : Attachment.getAllAttachments()) {
+        for (var attachment : RenderedAttachment.getAllAttachments()) {
             Path modelPath = gen.getOutput().resolve("assets/%s/models/attachments/%s.json".formatted(gen.getModId(), attachment.id));
             if (!Files.exists(modelPath)) {
                 throw new RuntimeException("Missing attachment json file: " + modelPath);
@@ -129,7 +135,7 @@ public class PipeModelsProvider implements DataProvider {
     /**
      * Register a simple attachment part model, and return the id of the model.
      */
-    private void registerAttachment(DataCache cache, Attachment attachment, String texture) throws IOException {
+    private void registerAttachment(DataCache cache, RenderedAttachment attachment, String texture) throws IOException {
         var obj = new JsonObject();
         obj.addProperty("parent", MdId.of("base/pipe_inventory").toString());
         var textures = new JsonObject();

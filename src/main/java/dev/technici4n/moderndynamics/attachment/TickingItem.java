@@ -1,13 +1,12 @@
 package dev.technici4n.moderndynamics.attachment;
 
 public class TickingItem extends ConfigurableAttachmentItem {
-	public final int batchSize, tickFrequency;
+	public final AttachmentTier tier;
 	private final boolean servo;
 
-	public TickingItem(Attachment attachment, int configWidth, int configHeight, int extractCount, int extractFrequency, boolean servo) {
-		super(attachment, configWidth, configHeight);
-		this.batchSize = extractCount;
-		this.tickFrequency = extractFrequency;
+	public TickingItem(RenderedAttachment attachment, AttachmentTier tier, boolean servo) {
+		super(attachment, tier.configWidth, tier.configHeight);
+		this.tier = tier;
 		this.servo = servo;
 	}
 
