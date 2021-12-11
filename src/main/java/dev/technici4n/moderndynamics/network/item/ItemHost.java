@@ -79,7 +79,7 @@ public class ItemHost extends NodeHost {
 
     private boolean allowItemConnection(Direction side) {
         // don't expose the API if there is a servo on this side
-        return getAttachment(side) == null || !(getAttachment(side).getItem() instanceof IoAttachmentItem ticking) || !ticking.isServo();
+        return !(getAttachment(side).getItem() instanceof IoAttachmentItem ticking) || !ticking.isServo();
     }
 
     private Storage<ItemVariant> buildNetworkInjectStorage(Direction side) {
@@ -118,23 +118,21 @@ public class ItemHost extends NodeHost {
         long currentTick = TickHelper.getTickCounter();
         for (var side : Direction.values()) {
             ItemStack attachment = getAttachment(side);
-            if (attachment != null) {
-                if (attachment.getItem() instanceof IoAttachmentItem tickingItem) {
-                    if (currentTick - lastOperationTick[side.getId()] < tickingItem.tier.transferFrequency) continue;
-                    lastOperationTick[side.getId()] = currentTick;
+            if (attachment.getItem() instanceof IoAttachmentItem tickingItem) {
+                if (currentTick - lastOperationTick[side.getId()] < tickingItem.tier.transferFrequency) continue;
+                lastOperationTick[side.getId()] = currentTick;
 
-                    if (tickingItem.isServo()) {
-                        var adjStorage = ItemStorage.SIDED.find(pipe.getWorld(), pipe.getPos().offset(side), side.getOpposite());
-                        if (adjStorage == null) continue;
+                if (tickingItem.isServo()) {
+                    var adjStorage = ItemStorage.SIDED.find(pipe.getWorld(), pipe.getPos().offset(side), side.getOpposite());
+                    if (adjStorage == null) continue;
 
-                        StorageUtil.move(
-                                adjStorage,
-                                buildNetworkInjectStorage(side),
-                                iv -> tickingItem.matchesFilter(attachment, iv),
-                                tickingItem.tier.transferCount,
-                                null
-                        );
-                    }
+                    StorageUtil.move(
+                            adjStorage,
+                            buildNetworkInjectStorage(side),
+                            iv -> tickingItem.matchesFilter(attachment, iv),
+                            tickingItem.tier.transferCount,
+                            null
+                    );
                 }
             }
         }

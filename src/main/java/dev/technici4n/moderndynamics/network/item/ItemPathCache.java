@@ -47,9 +47,8 @@ public class ItemPathCache {
 			}
 
 			for (var connection : currentNode.getConnections()) {
-				var attachment = currentNode.getHost().getAttachment(connection.direction);
 				long edgeWeight = 1;
-				if (attachment != null && attachment.getItem() instanceof InhibitorAttachmentItem) {
+				if (currentNode.getHost().getAttachment(connection.direction).getItem() instanceof InhibitorAttachmentItem) {
 					edgeWeight = 1000;
 				}
 				long newDistance = currentDistance + edgeWeight;

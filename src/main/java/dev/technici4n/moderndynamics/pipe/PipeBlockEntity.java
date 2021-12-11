@@ -69,19 +69,17 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
 
     public abstract NodeHost[] getHosts();
 
-    @Nullable
     public final ItemStack getAttachment(Direction side) {
         if (world.isClient()) {
-            var stack = clientAttachments.get(side.getId());
-            return stack.isEmpty() ? null : stack;
+            return clientAttachments.get(side.getId());
         } else {
             for (var host : getHosts()) {
                 var attachment = host.getAttachment(side);
-                if (attachment != null) {
+                if (!attachment.isEmpty()) {
                     return attachment;
                 }
             }
-            return null;
+            return ItemStack.EMPTY;
         }
     }
 
@@ -98,10 +96,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         tag.putByte("inventoryConnections", (byte) getInventoryConnections());
         var attachments = DefaultedList.ofSize(6, ItemStack.EMPTY);
         for (Direction direction : Direction.values()) {
-            var attachment = getAttachment(direction);
-            if (attachment != null) {
-                attachments.set(direction.getId(), attachment);
-            }
+            attachments.set(direction.getId(), getAttachment(direction));
         }
         Inventories.writeNbt(tag, attachments);
         for (var host : getHosts()) {
@@ -240,11 +235,11 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         VoxelShape shape = PipeBoundingBoxes.CORE_SHAPE;
 
         for (int i = 0; i < 6; ++i) {
-            if ((allConnections & (1 << i)) > 0 || getAttachment(Direction.byId(i)) != null) {
+            if ((allConnections & (1 << i)) > 0 || !getAttachment(Direction.byId(i)).isEmpty()) {
                 shape = VoxelShapes.union(shape, PipeBoundingBoxes.PIPE_CONNECTIONS[i]);
             }
 
-            if ((inventoryConnections & (1 << i)) > 0 || getAttachment(Direction.byId(i)) != null) {
+            if ((inventoryConnections & (1 << i)) > 0 || !getAttachment(Direction.byId(i)).isEmpty()) {
                 shape = VoxelShapes.union(shape, PipeBoundingBoxes.CONNECTOR_SHAPES[i]);
             }
         }
@@ -308,21 +303,19 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
             for (int i = 0; i < 6; ++i) {
                 if (ShapeHelper.shapeContains(PipeBoundingBoxes.INVENTORY_CONNECTIONS[i], posInBlock)) {
                     var side = Direction.byId(i);
-                    if (getAttachment(side) != null) {
+                    if (!getAttachment(side).isEmpty()) {
                         // Remove attachment
                         if (world.isClient()) {
                             return ActionResult.SUCCESS;
                         } else {
                             for (var host : getHosts()) {
                                 var attachment = host.getAttachment(side);
-                                if (attachment != null) {
-                                    host.setAttachment(side, ItemStack.EMPTY);
-                                    DropHelper.dropStack(this, attachment);
-                                    world.updateNeighbors(pos, getCachedState().getBlock());
-                                    markDirty();
-                                    sync();
-                                    return ActionResult.CONSUME;
-                                }
+                                host.setAttachment(side, ItemStack.EMPTY);
+                                DropHelper.dropStack(this, attachment);
+                                world.updateNeighbors(pos, getCachedState().getBlock());
+                                markDirty();
+                                sync();
+                                return ActionResult.CONSUME;
                             }
                         }
                     } else {
@@ -355,7 +348,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
             }
 
             if (hitSide != null) {
-                if (getAttachment(hitSide) == null) {
+                if (getAttachment(hitSide).isEmpty()) {
                     for (var host : getHosts()) {
                         if (host.acceptsAttachment(attachmentItem, stack)) {
                             if (!world.isClient) {
@@ -377,7 +370,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
             if (ShapeHelper.shapeContains(PipeBoundingBoxes.INVENTORY_CONNECTIONS[i], posInBlock)) {
                 var side = Direction.byId(i);
                 var attachment = getAttachment(side);
-                if (attachment != null && attachment.getItem() instanceof ConfigurableAttachmentItem cai) {
+                if (attachment.getItem() instanceof ConfigurableAttachmentItem) {
                     // Open attachment GUI
                     player.openHandledScreen(new PipeScreenFactory(this, side, attachment));
                     return ActionResult.success(world.isClient);

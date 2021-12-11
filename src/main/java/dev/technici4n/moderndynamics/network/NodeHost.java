@@ -59,10 +59,8 @@ public abstract class NodeHost {
         scheduleUpdate();
     }
 
-    @Nullable
     public final ItemStack getAttachment(Direction side) {
-        var stack = attachments.get(side.getId());
-        return stack.isEmpty() ? null : stack;
+        return attachments.get(side.getId());
     }
 
     public abstract boolean acceptsAttachment(AttachmentItem attachment, ItemStack stack);
