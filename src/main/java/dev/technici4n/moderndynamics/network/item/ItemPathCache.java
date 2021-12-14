@@ -49,7 +49,10 @@ public class ItemPathCache {
 			for (var connection : currentNode.getConnections()) {
 				long edgeWeight = 1;
 				if (currentNode.getHost().getAttachment(connection.direction).getItem() instanceof InhibitorAttachmentItem) {
-					edgeWeight = 1000;
+					edgeWeight += 1000;
+				}
+				if (connection.target.getHost().getAttachment(connection.direction.getOpposite()).getItem() instanceof InhibitorAttachmentItem) {
+					edgeWeight += 1000;
 				}
 				long newDistance = currentDistance + edgeWeight;
 				if (distance.getOrDefault(connection.target, Long.MAX_VALUE) > newDistance) {
