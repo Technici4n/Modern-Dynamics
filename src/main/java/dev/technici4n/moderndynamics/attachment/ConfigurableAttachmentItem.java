@@ -19,8 +19,8 @@
 package dev.technici4n.moderndynamics.attachment;
 
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.ItemStack;
 
 public class ConfigurableAttachmentItem extends AttachmentItem {
     public final int configWidth, configHeight;
@@ -32,14 +32,14 @@ public class ConfigurableAttachmentItem extends AttachmentItem {
     }
 
     public ItemVariant getItemVariant(ItemStack stack, int x, int y) {
-        var nbt = stack.getOrCreateNbt();
-        var list = nbt.getList("items", NbtElement.COMPOUND_TYPE);
+        var nbt = stack.getOrCreateTag();
+        var list = nbt.getList("items", Tag.TAG_COMPOUND);
         return ItemVariant.fromNbt(list.getCompound(x + y * configWidth));
     }
 
     public void setItemVariant(ItemStack stack, int x, int y, ItemVariant variant) {
-        var nbt = stack.getOrCreateNbt();
-        var list = nbt.getList("items", NbtElement.COMPOUND_TYPE);
+        var nbt = stack.getOrCreateTag();
+        var list = nbt.getList("items", Tag.TAG_COMPOUND);
         nbt.put("items", list);
         while (list.size() < configWidth * configHeight) {
             list.add(ItemVariant.blank().toNbt());

@@ -27,8 +27,8 @@ import dev.technici4n.moderndynamics.debug.DebugToolItem;
 import dev.technici4n.moderndynamics.pipe.PipeItem;
 import dev.technici4n.moderndynamics.util.MdId;
 import dev.technici4n.moderndynamics.util.MdItemGroup;
-import net.minecraft.item.Item;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.core.Registry;
+import net.minecraft.world.item.Item;
 
 public class MdItems {
     public static final PipeItem BASIC_ITEM_PIPE = new PipeItem(MdBlocks.BASIC_ITEM_PIPE);
@@ -66,7 +66,7 @@ public class MdItems {
     public static final AttachmentItem ADVANCED_FILTER = new AttachmentItem(MdAttachments.ADVANCED_FILTER);
     public static final AttachmentItem INHIBITOR = new InhibitorAttachmentItem(MdAttachments.INHIBITOR);
 
-    public static final Item WRENCH = new Item(new Item.Settings().group(MdItemGroup.getInstance()));
+    public static final Item WRENCH = new Item(new Item.Properties().tab(MdItemGroup.getInstance()));
     public static final DebugToolItem DEBUG_TOOL = new DebugToolItem();
 
     public static final PipeItem[] ALL_PIPES = new PipeItem[] {

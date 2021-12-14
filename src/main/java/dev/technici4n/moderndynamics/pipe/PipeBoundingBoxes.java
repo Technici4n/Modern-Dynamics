@@ -18,15 +18,15 @@
  */
 package dev.technici4n.moderndynamics.pipe;
 
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class PipeBoundingBoxes {
     private static final double CORE_SIZE = 6.0 / 16;
     private static final double CORE_START = (1 - CORE_SIZE) / 2;
     private static final double CORE_END = CORE_START + CORE_SIZE;
 
-    public static final VoxelShape CORE_SHAPE = VoxelShapes.cuboid(CORE_START, CORE_START, CORE_START, CORE_END, CORE_END, CORE_END);
+    public static final VoxelShape CORE_SHAPE = Shapes.box(CORE_START, CORE_START, CORE_START, CORE_END, CORE_END, CORE_END);
     public static final VoxelShape[] PIPE_CONNECTIONS = buildSideShapes(CORE_SIZE, CORE_START);
     public static final VoxelShape[] CONNECTOR_SHAPES = buildSideShapes(8.0 / 16, 4.0 / 16);
     public static final VoxelShape[] INVENTORY_CONNECTIONS = combinePiecewise(PIPE_CONNECTIONS, CONNECTOR_SHAPES);
@@ -35,12 +35,12 @@ public class PipeBoundingBoxes {
         double connectorSideStart = (1 - connectorSide) / 2;
         double connectorSideEnd = connectorSideStart + connectorSide;
         return new VoxelShape[] {
-                VoxelShapes.cuboid(connectorSideStart, 0, connectorSideStart, connectorSideEnd, connectorDepth, connectorSideEnd),
-                VoxelShapes.cuboid(connectorSideStart, 1 - connectorDepth, connectorSideStart, connectorSideEnd, 1, connectorSideEnd),
-                VoxelShapes.cuboid(connectorSideStart, connectorSideStart, 0, connectorSideEnd, connectorSideEnd, connectorDepth),
-                VoxelShapes.cuboid(connectorSideStart, connectorSideStart, 1 - connectorDepth, connectorSideEnd, connectorSideEnd, 1),
-                VoxelShapes.cuboid(0, connectorSideStart, connectorSideStart, connectorDepth, connectorSideEnd, connectorSideEnd),
-                VoxelShapes.cuboid(1 - connectorDepth, connectorSideStart, connectorSideStart, 1, connectorSideEnd, connectorSideEnd),
+                Shapes.box(connectorSideStart, 0, connectorSideStart, connectorSideEnd, connectorDepth, connectorSideEnd),
+                Shapes.box(connectorSideStart, 1 - connectorDepth, connectorSideStart, connectorSideEnd, 1, connectorSideEnd),
+                Shapes.box(connectorSideStart, connectorSideStart, 0, connectorSideEnd, connectorSideEnd, connectorDepth),
+                Shapes.box(connectorSideStart, connectorSideStart, 1 - connectorDepth, connectorSideEnd, connectorSideEnd, 1),
+                Shapes.box(0, connectorSideStart, connectorSideStart, connectorDepth, connectorSideEnd, connectorSideEnd),
+                Shapes.box(1 - connectorDepth, connectorSideStart, connectorSideStart, 1, connectorSideEnd, connectorSideEnd),
         };
     }
 
@@ -52,11 +52,11 @@ public class PipeBoundingBoxes {
 
             for (int i = 0; i < 6; ++i) {
                 if ((mask & (1 << i)) > 0) {
-                    currentShape = VoxelShapes.union(currentShape, sideShapes[i]);
+                    currentShape = Shapes.or(currentShape, sideShapes[i]);
                 }
             }
 
-            combinedShapes[mask] = currentShape.simplify();
+            combinedShapes[mask] = currentShape.optimize();
         }
 
         return combinedShapes;
@@ -66,7 +66,7 @@ public class PipeBoundingBoxes {
         VoxelShape[] combinedShapes = new VoxelShape[6];
 
         for (int i = 0; i < 6; ++i) {
-            combinedShapes[i] = VoxelShapes.union(part1[i], part2[i]).simplify();
+            combinedShapes[i] = Shapes.or(part1[i], part2[i]).optimize();
         }
 
         return combinedShapes;

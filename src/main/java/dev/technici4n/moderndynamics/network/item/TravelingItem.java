@@ -20,7 +20,7 @@ package dev.technici4n.moderndynamics.network.item;
 
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 
 public class TravelingItem {
     public final ItemVariant variant;
@@ -41,8 +41,8 @@ public class TravelingItem {
         return path.path.length;
     }
 
-    public NbtCompound toNbt() {
-        NbtCompound nbt = new NbtCompound();
+    public CompoundTag toNbt() {
+        CompoundTag nbt = new CompoundTag();
         nbt.put("v", variant.toNbt());
         nbt.putLong("a", amount);
         nbt.put("start", SerializationHelper.posToNbt(path.startingPos));
@@ -53,7 +53,7 @@ public class TravelingItem {
         return nbt;
     }
 
-    public static TravelingItem fromNbt(NbtCompound nbt) {
+    public static TravelingItem fromNbt(CompoundTag nbt) {
         return new TravelingItem(
                 ItemVariant.fromNbt(nbt.getCompound("v")),
                 nbt.getLong("a"),

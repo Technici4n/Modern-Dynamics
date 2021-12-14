@@ -19,9 +19,9 @@
 package dev.technici4n.moderndynamics.pipe;
 
 import dev.technici4n.moderndynamics.network.NodeHost;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class NyiPipeBlockEntity extends PipeBlockEntity {
     public NyiPipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {

@@ -21,19 +21,19 @@ package dev.technici4n.moderndynamics.attachment;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.MdItemGroup;
-import net.minecraft.item.Item;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.Item;
 
 public class AttachmentItem extends Item {
     public final RenderedAttachment attachment;
 
     public AttachmentItem(RenderedAttachment attachment) {
-        super(new Settings().group(MdItemGroup.getInstance()));
+        super(new Properties().tab(MdItemGroup.getInstance()));
         this.attachment = attachment;
     }
 
-    public AttachedAttachment createAttached(PipeBlockEntity pipe, Direction side, NbtCompound initialData) {
+    public AttachedAttachment createAttached(PipeBlockEntity pipe, Direction side, CompoundTag initialData) {
         return new AttachedAttachment(pipe, side, this, initialData);
     }
 }

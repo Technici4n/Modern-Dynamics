@@ -21,13 +21,13 @@ package dev.technici4n.moderndynamics.model;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.BakedQuad;
-import net.minecraft.client.render.model.json.ModelOverrideList;
-import net.minecraft.client.render.model.json.ModelTransformation;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.Direction;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.ItemOverrides;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -51,32 +51,32 @@ public class AttachmentsBakedModel implements BakedModel {
     }
 
     @Override
-    public boolean hasDepth() {
+    public boolean isGui3d() {
         return false;
     }
 
     @Override
-    public boolean isSideLit() {
+    public boolean usesBlockLight() {
         return false;
     }
 
     @Override
-    public boolean isBuiltin() {
+    public boolean isCustomRenderer() {
         return false;
     }
 
     @Override
-    public Sprite getParticleSprite() {
+    public TextureAtlasSprite getParticleIcon() {
         return null;
     }
 
     @Override
-    public ModelTransformation getTransformation() {
+    public ItemTransforms getTransforms() {
         return null;
     }
 
     @Override
-    public ModelOverrideList getOverrides() {
+    public ItemOverrides getOverrides() {
         return null;
     }
 }

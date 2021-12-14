@@ -25,14 +25,14 @@ import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.EnumSet;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,44 +59,44 @@ public abstract class NodeHost {
 
     @Nullable
     public final AttachedAttachment removeAttachment(Direction side) {
-        var attachment = this.attachments[side.getId()];
+        var attachment = this.attachments[side.get3DDataValue()];
         if (attachment != null) {
-            this.attachments[side.getId()] = null;
+            this.attachments[side.get3DDataValue()] = null;
             update();
             return attachment;
         }
         return null;
     }
 
-    public final void setAttachment(Direction side, AttachmentItem item, NbtCompound data) {
-        var current = attachments[side.getId()];
+    public final void setAttachment(Direction side, AttachmentItem item, CompoundTag data) {
+        var current = attachments[side.get3DDataValue()];
         if (current != null && current.getItem() == item) {
             if (current.update(data)) {
                 scheduleUpdate();
             }
         } else {
-            attachments[side.getId()] = item.createAttached(pipe, side, data);
+            attachments[side.get3DDataValue()] = item.createAttached(pipe, side, data);
             scheduleUpdate();
         }
     }
 
     @Nullable
     public final AttachedAttachment getAttachment(Direction side) {
-        return attachments[side.getId()];
+        return attachments[side.get3DDataValue()];
     }
 
     public abstract boolean acceptsAttachment(AttachmentItem attachment, ItemStack stack);
 
     @SuppressWarnings("ConstantConditions")
     public boolean isTicking() {
-        return ((ServerWorld) pipe.getWorld()).shouldTickEntity(pipe.getPos());
+        return ((ServerLevel) pipe.getLevel()).isPositionEntityTicking(pipe.getBlockPos());
     }
 
     /**
      * Return true if this node can connect to the target (adjacent) node as part of a network.
      */
     public boolean canConnectTo(Direction connectionDirection, NodeHost adjacentHost) {
-        return (pipe.connectionBlacklist & (1 << connectionDirection.getId())) == 0;
+        return (pipe.connectionBlacklist & (1 << connectionDirection.get3DDataValue())) == 0;
     }
 
     /**
@@ -112,17 +112,17 @@ public abstract class NodeHost {
 
     @SuppressWarnings("unchecked")
     public void addSelf() {
-        getManager().addNode((ServerWorld) pipe.getWorld(), pipe.getPos(), this);
+        getManager().addNode((ServerLevel) pipe.getLevel(), pipe.getBlockPos(), this);
     }
 
     @SuppressWarnings("unchecked")
     public void removeSelf() {
-        getManager().removeNode((ServerWorld) pipe.getWorld(), pipe.getPos(), this);
+        getManager().removeNode((ServerLevel) pipe.getLevel(), pipe.getBlockPos(), this);
     }
 
     @SuppressWarnings("unchecked")
     public final void refreshSelf() {
-        getManager().refreshNode((ServerWorld) pipe.getWorld(), pipe.getPos(), this);
+        getManager().refreshNode((ServerLevel) pipe.getLevel(), pipe.getBlockPos(), this);
     }
 
     @Nullable
@@ -132,7 +132,7 @@ public abstract class NodeHost {
     @Nullable
     protected final <H extends NodeHost, C extends NetworkCache<H, C>> NetworkNode<H, C> findNode() {
         // TODO: not the best unchecked cast...
-        return getManager().findNode((ServerWorld) pipe.getWorld(), pipe.getPos());
+        return getManager().findNode((ServerLevel) pipe.getLevel(), pipe.getBlockPos());
     }
 
     public final void separateNetwork() {
@@ -187,14 +187,14 @@ public abstract class NodeHost {
         return false;
     }
 
-    public void writeNbt(NbtCompound tag) {
+    public void writeNbt(CompoundTag tag) {
         // Only write a sub-tag if any attachments exist
         if (hasAttachments()) {
-            var attachmentTags = new NbtList();
+            var attachmentTags = new ListTag();
             for (var attachment : attachments) {
-                var attachmentTag = new NbtCompound();
+                var attachmentTag = new CompoundTag();
                 if (attachment != null) {
-                    var id = Registry.ITEM.getId(attachment.getItem());
+                    var id = Registry.ITEM.getKey(attachment.getItem());
                     attachmentTag.putString("#i", id.toString());
                     attachment.writeNbt(attachmentTag);
                 }
@@ -204,17 +204,17 @@ public abstract class NodeHost {
         }
     }
 
-    public void readNbt(NbtCompound tag) {
-        if (tag.contains("attachments", NbtElement.LIST_TYPE)) {
-            var attachmentTags = tag.getList("attachments", NbtElement.COMPOUND_TYPE);
+    public void readNbt(CompoundTag tag) {
+        if (tag.contains("attachments", Tag.TAG_LIST)) {
+            var attachmentTags = tag.getList("attachments", Tag.TAG_COMPOUND);
             for (int i = 0; i < attachments.length; i++) {
                 this.attachments[i] = null;
 
                 if (i < attachmentTags.size()) {
                     var attachmentTag = attachmentTags.getCompound(i);
-                    var item = Registry.ITEM.get(new Identifier(attachmentTag.getString("#i")));
+                    var item = Registry.ITEM.get(new ResourceLocation(attachmentTag.getString("#i")));
                     if ((item instanceof AttachmentItem attachmentItem)) {
-                        this.attachments[i] = attachmentItem.createAttached(pipe, Direction.byId(i), attachmentTag);
+                        this.attachments[i] = attachmentItem.createAttached(pipe, Direction.from3DDataValue(i), attachmentTag);
                     }
                 }
             }
@@ -222,12 +222,12 @@ public abstract class NodeHost {
     }
 
     @MustBeInvokedByOverriders
-    public void writeClientNbt(NbtCompound tag) {
+    public void writeClientNbt(CompoundTag tag) {
         writeNbt(tag);
     }
 
     @MustBeInvokedByOverriders
-    public void readClientNbt(NbtCompound tag) {
+    public void readClientNbt(CompoundTag tag) {
         readNbt(tag);
     }
 

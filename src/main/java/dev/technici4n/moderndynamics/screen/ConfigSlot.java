@@ -19,28 +19,28 @@
 package dev.technici4n.moderndynamics.screen;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
 public class ConfigSlot extends Slot {
     public final int configX, configY;
     private final AttachedAttachment attachment;
 
     public ConfigSlot(int x, int y, AttachedAttachment attachment, int configX, int configY) {
-        super(new SimpleInventory(1), 0, x, y);
+        super(new SimpleContainer(1), 0, x, y);
         this.configX = configX;
         this.configY = configY;
         this.attachment = attachment;
     }
 
     @Override
-    public boolean canInsert(ItemStack stack) {
+    public boolean mayPlace(ItemStack stack) {
         return false;
     }
 
     @Override
-    public ItemStack getStack() {
+    public ItemStack getItem() {
         return attachment.getFilter(configX, configY).toStack();
     }
 }

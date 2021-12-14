@@ -20,7 +20,7 @@ package dev.technici4n.moderndynamics.init;
 
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.util.MdId;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.core.Registry;
 
 public class MdBlocks {
 

@@ -18,18 +18,18 @@
  */
 package dev.technici4n.moderndynamics.util;
 
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class ShapeHelper {
     /**
      * Return true if the passed shape contains the position, or is on its border.
      */
-    public static boolean shapeContains(VoxelShape shape, Vec3d posInBlock) {
-        for (Box box : shape.getBoundingBoxes()) {
+    public static boolean shapeContains(VoxelShape shape, Vec3 posInBlock) {
+        for (AABB box : shape.toAabbs()) {
             // Move slightly toward the center of the box
-            Vec3d centerDirection = box.getCenter().subtract(posInBlock).normalize().multiply(1e-4);
+            Vec3 centerDirection = box.getCenter().subtract(posInBlock).normalize().scale(1e-4);
 
             if (box.contains(posInBlock.add(centerDirection))) {
                 return true;

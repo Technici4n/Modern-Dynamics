@@ -23,32 +23,32 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
-public class AttachmentScreenHandler extends ScreenHandler {
-    public static final ScreenHandlerType<AttachmentScreenHandler> TYPE = ScreenHandlerRegistry.registerExtended(
+public class AttachmentMenu extends AbstractContainerMenu {
+    public static final MenuType<AttachmentMenu> TYPE = ScreenHandlerRegistry.registerExtended(
             MdId.of("attachment"),
-            AttachmentScreenHandler::fromPacket);
+            AttachmentMenu::fromPacket);
 
-    private static AttachmentScreenHandler fromPacket(int syncId, PlayerInventory playerInventory, PacketByteBuf packetByteBuf) {
-        var world = playerInventory.player.world;
+    private static AttachmentMenu fromPacket(int syncId, Inventory playerInventory, FriendlyByteBuf packetByteBuf) {
+        var world = playerInventory.player.level;
 
-        var bet = Registry.BLOCK_ENTITY_TYPE.get(packetByteBuf.readIdentifier());
-        var side = packetByteBuf.readEnumConstant(Direction.class);
+        var bet = Registry.BLOCK_ENTITY_TYPE.get(packetByteBuf.readResourceLocation());
+        var side = packetByteBuf.readEnum(Direction.class);
         return world.getBlockEntity(packetByteBuf.readBlockPos(), bet).map(blockEntity -> {
             if (blockEntity instanceof PipeBlockEntity pipe) {
                 var attachment = pipe.getAttachment(side);
                 if (attachment != null) {
-                    return new AttachmentScreenHandler(syncId, playerInventory, attachment);
+                    return new AttachmentMenu(syncId, playerInventory, attachment);
                 }
             }
             return null;
@@ -57,7 +57,7 @@ public class AttachmentScreenHandler extends ScreenHandler {
 
     public final AttachedAttachment attachment;
 
-    protected AttachmentScreenHandler(int syncId, PlayerInventory playerInventory, AttachedAttachment attachment) {
+    protected AttachmentMenu(int syncId, Inventory playerInventory, AttachedAttachment attachment) {
         super(TYPE, syncId);
         this.attachment = attachment;
 
@@ -81,26 +81,26 @@ public class AttachmentScreenHandler extends ScreenHandler {
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         return true;
     }
 
     @Override
-    public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
+    public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
         if (slotIndex >= 0 && getSlot(slotIndex) instanceof ConfigSlot configSlot) {
-            attachment.setFilter(configSlot.configX, configSlot.configY, ItemVariant.of(getCursorStack()));
+            attachment.setFilter(configSlot.configX, configSlot.configY, ItemVariant.of(getCarried()));
         } else {
-            super.onSlotClick(slotIndex, button, actionType, player);
+            super.clicked(slotIndex, button, actionType, player);
         }
     }
 
     @Override
-    public ItemStack transferSlot(PlayerEntity player, int index) {
+    public ItemStack quickMoveStack(Player player, int index) {
         return ItemStack.EMPTY;
     }
 
     @Override
-    public void sendContentUpdates() {
-        super.sendContentUpdates();
+    public void broadcastChanges() {
+        super.broadcastChanges();
     }
 }

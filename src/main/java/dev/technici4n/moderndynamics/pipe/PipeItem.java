@@ -19,20 +19,20 @@
 package dev.technici4n.moderndynamics.pipe;
 
 import dev.technici4n.moderndynamics.util.MdItemGroup;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public class PipeItem extends BlockItem {
     public PipeItem(PipeBlock block) {
-        super(block, new Item.Settings().group(MdItemGroup.getInstance()));
+        super(block, new Item.Properties().tab(MdItemGroup.getInstance()));
         block.setItem(this);
     }
 
@@ -42,18 +42,18 @@ public class PipeItem extends BlockItem {
     }
 
     @Override
-    protected boolean postPlacement(BlockPos pos, World world, @Nullable PlayerEntity placer, ItemStack stack, BlockState state) {
-        if (!world.isClient()) {
+    protected boolean updateCustomBlockEntityTag(BlockPos pos, Level world, @Nullable Player placer, ItemStack stack, BlockState state) {
+        if (!world.isClientSide()) {
             // If adjacent pipes have us blacklisted, we blacklist them here.
             BlockEntity be = world.getBlockEntity(pos);
 
             if (be instanceof PipeBlockEntity pipe) {
                 for (Direction direction : Direction.values()) {
-                    BlockEntity adjBe = world.getBlockEntity(pos.offset(direction));
+                    BlockEntity adjBe = world.getBlockEntity(pos.relative(direction));
 
                     if (adjBe instanceof PipeBlockEntity adjPipe) {
-                        if ((adjPipe.connectionBlacklist & (1 << direction.getOpposite().getId())) > 0) {
-                            pipe.connectionBlacklist |= 1 << direction.getId();
+                        if ((adjPipe.connectionBlacklist & (1 << direction.getOpposite().get3DDataValue())) > 0) {
+                            pipe.connectionBlacklist |= 1 << direction.get3DDataValue();
                         }
                     }
                 }

@@ -18,33 +18,33 @@
  */
 package dev.technici4n.moderndynamics.model;
 
-import net.minecraft.client.render.model.ModelBakeSettings;
-import net.minecraft.client.render.model.ModelRotation;
-import net.minecraft.util.math.AffineTransformation;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Quaternion;
-import net.minecraft.util.math.Vec3f;
+import com.mojang.math.Quaternion;
+import com.mojang.math.Transformation;
+import com.mojang.math.Vector3f;
+import net.minecraft.client.resources.model.BlockModelRotation;
+import net.minecraft.client.resources.model.ModelState;
+import net.minecraft.core.Direction;
 
 public class MdModels {
     /**
      * The model rotation to rotate a model facing NORTH to the correct facing direction.
      * Rotations are indexed by {@link Direction} id.
      */
-    public static final ModelBakeSettings[] PIPE_BAKE_SETTINGS = new ModelBakeSettings[] {
-            preRotated(ModelRotation.X90_Y0, 270),
-            ModelRotation.X270_Y0,
-            ModelRotation.X0_Y0,
-            preRotated(ModelRotation.X0_Y180, 90),
-            preRotated(ModelRotation.X0_Y270, 90),
-            ModelRotation.X0_Y90,
+    public static final ModelState[] PIPE_BAKE_SETTINGS = new ModelState[] {
+            preRotated(BlockModelRotation.X90_Y0, 270),
+            BlockModelRotation.X270_Y0,
+            BlockModelRotation.X0_Y0,
+            preRotated(BlockModelRotation.X0_Y180, 90),
+            preRotated(BlockModelRotation.X0_Y270, 90),
+            BlockModelRotation.X0_Y90,
     };
 
-    public static ModelBakeSettings preRotated(ModelRotation rotation, float preAngle) {
-        AffineTransformation preRotation = new AffineTransformation(null, new Quaternion(new Vec3f(0, 0, 1), preAngle, true), null, null);
-        AffineTransformation combined = rotation.getRotation().multiply(preRotation);
-        return new ModelBakeSettings() {
+    public static ModelState preRotated(BlockModelRotation rotation, float preAngle) {
+        Transformation preRotation = new Transformation(null, new Quaternion(new Vector3f(0, 0, 1), preAngle, true), null, null);
+        Transformation combined = rotation.getRotation().compose(preRotation);
+        return new ModelState() {
             @Override
-            public AffineTransformation getRotation() {
+            public Transformation getRotation() {
                 return combined;
             }
         };

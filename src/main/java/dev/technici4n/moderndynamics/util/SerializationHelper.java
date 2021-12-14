@@ -19,16 +19,16 @@
 package dev.technici4n.moderndynamics.util;
 
 import java.util.EnumSet;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 
 public class SerializationHelper {
     public static byte directionsToMask(EnumSet<Direction> directions) {
         byte result = 0;
 
         for (Direction direction : directions) {
-            result |= 1 << direction.getId();
+            result |= 1 << direction.get3DDataValue();
         }
 
         return result;
@@ -39,22 +39,22 @@ public class SerializationHelper {
 
         for (int i = 0; i < 6; ++i) {
             if ((mask & (1 << i)) > 0) {
-                result.add(Direction.byId(i));
+                result.add(Direction.from3DDataValue(i));
             }
         }
 
         return result;
     }
 
-    public static NbtCompound posToNbt(BlockPos pos) {
-        NbtCompound nbt = new NbtCompound();
+    public static CompoundTag posToNbt(BlockPos pos) {
+        CompoundTag nbt = new CompoundTag();
         nbt.putInt("x", pos.getX());
         nbt.putInt("y", pos.getY());
         nbt.putInt("z", pos.getZ());
         return nbt;
     }
 
-    public static BlockPos posFromNbt(NbtCompound nbt) {
+    public static BlockPos posFromNbt(CompoundTag nbt) {
         return new BlockPos(nbt.getInt("x"), nbt.getInt("y"), nbt.getInt("z"));
     }
 

@@ -19,31 +19,31 @@
 package dev.technici4n.moderndynamics.pipe;
 
 import com.google.common.base.Preconditions;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockEntityProvider;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Material;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class PipeBlock extends Block implements BlockEntityProvider {
+public class PipeBlock extends Block implements EntityBlock {
 
     public final String id;
     private PipeItem item;
     private BlockEntityType<PipeBlockEntity> blockEntityType;
 
     public PipeBlock(String id) {
-        super(Settings.of(Material.METAL).nonOpaque().solidBlock((state, world, pos) -> false));
+        super(Properties.of(Material.METAL).noOcclusion().isRedstoneConductor((state, world, pos) -> false));
         this.id = id;
     }
 
@@ -74,26 +74,26 @@ public class PipeBlock extends Block implements BlockEntityProvider {
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getOpacity(BlockState state, BlockView blockView, BlockPos pos) {
+    public int getLightBlock(BlockState state, BlockGetter blockView, BlockPos pos) {
         return 0;
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public void neighborUpdate(BlockState state, World world, BlockPos pos, Block param4, BlockPos param5, boolean param6) {
+    public void neighborChanged(BlockState state, Level world, BlockPos pos, Block param4, BlockPos param5, boolean param6) {
         if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
             pipe.scheduleHostUpdates();
         }
     }
 
     @Override
-    public boolean hasDynamicBounds() {
+    public boolean hasDynamicShape() {
         return true;
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext ctx) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext ctx) {
         if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
             return pipe.getCachedShape();
         } else {
@@ -103,28 +103,28 @@ public class PipeBlock extends Block implements BlockEntityProvider {
 
     @SuppressWarnings("deprecation")
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hitResult) {
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
             return pipe.onUse(player, hand, hitResult);
         } else {
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         }
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (!state.isOf(newState.getBlock())) {
+    public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
+        if (!state.is(newState.getBlock())) {
             if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
                 pipe.onRemoved();
             }
         }
-        super.onStateReplaced(state, world, pos, newState, moved);
+        super.onRemove(state, world, pos, newState, moved);
     }
 
     @Nullable
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return blockEntityType.instantiate(pos, state);
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return blockEntityType.create(pos, state);
     }
 }

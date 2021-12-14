@@ -26,11 +26,11 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.Collections;
 import java.util.List;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Base interface for an active attachment on a pipe.
@@ -51,7 +51,7 @@ public class AttachedAttachment {
      */
     private final AttachmentItem item;
 
-    public AttachedAttachment(PipeBlockEntity pipe, Direction side, AttachmentItem item, NbtCompound initialData) {
+    public AttachedAttachment(PipeBlockEntity pipe, Direction side, AttachmentItem item, CompoundTag initialData) {
         this.pipe = pipe;
         this.side = side;
         this.item = item;
@@ -69,15 +69,15 @@ public class AttachedAttachment {
         return side;
     }
 
-    public void writeNbt(NbtCompound tag) {
+    public void writeNbt(CompoundTag tag) {
     }
 
     public ItemStack toStack() {
         var stack = new ItemStack(item);
-        var tag = stack.getOrCreateNbt();
+        var tag = stack.getOrCreateTag();
         writeNbt(tag);
         if (tag.isEmpty()) {
-            stack.setNbt(null);
+            stack.setTag(null);
         }
         return stack;
     }
@@ -90,8 +90,8 @@ public class AttachedAttachment {
         return getItem() instanceof ConfigurableAttachmentItem;
     }
 
-    public Text getDisplayName() {
-        return new LiteralText("");
+    public Component getDisplayName() {
+        return new TextComponent("");
     }
 
     public int getConfigHeight() {
@@ -128,7 +128,7 @@ public class AttachedAttachment {
      *
      * @return True if an update is needed.
      */
-    public boolean update(NbtCompound data) {
+    public boolean update(CompoundTag data) {
         return true;
     }
 }

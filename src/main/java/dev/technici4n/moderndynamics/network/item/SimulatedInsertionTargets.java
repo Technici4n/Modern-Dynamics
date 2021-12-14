@@ -23,19 +23,19 @@ import java.util.Map;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiCache;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 
 public class SimulatedInsertionTargets {
     private static final Map<Coord, SimulatedInsertionTarget> TARGETS = new HashMap<>();
 
-    private record Coord(ServerWorld world, BlockPos pos, Direction direction) {
+    private record Coord(ServerLevel world, BlockPos pos, Direction direction) {
     }
 
-    public static SimulatedInsertionTarget getTarget(World w, BlockPos pos, Direction side) {
-        ServerWorld world = (ServerWorld) w;
+    public static SimulatedInsertionTarget getTarget(Level w, BlockPos pos, Direction side) {
+        ServerLevel world = (ServerLevel) w;
         return TARGETS.computeIfAbsent(new Coord(world, pos, side), coord -> {
             var cache = BlockApiCache.create(ItemStorage.SIDED, world, pos);
             return new SimulatedInsertionTarget(() -> cache.find(side));

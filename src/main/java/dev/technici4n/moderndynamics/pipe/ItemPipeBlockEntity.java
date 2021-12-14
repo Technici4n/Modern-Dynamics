@@ -20,9 +20,9 @@ package dev.technici4n.moderndynamics.pipe;
 
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.item.ItemHost;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class ItemPipeBlockEntity extends PipeBlockEntity {
     private final NodeHost[] hosts;

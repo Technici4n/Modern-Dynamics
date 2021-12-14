@@ -25,7 +25,7 @@ import java.util.List;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
 
 public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
     private boolean inserting = false;
@@ -69,7 +69,7 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
 
             long totalInserted = 0;
             for (var path : paths) {
-                var simulatedTarget = path.getInsertionTarget(startingPoint.getHost().getPipe().getWorld());
+                var simulatedTarget = path.getInsertionTarget(startingPoint.getHost().getPipe().getLevel());
 
                 totalInserted += simulatedTarget.insert(variant, maxAmount - totalInserted, transaction, (v, amount) -> {
                     var travelingItem = path.makeTravelingItem(v, amount);

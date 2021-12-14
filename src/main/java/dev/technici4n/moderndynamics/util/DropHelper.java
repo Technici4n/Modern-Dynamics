@@ -20,9 +20,9 @@ package dev.technici4n.moderndynamics.util;
 
 import java.util.List;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ItemScatterer;
+import net.minecraft.world.Containers;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class DropHelper {
     public static void dropStacks(BlockEntity blockEntity, List<ItemStack> stacks) {
@@ -32,13 +32,13 @@ public class DropHelper {
     }
 
     public static void dropStack(BlockEntity blockEntity, ItemStack stack) {
-        var pos = blockEntity.getPos();
-        ItemScatterer.spawn(blockEntity.getWorld(), pos.getX(), pos.getY(), pos.getZ(), stack);
+        var pos = blockEntity.getBlockPos();
+        Containers.dropItemStack(blockEntity.getLevel(), pos.getX(), pos.getY(), pos.getZ(), stack);
     }
 
     public static void dropStack(BlockEntity blockEntity, ItemVariant variant, long amount) {
         while (amount > 0) {
-            int dropped = (int) Math.min(amount, variant.getItem().getMaxCount());
+            int dropped = (int) Math.min(amount, variant.getItem().getMaxStackSize());
             dropStack(blockEntity, variant.toStack(dropped));
             amount -= dropped;
         }

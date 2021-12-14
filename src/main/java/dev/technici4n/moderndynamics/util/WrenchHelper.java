@@ -21,10 +21,10 @@ package dev.technici4n.moderndynamics.util;
 import dev.technici4n.moderndynamics.init.MdTags;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.minecraft.block.Blocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ItemScatterer;
+import net.minecraft.world.Containers;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 
 /**
  * Helper to detect if items are wrenches, and to make wrench shift-clicking dismantle MT pipes.
@@ -39,20 +39,20 @@ public class WrenchHelper {
      */
     public static void registerEvents() {
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            if (player.isSpectator() || !player.isSneaking() || !world.canPlayerModifyAt(player, hitResult.getBlockPos())
-                    || !isWrench(player.getStackInHand(hand))) {
-                return ActionResult.PASS;
+            if (player.isSpectator() || !player.isShiftKeyDown() || !world.mayInteract(player, hitResult.getBlockPos())
+                    || !isWrench(player.getItemInHand(hand))) {
+                return InteractionResult.PASS;
             }
 
             var pos = hitResult.getBlockPos();
             if (world.getBlockState(pos).getBlock() instanceof PipeBlock block) {
-                world.setBlockState(pos, Blocks.AIR.getDefaultState());
-                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(block.asItem()));
+                world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+                Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(block.asItem()));
                 // TODO: play a cool sound
-                return ActionResult.success(world.isClient);
+                return InteractionResult.sidedSuccess(world.isClientSide);
             }
 
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         });
     }
 }

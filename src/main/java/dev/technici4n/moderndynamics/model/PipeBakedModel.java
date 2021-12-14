@@ -27,26 +27,26 @@ import java.util.function.Supplier;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.BakedQuad;
-import net.minecraft.client.render.model.json.ModelOverrideList;
-import net.minecraft.client.render.model.json.ModelTransformation;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockRenderView;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.ItemOverrides;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public class PipeBakedModel implements BakedModel, FabricBakedModel {
-    private final ModelTransformation transformation;
+    private final ItemTransforms transformation;
     private final AttachmentsBakedModel attachments;
     private final BakedModel[] connectionNone;
     private final BakedModel[] connectionPipe;
     private final BakedModel[] connectionInventory;
 
-    public PipeBakedModel(ModelTransformation transformation, AttachmentsBakedModel attachments, BakedModel[] connectionNone,
+    public PipeBakedModel(ItemTransforms transformation, AttachmentsBakedModel attachments, BakedModel[] connectionNone,
             BakedModel[] connectionPipe, BakedModel[] connectionInventory) {
         this.transformation = transformation;
         this.attachments = attachments;
@@ -66,32 +66,32 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
     }
 
     @Override
-    public boolean hasDepth() {
+    public boolean isGui3d() {
         return false;
     }
 
     @Override
-    public boolean isSideLit() {
+    public boolean usesBlockLight() {
         return true;
     }
 
     @Override
-    public boolean isBuiltin() {
+    public boolean isCustomRenderer() {
         return false;
     }
 
     @Override
-    public Sprite getParticleSprite() {
-        return connectionNone[0].getParticleSprite();
+    public TextureAtlasSprite getParticleIcon() {
+        return connectionNone[0].getParticleIcon();
     }
 
     @Override
-    public ModelOverrideList getOverrides() {
-        return ModelOverrideList.EMPTY;
+    public ItemOverrides getOverrides() {
+        return ItemOverrides.EMPTY;
     }
 
     @Override
-    public ModelTransformation getTransformation() {
+    public ItemTransforms getTransforms() {
         return transformation;
     }
 
@@ -112,7 +112,7 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
     }
 
     @Override
-    public void emitBlockQuads(BlockRenderView blockView, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext context) {
+    public void emitBlockQuads(BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext context) {
         var attachmentView = (RenderAttachedBlockView) blockView;
         var pipeData = Objects.requireNonNullElse((PipeModelData) attachmentView.getBlockEntityRenderAttachment(pos), PipeModelData.DEFAULT);
         drawPipe(pipeData, context);

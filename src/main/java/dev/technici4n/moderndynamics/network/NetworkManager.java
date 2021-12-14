@@ -20,9 +20,9 @@ package dev.technici4n.moderndynamics.network;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.*;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -65,7 +65,7 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
     // TODO: remove this?
     private final Class<C> cacheClass;
     private final NetworkCache.Factory<H, C> cacheFactory;
-    private final IdentityHashMap<ServerWorld, Long2ObjectOpenHashMap<NetworkNode<H, C>>> nodes = new IdentityHashMap<>();
+    private final IdentityHashMap<ServerLevel, Long2ObjectOpenHashMap<NetworkNode<H, C>>> nodes = new IdentityHashMap<>();
     private final Set<NetworkNode<H, C>> pendingUpdates = Collections.newSetFromMap(new IdentityHashMap<>());
     private final Set<Network<H, C>> networks = Collections.newSetFromMap(new IdentityHashMap<>());
     private boolean iteratingOverNetworks = false;
@@ -75,7 +75,7 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
         this.cacheFactory = cacheFactory;
     }
 
-    public void addNode(ServerWorld world, BlockPos pos, H host) {
+    public void addNode(ServerLevel world, BlockPos pos, H host) {
         if (iteratingOverNetworks) {
             throw new ConcurrentModificationException(
                     "Node at position " + pos + " in world " + world + " can't be added: networks are being iterated over.");
@@ -92,7 +92,7 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
         pendingUpdates.add(newNode);
 
         for (Direction direction : Direction.values()) {
-            BlockPos adjacentPos = pos.offset(direction);
+            BlockPos adjacentPos = pos.relative(direction);
             @Nullable
             NetworkNode<H, C> adjacentNode = worldNodes.get(adjacentPos.asLong());
 
@@ -112,7 +112,7 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
         newNode.updateHostConnections();
     }
 
-    public void removeNode(ServerWorld world, BlockPos pos, H host) {
+    public void removeNode(ServerLevel world, BlockPos pos, H host) {
         if (iteratingOverNetworks) {
             throw new ConcurrentModificationException(
                     "Node at position " + pos + " in world " + world + " can't be removed: networks are being iterated over.");
@@ -143,13 +143,13 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
         }
     }
 
-    public void refreshNode(ServerWorld world, BlockPos pos, H host) {
+    public void refreshNode(ServerLevel world, BlockPos pos, H host) {
         removeNode(world, pos, host);
         addNode(world, pos, host);
     }
 
     @Nullable
-    public NetworkNode<H, C> findNode(ServerWorld world, BlockPos pos) {
+    public NetworkNode<H, C> findNode(ServerLevel world, BlockPos pos) {
         updateNetworks();
 
         return nodes.computeIfAbsent(world, w -> new Long2ObjectOpenHashMap<>()).get(pos.asLong());

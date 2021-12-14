@@ -22,25 +22,25 @@ import dev.technici4n.moderndynamics.network.NetworkCache;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.LiteralText;
-import net.minecraft.util.ActionResult;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class DebugToolItem extends Item {
     public DebugToolItem() {
-        super(new Settings());
+        super(new Properties());
     }
 
     @Override
-    public ActionResult useOnBlock(ItemUsageContext ctx) {
-        BlockEntity be = ctx.getWorld().getBlockEntity(ctx.getBlockPos());
+    public InteractionResult useOn(UseOnContext ctx) {
+        BlockEntity be = ctx.getLevel().getBlockEntity(ctx.getClickedPos());
 
         if (be instanceof PipeBlockEntity && ctx.getPlayer() != null) {
-            if (ctx.getWorld().isClient()) {
-                return ActionResult.SUCCESS;
+            if (ctx.getLevel().isClientSide()) {
+                return InteractionResult.SUCCESS;
             } else {
                 PipeBlockEntity pipe = (PipeBlockEntity) be;
                 StringBuilder message = new StringBuilder();
@@ -48,7 +48,7 @@ public class DebugToolItem extends Item {
 
                 for (NodeHost host : pipe.getHosts()) {
                     @SuppressWarnings("unchecked")
-                    NetworkNode<?, ? extends NetworkCache<?, ?>> node = host.getManager().findNode((ServerWorld) pipe.getWorld(), pipe.getPos());
+                    NetworkNode<?, ? extends NetworkCache<?, ?>> node = host.getManager().findNode((ServerLevel) pipe.getLevel(), pipe.getBlockPos());
                     if (node != null) {
                         node.getNetworkCache().appendDebugInfo(message);
                         foundNode = true;
@@ -59,12 +59,12 @@ public class DebugToolItem extends Item {
                     message.append("No node found.\n");
                 }
 
-                ctx.getPlayer().sendMessage(new LiteralText(message.toString()), false);
+                ctx.getPlayer().displayClientMessage(new TextComponent(message.toString()), false);
 
-                return ActionResult.CONSUME;
+                return InteractionResult.CONSUME;
             }
         }
 
-        return ActionResult.PASS;
+        return InteractionResult.PASS;
     }
 }

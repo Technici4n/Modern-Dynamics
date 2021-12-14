@@ -32,11 +32,11 @@ import net.fabricmc.fabric.api.client.model.ModelProviderContext;
 import net.fabricmc.fabric.api.client.model.ModelProviderException;
 import net.fabricmc.fabric.api.client.model.ModelResourceProvider;
 import net.fabricmc.fabric.api.client.model.ModelVariantProvider;
-import net.minecraft.client.render.model.UnbakedModel;
-import net.minecraft.client.util.ModelIdentifier;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.GsonHelper;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -63,7 +63,7 @@ public final class MdModelLoader {
 
         @Override
         @Nullable
-        public UnbakedModel loadModelVariant(ModelIdentifier modelId, ModelProviderContext context) throws ModelProviderException {
+        public UnbakedModel loadModelVariant(ModelResourceLocation modelId, ModelProviderContext context) throws ModelProviderException {
             if (!modelId.getNamespace().equals(MdId.MOD_ID)) {
                 return null;
             }
@@ -73,9 +73,9 @@ public final class MdModelLoader {
                 // This is a pipe, try to load its json model.
                 try (var resource = this.resourceManager.getResource(MdId.of("models/" + path + "/main.json"))) {
                     var obj = JsonParser.parseReader(new InputStreamReader(resource.getInputStream())).getAsJsonObject();
-                    return new PipeUnbakedModel(new Identifier(JsonHelper.getString(obj, "connection_none")),
-                            new Identifier(JsonHelper.getString(obj, "connection_pipe")),
-                            new Identifier(JsonHelper.getString(obj, "connection_inventory")));
+                    return new PipeUnbakedModel(new ResourceLocation(GsonHelper.getAsString(obj, "connection_none")),
+                            new ResourceLocation(GsonHelper.getAsString(obj, "connection_pipe")),
+                            new ResourceLocation(GsonHelper.getAsString(obj, "connection_inventory")));
                 } catch (IOException exception) {
                     throw new ModelProviderException("Failed to find pipe model json for pipe " + modelId, exception);
                 } catch (RuntimeException runtimeException) {
@@ -95,7 +95,7 @@ public final class MdModelLoader {
         }
 
         @Override
-        public @Nullable UnbakedModel loadModelResource(Identifier resourceId, ModelProviderContext context) throws ModelProviderException {
+        public @Nullable UnbakedModel loadModelResource(ResourceLocation resourceId, ModelProviderContext context) throws ModelProviderException {
             if (!resourceId.getNamespace().equals(MdId.MOD_ID)) {
                 return null;
             }
@@ -105,9 +105,9 @@ public final class MdModelLoader {
                 // Try to load the json model for the attachments
                 try (var resource = this.resourceManager.getResource(MdId.of("models/attachments.json"))) {
                     var obj = JsonParser.parseReader(new InputStreamReader(resource.getInputStream())).getAsJsonObject();
-                    var modelMap = new HashMap<String, Identifier>();
+                    var modelMap = new HashMap<String, ResourceLocation>();
                     for (var attachmentId : RenderedAttachment.getAttachmentIds()) {
-                        modelMap.put(attachmentId, new Identifier(JsonHelper.getString(obj, attachmentId)));
+                        modelMap.put(attachmentId, new ResourceLocation(GsonHelper.getAsString(obj, attachmentId)));
                     }
                     return new AttachmentsUnbakedModel(modelMap);
                 } catch (IOException exception) {

@@ -27,9 +27,9 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.List;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import team.reborn.energy.api.EnergyStorage;
 import team.reborn.energy.api.base.DelegatingEnergyStorage;
@@ -62,8 +62,8 @@ public class EnergyHost extends NodeHost {
 
     @Override
     public Object getApiInstance(BlockApiLookup<?, Direction> lookup, Direction side) {
-        if (lookup == EnergyStorage.SIDED && (pipe.connectionBlacklist & (1 << side.getId())) == 0) {
-            return caps[side.getId()];
+        if (lookup == EnergyStorage.SIDED && (pipe.connectionBlacklist & (1 << side.get3DDataValue())) == 0) {
+            return caps[side.get3DDataValue()];
         } else {
             return null;
         }
@@ -83,7 +83,7 @@ public class EnergyHost extends NodeHost {
         }
 
         this.energy = energy;
-        pipe.markDirty();
+        pipe.setChanged();
     }
 
     @Override
@@ -110,8 +110,8 @@ public class EnergyHost extends NodeHost {
 
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
-                Direction dir = Direction.byId(i);
-                EnergyStorage adjacentCap = EnergyStorage.SIDED.find(pipe.getWorld(), pipe.getPos().offset(dir), dir.getOpposite());
+                Direction dir = Direction.from3DDataValue(i);
+                EnergyStorage adjacentCap = EnergyStorage.SIDED.find(pipe.getLevel(), pipe.getBlockPos().relative(dir), dir.getOpposite());
 
                 if (adjacentCap != null) {
                     if (out != null) {
@@ -144,13 +144,13 @@ public class EnergyHost extends NodeHost {
     }
 
     @Override
-    public void writeNbt(NbtCompound tag) {
+    public void writeNbt(CompoundTag tag) {
         super.writeNbt(tag);
         tag.putLong("energy", energy);
     }
 
     @Override
-    public void readNbt(NbtCompound tag) {
+    public void readNbt(CompoundTag tag) {
         super.readNbt(tag);
         // Guard against max energy config changes
         energy = Math.max(0, Math.min(tag.getLong("energy"), getMaxEnergy()));

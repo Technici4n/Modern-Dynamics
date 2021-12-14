@@ -18,31 +18,31 @@
  */
 package dev.technici4n.moderndynamics.pipe;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.technici4n.moderndynamics.network.item.ItemHost;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.model.json.ModelTransformation;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec3;
 
 public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEntity> {
-    private final BlockEntityRendererFactory.Context ctx;
+    private final BlockEntityRendererProvider.Context ctx;
 
-    public PipeBlockEntityRenderer(BlockEntityRendererFactory.Context ctx) {
+    public PipeBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {
         this.ctx = ctx;
     }
 
     @Override
-    public void render(PipeBlockEntity pipe, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+    public void render(PipeBlockEntity pipe, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
         for (var host : pipe.getHosts()) {
             if (host instanceof ItemHost itemHost) {
                 for (var item : itemHost.getClientTravelingItems()) {
-                    matrices.push();
+                    matrices.pushPose();
 
-                    Vec3d from, to;
+                    Vec3 from, to;
                     double ratio;
 
                     if (item.traveledDistance() <= 0.5) {
@@ -56,31 +56,31 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
                     }
 
                     matrices.translate(
-                            to.getX() * ratio + from.getX() * (1 - ratio),
-                            to.getY() * ratio + from.getY() * (1 - ratio),
-                            to.getZ() * ratio + from.getZ() * (1 - ratio));
+                            to.x() * ratio + from.x() * (1 - ratio),
+                            to.y() * ratio + from.y() * (1 - ratio),
+                            to.z() * ratio + from.z() * (1 - ratio));
                     matrices.scale(0.6f, 0.6f, 0.6f);
                     matrices.translate(0, -0.2f, 0);
 
-                    MinecraftClient.getInstance().getItemRenderer().renderItem(item.variant().toStack(), ModelTransformation.Mode.GROUND, light,
+                    Minecraft.getInstance().getItemRenderer().renderStatic(item.variant().toStack(), ItemTransforms.TransformType.GROUND, light,
                             overlay, matrices, vertexConsumers, 0);
 
-                    matrices.pop();
+                    matrices.popPose();
                 }
             }
         }
     }
 
-    private static final Vec3d CENTER = new Vec3d(0.5, 0.5, 0.5);
+    private static final Vec3 CENTER = new Vec3(0.5, 0.5, 0.5);
 
-    private static Vec3d findFaceMiddle(Direction face) {
+    private static Vec3 findFaceMiddle(Direction face) {
         return switch (face) {
-        case DOWN -> new Vec3d(0.5, 0, 0.5);
-        case UP -> new Vec3d(0.5, 1, 0.5);
-        case NORTH -> new Vec3d(0.5, 0.5, 0);
-        case SOUTH -> new Vec3d(0.5, 0.5, 1);
-        case WEST -> new Vec3d(0, 0.5, 0.5);
-        case EAST -> new Vec3d(1, 0.5, 0.5);
+        case DOWN -> new Vec3(0.5, 0, 0.5);
+        case UP -> new Vec3(0.5, 1, 0.5);
+        case NORTH -> new Vec3(0.5, 0.5, 0);
+        case SOUTH -> new Vec3(0.5, 0.5, 1);
+        case WEST -> new Vec3(0, 0.5, 0.5);
+        case EAST -> new Vec3(1, 0.5, 0.5);
         };
     }
 }

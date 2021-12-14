@@ -19,9 +19,9 @@
 package dev.technici4n.moderndynamics.network.item;
 
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
 
 public class ItemPath {
     /**
@@ -37,7 +37,7 @@ public class ItemPath {
         this.path = path;
     }
 
-    public SimulatedInsertionTarget getInsertionTarget(World world) {
+    public SimulatedInsertionTarget getInsertionTarget(Level world) {
         return SimulatedInsertionTargets.getTarget(world, targetPos, path[path.length - 1].getOpposite());
     }
 

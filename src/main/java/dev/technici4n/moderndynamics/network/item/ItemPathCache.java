@@ -30,7 +30,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
 
 public class ItemPathCache {
     private final Map<SidedNode, List<ItemPath>> cache = new HashMap<>();
@@ -88,7 +88,7 @@ public class ItemPathCache {
                 if (target.node == startingPoint.node && side == startingPoint.side.getOpposite()) {
                     continue; // prevent insertion back into the source
                 }
-                var adjPos = target.node.getHost().getPipe().getPos().offset(side);
+                var adjPos = target.node.getHost().getPipe().getBlockPos().relative(side);
 
                 // Backtrack to find the path.
                 List<Direction> reversedPath = new ArrayList<>();
@@ -101,7 +101,7 @@ public class ItemPathCache {
                 }
                 reversedPath.add(startingPoint.side);
                 Direction[] path = Lists.reverse(reversedPath).toArray(Direction[]::new);
-                computedPaths.add(new ItemPath(startingPoint.node.getHost().getPipe().getPos(), adjPos, path));
+                computedPaths.add(new ItemPath(startingPoint.node.getHost().getPipe().getBlockPos(), adjPos, path));
             }
         }
 

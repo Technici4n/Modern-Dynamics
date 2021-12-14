@@ -30,22 +30,22 @@ import dev.technici4n.moderndynamics.util.ShapeHelper;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -83,7 +83,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     }
 
     @Override
-    public void toClientTag(NbtCompound tag) {
+    public void toClientTag(CompoundTag tag) {
         tag.putByte("connectionBlacklist", (byte) connectionBlacklist);
         tag.putByte("connections", (byte) getPipeConnections());
         tag.putByte("inventoryConnections", (byte) getInventoryConnections());
@@ -93,12 +93,12 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     }
 
     @Override
-    public void fromClientTag(NbtCompound tag) {
+    public void fromClientTag(CompoundTag tag) {
         connectionBlacklist = tag.getByte("connectionBlacklist");
         byte connections = tag.getByte("connections");
         byte inventoryConnections = tag.getByte("inventoryConnections");
-        var attachmentStacks = DefaultedList.ofSize(6, ItemStack.EMPTY);
-        Inventories.readNbt(tag, attachmentStacks);
+        var attachmentStacks = NonNullList.withSize(6, ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(tag, attachmentStacks);
 
         for (var host : getHosts()) {
             host.readClientNbt(tag);
@@ -108,7 +108,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
 
         var attachments = new AttachedAttachment[6];
         for (var direction : Direction.values()) {
-            attachments[direction.getId()] = getAttachment(direction);
+            attachments[direction.get3DDataValue()] = getAttachment(direction);
         }
 
         clientModelData = new PipeModelData(connections, inventoryConnections, attachments);
@@ -122,7 +122,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     }
 
     @Override
-    public void toTag(NbtCompound nbt) {
+    public void toTag(CompoundTag nbt) {
         nbt.putByte("connectionBlacklist", (byte) connectionBlacklist);
 
         for (NodeHost host : getHosts()) {
@@ -132,7 +132,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     }
 
     @Override
-    public void fromTag(NbtCompound nbt) {
+    public void fromTag(CompoundTag nbt) {
         connectionBlacklist = nbt.getByte("connectionBlacklist");
 
         for (NodeHost host : getHosts()) {
@@ -148,10 +148,10 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     }
 
     @Override
-    public void cancelRemoval() {
-        super.cancelRemoval();
+    public void clearRemoved() {
+        super.clearRemoved();
 
-        if (!world.isClient()) {
+        if (!level.isClientSide()) {
             if (!hostsRegistered) {
                 TickHelper.runLater(() -> {
                     if (!hostsRegistered && !isRemoved()) {
@@ -167,10 +167,10 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     }
 
     @Override
-    public void markRemoved() {
-        super.markRemoved();
+    public void setRemoved() {
+        super.setRemoved();
 
-        if (!world.isClient()) {
+        if (!level.isClientSide()) {
             if (hostsRegistered) {
                 hostsRegistered = false;
 
@@ -230,44 +230,44 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         VoxelShape shape = PipeBoundingBoxes.CORE_SHAPE;
 
         for (int i = 0; i < 6; ++i) {
-            var attachment = getAttachment(Direction.byId(i));
+            var attachment = getAttachment(Direction.from3DDataValue(i));
             if ((allConnections & (1 << i)) > 0 || attachment != null) {
-                shape = VoxelShapes.union(shape, PipeBoundingBoxes.PIPE_CONNECTIONS[i]);
+                shape = Shapes.or(shape, PipeBoundingBoxes.PIPE_CONNECTIONS[i]);
             }
 
             if ((inventoryConnections & (1 << i)) > 0 || attachment != null) {
-                shape = VoxelShapes.union(shape, PipeBoundingBoxes.CONNECTOR_SHAPES[i]);
+                shape = Shapes.or(shape, PipeBoundingBoxes.CONNECTOR_SHAPES[i]);
             }
         }
 
-        cachedShape = shape.simplify();
+        cachedShape = shape.optimize();
     }
 
     /**
      * Update connection blacklist for a side, and schedule a node update, on the server side.
      */
     protected void updateConnection(Direction side, boolean addConnection) {
-        if (world.isClient()) {
+        if (level.isClientSide()) {
             throw new IllegalStateException("updateConnections() should not be called client-side.");
         }
 
         // Update mask
         if (addConnection) {
-            connectionBlacklist &= ~(1 << side.getId());
+            connectionBlacklist &= ~(1 << side.get3DDataValue());
         } else {
-            connectionBlacklist |= 1 << side.getId();
+            connectionBlacklist |= 1 << side.get3DDataValue();
         }
 
         // Update neighbor's mask as well
-        BlockEntity be = world.getBlockEntity(pos.offset(side));
+        BlockEntity be = level.getBlockEntity(worldPosition.relative(side));
 
         if (be instanceof PipeBlockEntity neighborPipe) {
             if (addConnection) {
-                neighborPipe.connectionBlacklist &= ~(1 << side.getOpposite().getId());
+                neighborPipe.connectionBlacklist &= ~(1 << side.getOpposite().get3DDataValue());
             } else {
-                neighborPipe.connectionBlacklist |= 1 << side.getOpposite().getId();
+                neighborPipe.connectionBlacklist |= 1 << side.getOpposite().get3DDataValue();
             }
-            neighborPipe.markDirty();
+            neighborPipe.setChanged();
         }
 
         // Schedule inventory and network updates.
@@ -275,57 +275,57 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         // The call to getNode() causes a network rebuild, but that shouldn't be an issue. (?)
         scheduleHostUpdates();
 
-        world.updateNeighbors(pos, getCachedState().getBlock());
-        markDirty();
+        level.blockUpdated(worldPosition, getBlockState().getBlock());
+        setChanged();
         // no need to sync(), that's already handled by the refresh or update if necessary
     }
 
-    public ActionResult onUse(PlayerEntity player, Hand hand, BlockHitResult hitResult) {
-        var stack = player.getStackInHand(hand);
-        Vec3d posInBlock = hitResult.getPos().subtract(pos.getX(), pos.getY(), pos.getZ());
+    public InteractionResult onUse(Player player, InteractionHand hand, BlockHitResult hitResult) {
+        var stack = player.getItemInHand(hand);
+        Vec3 posInBlock = hitResult.getLocation().subtract(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ());
 
         if (WrenchHelper.isWrench(stack)) {
             // If the core was hit, add back the pipe on the target side
             if (ShapeHelper.shapeContains(PipeBoundingBoxes.CORE_SHAPE, posInBlock)) {
-                if ((connectionBlacklist & (1 << hitResult.getSide().getId())) > 0) {
-                    if (!world.isClient()) {
-                        updateConnection(hitResult.getSide(), true);
+                if ((connectionBlacklist & (1 << hitResult.getDirection().get3DDataValue())) > 0) {
+                    if (!level.isClientSide()) {
+                        updateConnection(hitResult.getDirection(), true);
                     }
 
-                    return ActionResult.success(world.isClient());
+                    return InteractionResult.sidedSuccess(level.isClientSide());
                 }
             }
 
             for (int i = 0; i < 6; ++i) {
                 if (ShapeHelper.shapeContains(PipeBoundingBoxes.INVENTORY_CONNECTIONS[i], posInBlock)) {
-                    var side = Direction.byId(i);
+                    var side = Direction.from3DDataValue(i);
                     if (getAttachment(side) != null) {
                         // Remove attachment
-                        if (world.isClient()) {
-                            return ActionResult.SUCCESS;
+                        if (level.isClientSide()) {
+                            return InteractionResult.SUCCESS;
                         } else {
                             for (var host : getHosts()) {
                                 var attachment = host.removeAttachment(side);
                                 if (attachment != null) {
                                     DropHelper.dropStacks(this, attachment.getDrops());
-                                    world.updateNeighbors(pos, getCachedState().getBlock());
-                                    markDirty();
+                                    level.blockUpdated(worldPosition, getBlockState().getBlock());
+                                    setChanged();
                                     sync();
-                                    return ActionResult.CONSUME;
+                                    return InteractionResult.CONSUME;
                                 }
                             }
                         }
                     } else {
                         // If a pipe or inventory connection was hit, add it to the blacklist
                         // INVENTORY_CONNECTIONS contains both the pipe and the connector, so it will work in both cases
-                        if (world.isClient()) {
+                        if (level.isClientSide()) {
                             if ((clientSideConnections & (1 << i)) > 0) {
-                                return ActionResult.SUCCESS;
+                                return InteractionResult.SUCCESS;
                             }
                         } else {
                             if ((getPipeConnections() & (1 << i)) > 0 || (getInventoryConnections() & (1 << i)) > 0) {
-                                updateConnection(Direction.byId(i), false);
-                                return ActionResult.CONSUME;
+                                updateConnection(Direction.from3DDataValue(i), false);
+                                return InteractionResult.CONSUME;
                             }
                         }
                     }
@@ -336,11 +336,11 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         if (stack.getItem() instanceof AttachmentItem attachmentItem) {
             Direction hitSide = null;
             if (ShapeHelper.shapeContains(PipeBoundingBoxes.CORE_SHAPE, posInBlock)) {
-                hitSide = hitResult.getSide();
+                hitSide = hitResult.getDirection();
             }
             for (int i = 0; i < 6; ++i) {
                 if (ShapeHelper.shapeContains(PipeBoundingBoxes.INVENTORY_CONNECTIONS[i], posInBlock)) {
-                    hitSide = Direction.byId(i);
+                    hitSide = Direction.from3DDataValue(i);
                 }
             }
 
@@ -348,20 +348,20 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
                 if (getAttachment(hitSide) == null) {
                     for (var host : getHosts()) {
                         if (host.acceptsAttachment(attachmentItem, stack)) {
-                            if (!world.isClient) {
-                                var initialData = stack.getNbt();
+                            if (!level.isClientSide) {
+                                var initialData = stack.getTag();
                                 if (initialData == null) {
-                                    initialData = new NbtCompound();
+                                    initialData = new CompoundTag();
                                 }
                                 host.setAttachment(hitSide, attachmentItem, initialData);
-                                world.updateNeighbors(pos, getCachedState().getBlock());
-                                markDirty();
+                                level.blockUpdated(worldPosition, getBlockState().getBlock());
+                                setChanged();
                                 sync();
                             }
                             if (!player.isCreative()) {
-                                stack.decrement(1);
+                                stack.shrink(1);
                             }
-                            return ActionResult.success(world.isClient);
+                            return InteractionResult.sidedSuccess(level.isClientSide);
                         }
                     }
                 }
@@ -373,20 +373,20 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         if (attachmentHit != null) {
             if (attachmentHit.hasScreen()) {
                 // Open attachment GUI
-                player.openHandledScreen(new PipeScreenFactory(attachmentHit));
-                return ActionResult.success(world.isClient);
+                player.openMenu(new PipeScreenFactory(attachmentHit));
+                return InteractionResult.sidedSuccess(level.isClientSide);
             }
         }
 
-        return ActionResult.PASS;
+        return InteractionResult.PASS;
     }
 
     @Nullable
-    public AttachedAttachment hitTestAttachments(Vec3d posInBlock) {
+    public AttachedAttachment hitTestAttachments(Vec3 posInBlock) {
         // Handle click on attachment
         for (int i = 0; i < 6; ++i) {
             if (ShapeHelper.shapeContains(PipeBoundingBoxes.INVENTORY_CONNECTIONS[i], posInBlock)) {
-                var side = Direction.byId(i);
+                var side = Direction.from3DDataValue(i);
                 return getAttachment(side);
             }
         }

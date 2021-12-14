@@ -20,7 +20,7 @@ package dev.technici4n.moderndynamics.screen;
 
 import dev.technici4n.moderndynamics.attachment.ConfigurableAttachmentItem;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 
 public interface ConfigBackend {
     ConfigurableAttachmentItem getAttachment();
@@ -29,8 +29,8 @@ public interface ConfigBackend {
 
     void setItemVariant(int x, int y, ItemVariant variant);
 
-    static ConfigBackend makeClient(PacketByteBuf buf) {
-        var attachment = buf.readItemStack();
+    static ConfigBackend makeClient(FriendlyByteBuf buf) {
+        var attachment = buf.readItem();
         return new ConfigBackend() {
             @Override
             public ConfigurableAttachmentItem getAttachment() {

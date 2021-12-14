@@ -41,11 +41,11 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemHost extends NodeHost {
@@ -110,8 +110,9 @@ public class ItemHost extends NodeHost {
 
     @Nullable
     protected Storage<ItemVariant> getAdjacentStorage(Direction side) {
-        if ((inventoryConnections & (1 << side.getId())) > 0 && (pipeConnections & (1 << side.getId())) == 0 && allowItemConnection(side)) {
-            return ItemStorage.SIDED.find(pipe.getWorld(), pipe.getPos().offset(side), side.getOpposite());
+        if ((inventoryConnections & (1 << side.get3DDataValue())) > 0 && (pipeConnections & (1 << side.get3DDataValue())) == 0
+                && allowItemConnection(side)) {
+            return ItemStorage.SIDED.find(pipe.getLevel(), pipe.getBlockPos().relative(side), side.getOpposite());
         }
         return null;
     }
@@ -121,11 +122,11 @@ public class ItemHost extends NodeHost {
         for (var side : Direction.values()) {
             var attachment = getAttachment(side);
             if (attachment instanceof AttachedIO attachedIO && attachedIO.isServo()) {
-                if (currentTick - lastOperationTick[side.getId()] < attachedIO.getTier().transferCount)
+                if (currentTick - lastOperationTick[side.get3DDataValue()] < attachedIO.getTier().transferCount)
                     continue;
-                lastOperationTick[side.getId()] = currentTick;
+                lastOperationTick[side.get3DDataValue()] = currentTick;
 
-                var adjStorage = ItemStorage.SIDED.find(pipe.getWorld(), pipe.getPos().offset(side), side.getOpposite());
+                var adjStorage = ItemStorage.SIDED.find(pipe.getLevel(), pipe.getBlockPos().relative(side), side.getOpposite());
                 if (adjStorage == null)
                     continue;
 
@@ -192,7 +193,7 @@ public class ItemHost extends NodeHost {
                 if (adjacentItemHost != null) {
                     // All good: move to adjacent pipe
                     adjacentItemHost.travelingItems.add(travelingItem);
-                    adjacentItemHost.pipe.markDirty();
+                    adjacentItemHost.pipe.setChanged();
                 } else {
                     // Cancel the travel and handle the overflow
                     finishTravel(travelingItem, 0);
@@ -200,13 +201,13 @@ public class ItemHost extends NodeHost {
             }
         }
 
-        pipe.markDirty();
+        pipe.setChanged();
         pipe.sync(false);
     }
 
     private void finishTravel(TravelingItem item, long inserted) {
         // In any case, remove the item from the simulated insertion target
-        item.path.getInsertionTarget(pipe.getWorld()).stopAwaiting(item.variant, item.amount);
+        item.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(item.variant, item.amount);
         long leftover = item.amount - inserted;
 
         if (leftover > 0) {
@@ -231,10 +232,10 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void writeNbt(NbtCompound tag) {
+    public void writeNbt(CompoundTag tag) {
         super.writeNbt(tag);
         if (travelingItems.size() > 0) {
-            NbtList list = new NbtList();
+            ListTag list = new ListTag();
             for (var travelingItem : travelingItems) {
                 list.add(travelingItem.toNbt());
             }
@@ -243,9 +244,9 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void readNbt(NbtCompound tag) {
+    public void readNbt(CompoundTag tag) {
         super.readNbt(tag);
-        NbtList list = tag.getList("travelingItems", NbtCompound.COMPOUND_TYPE);
+        ListTag list = tag.getList("travelingItems", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); ++i) {
             travelingItems.add(TravelingItem.fromNbt(list.getCompound(i)));
         }
@@ -255,7 +256,7 @@ public class ItemHost extends NodeHost {
     public void addSelf() {
         super.addSelf();
         for (var travelingItem : travelingItems) {
-            travelingItem.path.getInsertionTarget(pipe.getWorld()).startAwaiting(travelingItem.variant, travelingItem.amount);
+            travelingItem.path.getInsertionTarget(pipe.getLevel()).startAwaiting(travelingItem.variant, travelingItem.amount);
         }
     }
 
@@ -263,7 +264,7 @@ public class ItemHost extends NodeHost {
     public void removeSelf() {
         super.removeSelf();
         for (var travelingItem : travelingItems) {
-            travelingItem.path.getInsertionTarget(pipe.getWorld()).stopAwaiting(travelingItem.variant, travelingItem.amount);
+            travelingItem.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(travelingItem.variant, travelingItem.amount);
         }
     }
 
@@ -271,7 +272,7 @@ public class ItemHost extends NodeHost {
     public void onRemoved() {
         super.onRemoved();
         for (var travelingItem : travelingItems) {
-            travelingItem.path.getInsertionTarget(pipe.getWorld()).stopAwaiting(travelingItem.variant, travelingItem.amount);
+            travelingItem.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(travelingItem.variant, travelingItem.amount);
             DropHelper.dropStack(pipe, travelingItem.variant, travelingItem.amount);
         }
         travelingItems.clear();
@@ -279,7 +280,7 @@ public class ItemHost extends NodeHost {
 
     public void addTravelingItem(TravelingItem travelingItem) {
         this.travelingItems.add(travelingItem);
-        pipe.markDirty();
+        pipe.setChanged();
     }
 
     @Override
@@ -292,8 +293,8 @@ public class ItemHost extends NodeHost {
 
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
-                Direction dir = Direction.byId(i);
-                Storage<ItemVariant> adjacentCap = ItemStorage.SIDED.find(pipe.getWorld(), pipe.getPos().offset(dir), dir.getOpposite());
+                Direction dir = Direction.from3DDataValue(i);
+                Storage<ItemVariant> adjacentCap = ItemStorage.SIDED.find(pipe.getLevel(), pipe.getBlockPos().relative(dir), dir.getOpposite());
 
                 if (adjacentCap == null) {
                     // Remove the direction from the bitmask
@@ -322,19 +323,19 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void writeClientNbt(NbtCompound tag) {
+    public void writeClientNbt(CompoundTag tag) {
         super.writeClientNbt(tag);
 
         if (travelingItems.size() > 0) {
-            NbtList list = new NbtList();
+            ListTag list = new ListTag();
             for (var travelingItem : travelingItems) {
-                NbtCompound compound = new NbtCompound();
+                CompoundTag compound = new CompoundTag();
                 compound.put("v", travelingItem.variant.toNbt());
                 compound.putLong("a", travelingItem.amount);
                 int currentBlock = (int) Math.floor(travelingItem.traveledDistance);
                 compound.putDouble("d", travelingItem.traveledDistance - currentBlock);
-                compound.putByte("in", (byte) travelingItem.path.path[currentBlock].getId());
-                compound.putByte("out", (byte) travelingItem.path.path[currentBlock + 1].getId());
+                compound.putByte("in", (byte) travelingItem.path.path[currentBlock].get3DDataValue());
+                compound.putByte("out", (byte) travelingItem.path.path[currentBlock + 1].get3DDataValue());
                 list.add(compound);
             }
             tag.put("travelingItems", list);
@@ -342,19 +343,19 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void readClientNbt(NbtCompound tag) {
+    public void readClientNbt(CompoundTag tag) {
         super.readClientNbt(tag);
 
         clientTravelingItems.clear();
-        NbtList list = tag.getList("travelingItems", NbtElement.COMPOUND_TYPE);
+        ListTag list = tag.getList("travelingItems", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); ++i) {
-            NbtCompound compound = list.getCompound(i);
+            CompoundTag compound = list.getCompound(i);
             clientTravelingItems.add(new ClientTravelingItem(
                     ItemVariant.fromNbt(compound.getCompound("v")),
                     compound.getLong("a"),
                     compound.getDouble("d"),
-                    Direction.byId(compound.getByte("in")),
-                    Direction.byId(compound.getByte("out"))));
+                    Direction.from3DDataValue(compound.getByte("in")),
+                    Direction.from3DDataValue(compound.getByte("out"))));
         }
     }
 

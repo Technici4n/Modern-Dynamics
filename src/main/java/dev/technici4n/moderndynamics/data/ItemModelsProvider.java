@@ -21,9 +21,9 @@ package dev.technici4n.moderndynamics.data;
 import dev.technici4n.moderndynamics.init.MdItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockStateDefinitionProvider;
-import net.minecraft.data.client.ItemModelGenerator;
-import net.minecraft.data.client.model.BlockStateModelGenerator;
-import net.minecraft.data.client.model.Models;
+import net.minecraft.data.models.BlockModelGenerators;
+import net.minecraft.data.models.ItemModelGenerators;
+import net.minecraft.data.models.model.ModelTemplates;
 
 public class ItemModelsProvider extends FabricBlockStateDefinitionProvider {
     public ItemModelsProvider(FabricDataGenerator dataGenerator) {
@@ -31,15 +31,15 @@ public class ItemModelsProvider extends FabricBlockStateDefinitionProvider {
     }
 
     @Override
-    public void generateBlockStateModels(BlockStateModelGenerator blockStateModelGenerator) {
+    public void generateBlockStateModels(BlockModelGenerators blockStateModelGenerator) {
     }
 
     @Override
-    public void generateItemModels(ItemModelGenerator itemGen) {
+    public void generateItemModels(ItemModelGenerators itemGen) {
         for (var attachment : MdItems.ALL_ATTACHMENTS) {
-            itemGen.register(attachment, Models.GENERATED);
+            itemGen.generateFlatItem(attachment, ModelTemplates.FLAT_ITEM);
         }
-        itemGen.register(MdItems.WRENCH, Models.HANDHELD);
-        itemGen.register(MdItems.DEBUG_TOOL, Models.GENERATED);
+        itemGen.generateFlatItem(MdItems.WRENCH, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemGen.generateFlatItem(MdItems.DEBUG_TOOL, ModelTemplates.FLAT_ITEM);
     }
 }

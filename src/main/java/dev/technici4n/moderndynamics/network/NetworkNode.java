@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
 
 public class NetworkNode<H extends NodeHost, C extends NetworkCache<H, C>> {
     private final H host;

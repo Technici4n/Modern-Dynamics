@@ -26,44 +26,44 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.ModelBakeSettings;
-import net.minecraft.client.render.model.ModelLoader;
-import net.minecraft.client.render.model.UnbakedModel;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.util.SpriteIdentifier;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.client.resources.model.ModelState;
+import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 public class AttachmentsUnbakedModel implements UnbakedModel {
-    public static final Identifier ID = MdId.of("attachments");
+    public static final ResourceLocation ID = MdId.of("attachments");
 
-    private final Map<String, Identifier> attachmentModels;
+    private final Map<String, ResourceLocation> attachmentModels;
 
-    public AttachmentsUnbakedModel(Map<String, Identifier> attachmentModels) {
+    public AttachmentsUnbakedModel(Map<String, ResourceLocation> attachmentModels) {
         this.attachmentModels = attachmentModels;
     }
 
     @Override
-    public Collection<Identifier> getModelDependencies() {
+    public Collection<ResourceLocation> getDependencies() {
         return attachmentModels.values();
     }
 
     @Override
-    public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter,
+    public Collection<Material> getMaterials(Function<ResourceLocation, UnbakedModel> unbakedModelGetter,
             Set<Pair<String, String>> unresolvedTextureReferences) {
-        var allTextureDependencies = new ArrayList<SpriteIdentifier>();
-        for (var dependentId : getModelDependencies()) {
+        var allTextureDependencies = new ArrayList<Material>();
+        for (var dependentId : getDependencies()) {
             allTextureDependencies
-                    .addAll(unbakedModelGetter.apply(dependentId).getTextureDependencies(unbakedModelGetter, unresolvedTextureReferences));
+                    .addAll(unbakedModelGetter.apply(dependentId).getMaterials(unbakedModelGetter, unresolvedTextureReferences));
         }
         return allTextureDependencies;
     }
 
     @Nullable
     @Override
-    public BakedModel bake(ModelLoader loader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer,
-            Identifier modelId) {
+    public BakedModel bake(ModelBakery loader, Function<Material, TextureAtlasSprite> textureGetter, ModelState rotationContainer,
+            ResourceLocation modelId) {
         var attachmentBakedModels = new HashMap<String, BakedModel[]>();
 
         for (var entry : attachmentModels.entrySet()) {

@@ -24,8 +24,8 @@ import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntityRenderer;
 import dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes;
+import dev.technici4n.moderndynamics.screen.AttachmentMenu;
 import dev.technici4n.moderndynamics.screen.AttachmentScreen;
-import dev.technici4n.moderndynamics.screen.AttachmentScreenHandler;
 import dev.technici4n.moderndynamics.screen.MdPackets;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
@@ -34,9 +34,9 @@ import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.RenderType;
 
 public final class ModernDynamicsClient implements ClientModInitializer {
     @Override
@@ -44,14 +44,14 @@ public final class ModernDynamicsClient implements ClientModInitializer {
         MdModelLoader.init();
 
         for (PipeBlock pipeBlock : MdBlocks.ALL_PIPES) {
-            BlockRenderLayerMap.INSTANCE.putBlock(pipeBlock, RenderLayer.getCutout());
+            BlockRenderLayerMap.INSTANCE.putBlock(pipeBlock, RenderType.cutout());
             var blockEntityType = pipeBlock.getBlockEntityTypeNullable();
             if (blockEntityType != null) { // some pipes don't have a block entity type (empty high tier energy pipes)
                 BlockEntityRendererRegistry.register(blockEntityType, PipeBlockEntityRenderer::new);
             }
         }
 
-        ScreenRegistry.register(AttachmentScreenHandler.TYPE, AttachmentScreen::new);
+        ScreenRegistry.register(AttachmentMenu.TYPE, AttachmentScreen::new);
 
         ClientPlayNetworking.registerGlobalReceiver(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER::handleS2C);
 
@@ -70,13 +70,13 @@ public final class ModernDynamicsClient implements ClientModInitializer {
             if (be instanceof PipeBlockEntity pipe) {
                 var pos = blockOutlineContext.blockPos();
 
-                var hitPosInBlock = MinecraftClient.getInstance().crosshairTarget.getPos();
+                var hitPosInBlock = Minecraft.getInstance().hitResult.getLocation();
                 hitPosInBlock = hitPosInBlock.subtract(pos.getX(), pos.getY(), pos.getZ());
 
                 var attachment = pipe.hitTestAttachments(hitPosInBlock);
                 if (attachment != null) {
 
-                    WorldRenderer.drawShapeOutline(
+                    LevelRenderer.renderShape(
                             worldRenderContext.matrixStack(),
                             blockOutlineContext.vertexConsumer(),
                             PipeBoundingBoxes.INVENTORY_CONNECTIONS[attachment.getSide().ordinal()],

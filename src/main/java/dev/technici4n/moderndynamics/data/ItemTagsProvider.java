@@ -30,6 +30,6 @@ public class ItemTagsProvider extends FabricTagProvider.ItemTagProvider {
 
     @Override
     protected void generateTags() {
-        getOrCreateTagBuilder(MdTags.WRENCHES).add(MdItems.WRENCH);
+        tag(MdTags.WRENCHES).add(MdItems.WRENCH);
     }
 }
