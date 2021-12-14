@@ -74,7 +74,7 @@ public class PipeBlock extends Block implements BlockEntityProvider {
 
     @SuppressWarnings("deprecation")
     @Override
-    public int getOpacity(BlockState p_200011_1_, BlockView p_200011_2_, BlockPos p_200011_3_) {
+    public int getOpacity(BlockState state, BlockView blockView, BlockPos pos) {
         return 0;
     }
 

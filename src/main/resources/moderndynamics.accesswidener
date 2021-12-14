@@ -1,0 +1,3 @@
+accessWidener v2 named
+
+accessible method net/minecraft/client/render/WorldRenderer drawShapeOutline (Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;Lnet/minecraft/util/shape/VoxelShape;DDDFFFF)V

@@ -21,7 +21,9 @@ package dev.technici4n.moderndynamics;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.model.MdModelLoader;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
+import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntityRenderer;
+import dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes;
 import dev.technici4n.moderndynamics.screen.AttachmentScreen;
 import dev.technici4n.moderndynamics.screen.AttachmentScreenHandler;
 import dev.technici4n.moderndynamics.screen.MdPackets;
@@ -29,8 +31,12 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.WorldRenderer;
 
 public final class ModernDynamicsClient implements ClientModInitializer {
     @Override
@@ -48,5 +54,47 @@ public final class ModernDynamicsClient implements ClientModInitializer {
         ScreenRegistry.register(AttachmentScreenHandler.TYPE, AttachmentScreen::new);
 
         ClientPlayNetworking.registerGlobalReceiver(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER::handleS2C);
+
+        WorldRenderEvents.BLOCK_OUTLINE.register(this::renderPipeAttachmentOutline);
+    }
+
+    /**
+     * Highlights only the pipe attachment when it's under the mouse cursor to indicate it has special interactions.
+     */
+    private boolean renderPipeAttachmentOutline(WorldRenderContext worldRenderContext,
+                                                WorldRenderContext.BlockOutlineContext blockOutlineContext) {
+
+        if (blockOutlineContext.blockState().getBlock() instanceof PipeBlock) {
+
+            var be = worldRenderContext.world().getBlockEntity(blockOutlineContext.blockPos());
+            if (be instanceof PipeBlockEntity pipe) {
+                var pos = blockOutlineContext.blockPos();
+
+                var hitPosInBlock = MinecraftClient.getInstance().crosshairTarget.getPos();
+                hitPosInBlock = hitPosInBlock.subtract(pos.getX(), pos.getY(), pos.getZ());
+
+                var attachment = pipe.hitTestAttachments(hitPosInBlock);
+                if (attachment != null) {
+
+                    WorldRenderer.drawShapeOutline(
+                            worldRenderContext.matrixStack(),
+                            blockOutlineContext.vertexConsumer(),
+                            PipeBoundingBoxes.INVENTORY_CONNECTIONS[attachment.side().ordinal()],
+                            (double) pos.getX() - blockOutlineContext.cameraX(),
+                            (double) pos.getY() - blockOutlineContext.cameraY(),
+                            (double) pos.getZ() - blockOutlineContext.cameraZ(),
+                            0.0F,
+                            0.0F,
+                            0.0F,
+                            0.4F
+                    );
+                    return false;
+                }
+            }
+
+        }
+
+        return true;
+
     }
 }

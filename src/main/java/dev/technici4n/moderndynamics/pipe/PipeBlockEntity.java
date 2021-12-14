@@ -39,6 +39,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -47,6 +48,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Abstract base BE class for all pipes.
@@ -364,20 +367,37 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         }
 
         // Handle click on attachment
-        for (int i = 0; i < 6; ++i) {
-            if (ShapeHelper.shapeContains(PipeBoundingBoxes.INVENTORY_CONNECTIONS[i], posInBlock)) {
-                var side = Direction.byId(i);
-                var attachment = getAttachment(side);
-                if (attachment.getItem() instanceof ConfigurableAttachmentItem) {
-                    // Open attachment GUI
-                    player.openHandledScreen(new PipeScreenFactory(this, side, attachment));
-                    return ActionResult.success(world.isClient);
-                }
+        var attachmentHit = hitTestAttachments(posInBlock);
+        if (attachmentHit != null) {
+            var attachment = attachmentHit.attachment();
+            if (attachment.getItem() instanceof ConfigurableAttachmentItem) {
+                // Open attachment GUI
+                player.openHandledScreen(new PipeScreenFactory(this, attachmentHit.side(), attachment));
+                return ActionResult.success(world.isClient);
             }
         }
 
         return ActionResult.PASS;
     }
+
+    @Nullable
+    public AttachmentHit hitTestAttachments(Vec3d posInBlock) {
+        // Handle click on attachment
+        for (int i = 0; i < 6; ++i) {
+            if (ShapeHelper.shapeContains(PipeBoundingBoxes.INVENTORY_CONNECTIONS[i], posInBlock)) {
+                var side = Direction.byId(i);
+                var attachment = getAttachment(side);
+                if (!attachment.isEmpty()) {
+                    return new AttachmentHit(side, attachment);
+                }
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    public record AttachmentHit(Direction side, ItemStack attachment) {}
 
     public void onRemoved() {
         for (var host : getHosts()) {

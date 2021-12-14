@@ -30,6 +30,8 @@ processResources {
 }
 
 loom {
+    accessWidenerPath = file("src/main/resources/moderndynamics.accesswidener")
+
     runs {
         datagenClient {
             client()
