@@ -19,7 +19,6 @@
 package dev.technici4n.moderndynamics.util;
 
 import java.util.EnumSet;
-
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;

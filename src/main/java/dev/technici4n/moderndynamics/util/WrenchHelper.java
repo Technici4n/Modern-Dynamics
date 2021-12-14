@@ -39,7 +39,8 @@ public class WrenchHelper {
      */
     public static void registerEvents() {
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            if (player.isSpectator() || !player.isSneaking() || !world.canPlayerModifyAt(player, hitResult.getBlockPos()) || !isWrench(player.getStackInHand(hand))) {
+            if (player.isSpectator() || !player.isSneaking() || !world.canPlayerModifyAt(player, hitResult.getBlockPos())
+                    || !isWrench(player.getStackInHand(hand))) {
                 return ActionResult.PASS;
             }
 

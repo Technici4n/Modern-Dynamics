@@ -18,15 +18,9 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
-import com.mojang.serialization.Codec;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
 
 public class TravelingItem {
     public final ItemVariant variant;
@@ -65,11 +59,9 @@ public class TravelingItem {
                 nbt.getLong("a"),
                 new ItemPath(
                         SerializationHelper.posFromNbt(nbt.getCompound("start")),
-                    SerializationHelper.posFromNbt(nbt.getCompound("end")),
-                    SerializationHelper.decodePath(nbt.getString("path"))
-                ),
+                        SerializationHelper.posFromNbt(nbt.getCompound("end")),
+                        SerializationHelper.decodePath(nbt.getString("path"))),
                 FailedInsertStrategy.bySerializedName(nbt.getString("strategy")),
-                nbt.getDouble("d")
-        );
+                nbt.getDouble("d"));
     }
 }

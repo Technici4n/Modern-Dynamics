@@ -89,7 +89,8 @@ public class ItemHost extends NodeHost {
                 NetworkNode<ItemHost, ItemCache> node = findNode();
                 if (node != null) {
                     // The node can be null if the pipe was just placed, and not initialized yet.
-                    return node.getNetworkCache().insert(side.getOpposite(), node, FailedInsertStrategy.SEND_BACK_TO_SOURCE, resource, maxAmount, transaction);
+                    return node.getNetworkCache().insert(side.getOpposite(), node, FailedInsertStrategy.SEND_BACK_TO_SOURCE, resource, maxAmount,
+                            transaction);
                 } else {
                     return 0;
                 }
@@ -119,20 +120,21 @@ public class ItemHost extends NodeHost {
         for (var side : Direction.values()) {
             ItemStack attachment = getAttachment(side);
             if (attachment.getItem() instanceof IoAttachmentItem tickingItem) {
-                if (currentTick - lastOperationTick[side.getId()] < tickingItem.tier.transferFrequency) continue;
+                if (currentTick - lastOperationTick[side.getId()] < tickingItem.tier.transferFrequency)
+                    continue;
                 lastOperationTick[side.getId()] = currentTick;
 
                 if (tickingItem.isServo()) {
                     var adjStorage = ItemStorage.SIDED.find(pipe.getWorld(), pipe.getPos().offset(side), side.getOpposite());
-                    if (adjStorage == null) continue;
+                    if (adjStorage == null)
+                        continue;
 
                     StorageUtil.move(
                             adjStorage,
                             buildNetworkInjectStorage(side),
                             iv -> tickingItem.matchesFilter(attachment, iv),
                             tickingItem.tier.transferCount,
-                            null
-                    );
+                            null);
                 }
             }
         }
@@ -212,19 +214,17 @@ public class ItemHost extends NodeHost {
             if (item.strategy == FailedInsertStrategy.SEND_BACK_TO_SOURCE) {
                 Direction[] revertedPath = new Direction[item.getPathLength()];
                 for (int i = 0; i < item.getPathLength(); ++i) {
-                    revertedPath[revertedPath.length-i-1] = item.path.path[i].getOpposite();
+                    revertedPath[revertedPath.length - i - 1] = item.path.path[i].getOpposite();
                 }
                 addTravelingItem(new TravelingItem(
                         item.variant,
                         leftover,
                         new ItemPath(
-                            item.path.targetPos,
-                            item.path.startingPos,
-                            revertedPath
-                        ),
+                                item.path.targetPos,
+                                item.path.startingPos,
+                                revertedPath),
                         FailedInsertStrategy.DROP,
-                        item.getPathLength() - 1 - Math.floor(item.traveledDistance)
-                ));
+                        item.getPathLength() - 1 - Math.floor(item.traveledDistance)));
             } else {
                 DropHelper.dropStack(pipe, item.variant, item.amount - inserted);
             }

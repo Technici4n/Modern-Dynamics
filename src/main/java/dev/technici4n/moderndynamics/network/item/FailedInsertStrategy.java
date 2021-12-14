@@ -36,10 +36,10 @@ public enum FailedInsertStrategy {
 
     public static FailedInsertStrategy bySerializedName(String serializedName) {
         return switch (serializedName) {
-            case "drop" -> DROP;
-            case "source" -> SEND_BACK_TO_SOURCE;
-            case "target" -> BUFFER_IN_TARGET;
-            default -> throw new RuntimeException("Unknown failed insert strategy: " + serializedName);
+        case "drop" -> DROP;
+        case "source" -> SEND_BACK_TO_SOURCE;
+        case "target" -> BUFFER_IN_TARGET;
+        default -> throw new RuntimeException("Unknown failed insert strategy: " + serializedName);
         };
     }
 }

@@ -19,17 +19,9 @@
 package dev.technici4n.moderndynamics.network.item;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import dev.technici4n.moderndynamics.network.NetworkCache;
 import dev.technici4n.moderndynamics.network.NetworkNode;
-import it.unimi.dsi.fastutil.objects.Reference2LongMap;
-import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
