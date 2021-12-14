@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.model;
 
+import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -95,7 +96,7 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
     }
 
     // Pipes in item form only connect to NORTH and SOUTH.
-    private static final PipeModelData ITEM_DATA = new PipeModelData((byte) 12, (byte) 12, new String[6]);
+    private static final PipeModelData ITEM_DATA = new PipeModelData((byte) 12, (byte) 12, new AttachedAttachment[6]);
 
     private void appendBitmasked(Consumer<BakedModel> consumer, int mask, BakedModel[] models) {
         for (int i = 0; i < 6; ++i) {
@@ -136,7 +137,7 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
             var attachment = data.attachments()[i];
             if (attachment != null) {
                 context.fallbackConsumer().accept(connectionPipe[i]);
-                context.fallbackConsumer().accept(attachments.attachmentModels.get(attachment)[i]);
+                context.fallbackConsumer().accept(attachments.attachmentModels.get(attachment.modelId())[i]);
             }
         }
     }

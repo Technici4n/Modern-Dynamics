@@ -79,7 +79,7 @@ public final class ModernDynamicsClient implements ClientModInitializer {
                     WorldRenderer.drawShapeOutline(
                             worldRenderContext.matrixStack(),
                             blockOutlineContext.vertexConsumer(),
-                            PipeBoundingBoxes.INVENTORY_CONNECTIONS[attachment.side().ordinal()],
+                            PipeBoundingBoxes.INVENTORY_CONNECTIONS[attachment.getSide().ordinal()],
                             (double) pos.getX() - blockOutlineContext.cameraX(),
                             (double) pos.getY() - blockOutlineContext.cameraY(),
                             (double) pos.getZ() - blockOutlineContext.cameraZ(),

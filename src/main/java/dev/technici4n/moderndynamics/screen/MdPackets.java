@@ -34,7 +34,7 @@ public class MdPackets {
         return () -> {
             ScreenHandler handler = player.currentScreenHandler;
             if (handler.syncId == syncId) {
-                ((AttachmentScreenHandler) handler).configBackend.setItemVariant(x, y, variant);
+                ((AttachmentScreenHandler) handler).attachment.setFilter(x, y, variant);
             }
         };
     };

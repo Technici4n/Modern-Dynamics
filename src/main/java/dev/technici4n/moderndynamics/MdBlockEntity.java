@@ -38,11 +38,11 @@ public abstract class MdBlockEntity extends BlockEntity {
     // Thank you Fabric API
     public void sync(boolean shouldRemesh) {
         Preconditions.checkNotNull(world); // Maintain distinct failure case from below
-        if (!(world instanceof ServerWorld))
+        if (!(world instanceof ServerWorld serverWorld))
             throw new IllegalStateException("Cannot call sync() on the logical client! Did you check world.isClient first?");
 
         shouldClientRemesh = shouldRemesh | shouldClientRemesh;
-        ((ServerWorld) world).getChunkManager().markForUpdate(getPos());
+        serverWorld.getChunkManager().markForUpdate(getPos());
     }
 
     public void sync() {

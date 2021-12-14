@@ -19,7 +19,7 @@
 package dev.technici4n.moderndynamics.network.item;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
-import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
+import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
@@ -79,7 +79,8 @@ public class ItemHost extends NodeHost {
 
     private boolean allowItemConnection(Direction side) {
         // don't expose the API if there is a servo on this side
-        return !(getAttachment(side).getItem() instanceof IoAttachmentItem ticking) || !ticking.isServo();
+        var attachment = getAttachment(side);
+        return attachment == null || attachment.allowsItemConnection();
     }
 
     private Storage<ItemVariant> buildNetworkInjectStorage(Direction side) {
@@ -118,24 +119,22 @@ public class ItemHost extends NodeHost {
     public void tickAttachments() {
         long currentTick = TickHelper.getTickCounter();
         for (var side : Direction.values()) {
-            ItemStack attachment = getAttachment(side);
-            if (attachment.getItem() instanceof IoAttachmentItem tickingItem) {
-                if (currentTick - lastOperationTick[side.getId()] < tickingItem.tier.transferFrequency)
+            var attachment = getAttachment(side);
+            if (attachment instanceof AttachedIO attachedIO && attachedIO.isServo()) {
+                if (currentTick - lastOperationTick[side.getId()] < attachedIO.getTier().transferCount)
                     continue;
                 lastOperationTick[side.getId()] = currentTick;
 
-                if (tickingItem.isServo()) {
-                    var adjStorage = ItemStorage.SIDED.find(pipe.getWorld(), pipe.getPos().offset(side), side.getOpposite());
-                    if (adjStorage == null)
-                        continue;
+                var adjStorage = ItemStorage.SIDED.find(pipe.getWorld(), pipe.getPos().offset(side), side.getOpposite());
+                if (adjStorage == null)
+                    continue;
 
-                    StorageUtil.move(
-                            adjStorage,
-                            buildNetworkInjectStorage(side),
-                            iv -> tickingItem.matchesFilter(attachment, iv),
-                            tickingItem.tier.transferCount,
-                            null);
-                }
+                StorageUtil.move(
+                        adjStorage,
+                        buildNetworkInjectStorage(side),
+                        attachedIO::matchesItemFilter,
+                        attachedIO.getTier().transferCount,
+                        null);
             }
         }
     }
@@ -324,6 +323,8 @@ public class ItemHost extends NodeHost {
 
     @Override
     public void writeClientNbt(NbtCompound tag) {
+        super.writeClientNbt(tag);
+
         if (travelingItems.size() > 0) {
             NbtList list = new NbtList();
             for (var travelingItem : travelingItems) {
@@ -342,6 +343,8 @@ public class ItemHost extends NodeHost {
 
     @Override
     public void readClientNbt(NbtCompound tag) {
+        super.readClientNbt(tag);
+
         clientTravelingItems.clear();
         NbtList list = tag.getList("travelingItems", NbtElement.COMPOUND_TYPE);
         for (int i = 0; i < list.size(); ++i) {

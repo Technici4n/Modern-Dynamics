@@ -16,24 +16,34 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.attachment;
+package dev.technici4n.moderndynamics.attachment.attached;
 
-import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
+import dev.technici4n.moderndynamics.attachment.AttachmentTier;
+import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import dev.technici4n.moderndynamics.util.MdItemGroup;
-import net.minecraft.item.Item;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.Direction;
 
-public class AttachmentItem extends Item {
-    public final RenderedAttachment attachment;
-
-    public AttachmentItem(RenderedAttachment attachment) {
-        super(new Settings().group(MdItemGroup.getInstance()));
-        this.attachment = attachment;
+public class AttachedIO extends AttachedAttachment {
+    public AttachedIO(PipeBlockEntity pipe, Direction side, IoAttachmentItem item, NbtCompound initialData) {
+        super(pipe, side, item, initialData);
     }
 
-    public AttachedAttachment createAttached(PipeBlockEntity pipe, Direction side, NbtCompound initialData) {
-        return new AttachedAttachment(pipe, side, this, initialData);
+    @Override
+    public IoAttachmentItem getItem() {
+        return (IoAttachmentItem) super.getItem();
+    }
+
+    public boolean isServo() {
+        return getItem().isServo();
+    }
+
+    public AttachmentTier getTier() {
+        return getItem().tier;
+    }
+
+    public boolean matchesItemFilter(ItemVariant variant) {
+        return false;
     }
 }

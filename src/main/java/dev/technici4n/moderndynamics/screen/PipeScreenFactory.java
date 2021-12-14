@@ -18,71 +18,51 @@
  */
 package dev.technici4n.moderndynamics.screen;
 
-import dev.technici4n.moderndynamics.attachment.ConfigurableAttachmentItem;
-import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.Direction;
+import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.Nullable;
 
 public class PipeScreenFactory implements ExtendedScreenHandlerFactory {
-    private final PipeBlockEntity pipe;
-    private final Direction side;
-    private final ItemStack attachment;
-    private final ConfigBackend backend;
+    private final AttachedAttachment attachment;
 
-    public PipeScreenFactory(PipeBlockEntity pipe, Direction side, ItemStack attachment) {
-        this.pipe = pipe;
-        this.side = side;
+    public PipeScreenFactory(AttachedAttachment attachment) {
         this.attachment = attachment;
-        this.backend = new ConfigBackend() {
-            @Override
-            public ConfigurableAttachmentItem getAttachment() {
-                return (ConfigurableAttachmentItem) attachment.getItem();
-            }
-
-            @Override
-            public ItemVariant getItemVariant(int x, int y) {
-                return getAttachment().getItemVariant(attachment, x, y);
-            }
-
-            @Override
-            public void setItemVariant(int x, int y, ItemVariant variant) {
-                getAttachment().setItemVariant(attachment, x, y, variant);
-                pipe.markDirty();
-            }
-        };
     }
 
     @Override
     public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
-        buf.writeItemStack(attachment);
+        buf.writeIdentifier(Registry.BLOCK_ENTITY_TYPE.getId(attachment.getPipe().getType()));
+        buf.writeEnumConstant(attachment.getSide());
+        buf.writeBlockPos(attachment.getPipe().getPos());
     }
 
     @Override
     public Text getDisplayName() {
-        return attachment.getName();
+        return attachment.getDisplayName();
     }
 
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        return new AttachmentScreenHandler(syncId, inv, backend) {
+        // This is called server-side
+        return new AttachmentScreenHandler(syncId, inv, attachment) {
             @Override
             public boolean canUse(PlayerEntity player) {
-                var pos = pipe.getPos();
-                if (pipe.getWorld().getBlockEntity(pos) != pipe)
+                var pos = attachment.getPipe().getPos();
+                if (player.getWorld().getBlockEntity(pos) != attachment.getPipe()) {
                     return false;
-                if (player.squaredDistanceTo(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) > 64.0D)
+                }
+                if (player.squaredDistanceTo(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) > 64.0D) {
                     return false;
-                return pipe.getAttachment(side) == attachment;
+                }
+                return attachment.isAttached();
             }
         };
     }

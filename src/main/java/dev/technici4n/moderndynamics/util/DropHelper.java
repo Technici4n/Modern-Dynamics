@@ -18,12 +18,19 @@
  */
 package dev.technici4n.moderndynamics.util;
 
+import java.util.List;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ItemScatterer;
 
 public class DropHelper {
+    public static void dropStacks(BlockEntity blockEntity, List<ItemStack> stacks) {
+        for (ItemStack stack : stacks) {
+            dropStack(blockEntity, stack);
+        }
+    }
+
     public static void dropStack(BlockEntity blockEntity, ItemStack stack) {
         var pos = blockEntity.getPos();
         ItemScatterer.spawn(blockEntity.getWorld(), pos.getX(), pos.getY(), pos.getZ(), stack);

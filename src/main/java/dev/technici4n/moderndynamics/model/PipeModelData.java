@@ -18,26 +18,26 @@
  */
 package dev.technici4n.moderndynamics.model;
 
-import dev.technici4n.moderndynamics.attachment.AttachmentItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.collection.DefaultedList;
+import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import org.jetbrains.annotations.Nullable;
 
-public record PipeModelData(byte pipeConnections, byte inventoryConnections, String @Nullable [] attachments) {
+public record PipeModelData(byte pipeConnections, byte inventoryConnections,
+        AttachmentModelData @Nullable [] attachments) {
 
-    public static final PipeModelData DEFAULT = new PipeModelData((byte) 0, (byte) 0, new String[6]);
+    public static final PipeModelData DEFAULT = new PipeModelData((byte) 0, (byte) 0, new AttachmentModelData[6]);
 
-    public PipeModelData(byte pipeConnections, byte inventoryConnections, DefaultedList<ItemStack> attachments) {
-        this(pipeConnections, inventoryConnections, convertToIds(attachments));
+    public PipeModelData(byte pipeConnections, byte inventoryConnections, AttachedAttachment[] attachments) {
+        this(pipeConnections, inventoryConnections, getAttachmentModelData(attachments));
     }
 
-    private static @Nullable String[] convertToIds(DefaultedList<ItemStack> stacks) {
-        var array = new String[6];
-        for (int i = 0; i < 6; ++i) {
-            if (!stacks.get(i).isEmpty()) {
-                array[i] = ((AttachmentItem) stacks.get(i).getItem()).attachment.id;
+    private static AttachmentModelData[] getAttachmentModelData(AttachedAttachment[] attachments) {
+        var result = new AttachmentModelData[attachments.length];
+        for (int i = 0; i < result.length; i++) {
+            if (attachments[i] != null) {
+                result[i] = attachments[i].getModelData();
             }
         }
-        return array;
+        return result;
     }
+
 }

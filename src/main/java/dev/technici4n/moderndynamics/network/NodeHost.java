@@ -19,17 +19,21 @@
 package dev.technici4n.moderndynamics.network;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
+import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.EnumSet;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
-import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.registry.Registry;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -37,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class NodeHost {
     protected final PipeBlockEntity pipe;
-    private final DefaultedList<ItemStack> attachments = DefaultedList.ofSize(6, ItemStack.EMPTY);
+    private final AttachedAttachment[] attachments = new AttachedAttachment[6];
     /**
      * Current connections to adjacent pipes.
      */
@@ -53,13 +57,32 @@ public abstract class NodeHost {
         this.pipe = pipe;
     }
 
-    public final void setAttachment(Direction side, ItemStack stack) {
-        attachments.set(side.getId(), stack);
-        scheduleUpdate();
+    @Nullable
+    public final AttachedAttachment removeAttachment(Direction side) {
+        var attachment = this.attachments[side.getId()];
+        if (attachment != null) {
+            this.attachments[side.getId()] = null;
+            update();
+            return attachment;
+        }
+        return null;
     }
 
-    public final ItemStack getAttachment(Direction side) {
-        return attachments.get(side.getId());
+    public final void setAttachment(Direction side, AttachmentItem item, NbtCompound data) {
+        var current = attachments[side.getId()];
+        if (current != null && current.getItem() == item) {
+            if (current.update(data)) {
+                scheduleUpdate();
+            }
+        } else {
+            attachments[side.getId()] = item.createAttached(pipe, side, data);
+            scheduleUpdate();
+        }
+    }
+
+    @Nullable
+    public final AttachedAttachment getAttachment(Direction side) {
+        return attachments[side.getId()];
     }
 
     public abstract boolean acceptsAttachment(AttachmentItem attachment, ItemStack stack);
@@ -155,24 +178,65 @@ public abstract class NodeHost {
         return pipe;
     }
 
+    private boolean hasAttachments() {
+        for (var attachment : attachments) {
+            if (attachment != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void writeNbt(NbtCompound tag) {
-        Inventories.writeNbt(tag, attachments);
+        // Only write a sub-tag if any attachments exist
+        if (hasAttachments()) {
+            var attachmentTags = new NbtList();
+            for (var attachment : attachments) {
+                var attachmentTag = new NbtCompound();
+                if (attachment != null) {
+                    var id = Registry.ITEM.getId(attachment.getItem());
+                    attachmentTag.putString("#i", id.toString());
+                    attachment.writeNbt(attachmentTag);
+                }
+                attachmentTags.add(attachmentTag);
+            }
+            tag.put("attachments", attachmentTags);
+        }
     }
 
     public void readNbt(NbtCompound tag) {
-        Inventories.readNbt(tag, attachments);
+        if (tag.contains("attachments", NbtElement.LIST_TYPE)) {
+            var attachmentTags = tag.getList("attachments", NbtElement.COMPOUND_TYPE);
+            for (int i = 0; i < attachments.length; i++) {
+                this.attachments[i] = null;
+
+                if (i < attachmentTags.size()) {
+                    var attachmentTag = attachmentTags.getCompound(i);
+                    var item = Registry.ITEM.get(new Identifier(attachmentTag.getString("#i")));
+                    if ((item instanceof AttachmentItem attachmentItem)) {
+                        this.attachments[i] = attachmentItem.createAttached(pipe, Direction.byId(i), attachmentTag);
+                    }
+                }
+            }
+        }
     }
 
+    @MustBeInvokedByOverriders
     public void writeClientNbt(NbtCompound tag) {
+        writeNbt(tag);
     }
 
+    @MustBeInvokedByOverriders
     public void readClientNbt(NbtCompound tag) {
+        readNbt(tag);
     }
 
     public void onRemoved() {
-        for (var attachment : attachments) {
-            DropHelper.dropStack(pipe, attachment);
+        for (Direction side : Direction.values()) {
+            var attachment = removeAttachment(side);
+            if (attachment != null) {
+                DropHelper.dropStacks(pipe, attachment.getDrops());
+            }
         }
-        attachments.clear();
     }
 }

@@ -18,6 +18,8 @@
  */
 package dev.technici4n.moderndynamics.screen;
 
+import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
+import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -29,27 +31,40 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.registry.Registry;
 
 public class AttachmentScreenHandler extends ScreenHandler {
     public static final ScreenHandlerType<AttachmentScreenHandler> TYPE = ScreenHandlerRegistry.registerExtended(
             MdId.of("attachment"),
-            AttachmentScreenHandler::new);
+            AttachmentScreenHandler::fromPacket);
 
-    public final ConfigBackend configBackend;
+    private static AttachmentScreenHandler fromPacket(int syncId, PlayerInventory playerInventory, PacketByteBuf packetByteBuf) {
+        var world = playerInventory.player.world;
 
-    private AttachmentScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
-        this(syncId, playerInventory, ConfigBackend.makeClient(buf));
+        var bet = Registry.BLOCK_ENTITY_TYPE.get(packetByteBuf.readIdentifier());
+        var side = packetByteBuf.readEnumConstant(Direction.class);
+        return world.getBlockEntity(packetByteBuf.readBlockPos(), bet).map(blockEntity -> {
+            if (blockEntity instanceof PipeBlockEntity pipe) {
+                var attachment = pipe.getAttachment(side);
+                if (attachment != null) {
+                    return new AttachmentScreenHandler(syncId, playerInventory, attachment);
+                }
+            }
+            return null;
+        }).orElse(null);
     }
 
-    protected AttachmentScreenHandler(int syncId, PlayerInventory playerInventory, ConfigBackend backend) {
+    public final AttachedAttachment attachment;
+
+    protected AttachmentScreenHandler(int syncId, PlayerInventory playerInventory, AttachedAttachment attachment) {
         super(TYPE, syncId);
-        this.configBackend = backend;
+        this.attachment = attachment;
 
         // Config slots
-        var attachment = configBackend.getAttachment();
-        for (int i = 0; i < attachment.configHeight; ++i) {
-            for (int j = 0; j < attachment.configWidth; ++j) {
-                this.addSlot(new ConfigSlot(8 + j * 18, 30 + i * 18, backend, i, j));
+        for (int i = 0; i < attachment.getConfigHeight(); ++i) {
+            for (int j = 0; j < attachment.getConfigWidth(); ++j) {
+                this.addSlot(new ConfigSlot(8 + j * 18, 30 + i * 18, attachment, i, j));
             }
         }
 
@@ -73,7 +88,7 @@ public class AttachmentScreenHandler extends ScreenHandler {
     @Override
     public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
         if (slotIndex >= 0 && getSlot(slotIndex) instanceof ConfigSlot configSlot) {
-            configBackend.setItemVariant(configSlot.configX, configSlot.configY, ItemVariant.of(getCursorStack()));
+            attachment.setFilter(configSlot.configX, configSlot.configY, ItemVariant.of(getCursorStack()));
         } else {
             super.onSlotClick(slotIndex, button, actionType, player);
         }
