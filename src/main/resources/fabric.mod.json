@@ -14,7 +14,7 @@
 
   "license": "MPLv2",
   "icon": "assets/moderndynamics/icon.png",
-
+  "accessWidener": "moderndynamics.accesswidener",
   "environment": "*",
   "entrypoints": {
     "main": [

@@ -62,7 +62,7 @@ public final class ModernDynamicsClient implements ClientModInitializer {
      * Highlights only the pipe attachment when it's under the mouse cursor to indicate it has special interactions.
      */
     private boolean renderPipeAttachmentOutline(WorldRenderContext worldRenderContext,
-                                                WorldRenderContext.BlockOutlineContext blockOutlineContext) {
+            WorldRenderContext.BlockOutlineContext blockOutlineContext) {
 
         if (blockOutlineContext.blockState().getBlock() instanceof PipeBlock) {
 
@@ -86,8 +86,7 @@ public final class ModernDynamicsClient implements ClientModInitializer {
                             0.0F,
                             0.0F,
                             0.0F,
-                            0.4F
-                    );
+                            0.4F);
                     return false;
                 }
             }

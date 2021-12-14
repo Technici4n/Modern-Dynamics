@@ -39,7 +39,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -48,8 +47,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Abstract base BE class for all pipes.
@@ -397,7 +394,8 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         return null;
     }
 
-    public record AttachmentHit(Direction side, ItemStack attachment) {}
+    public record AttachmentHit(Direction side, ItemStack attachment) {
+    }
 
     public void onRemoved() {
         for (var host : getHosts()) {
