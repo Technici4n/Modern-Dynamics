@@ -45,7 +45,11 @@ public class ItemPathCache {
         Reference2LongMap<NetworkNode<ItemHost, ItemCache>> distance = new Reference2LongOpenHashMap<>();
         Map<NetworkNode<ItemHost, ItemCache>, Direction> prevDirection = new IdentityHashMap<>();
         Map<NetworkNode<ItemHost, ItemCache>, NetworkNode<ItemHost, ItemCache>> prevNode = new IdentityHashMap<>();
-        List<SidedNode> targets = new ArrayList<>();
+
+        // We use a second priority queue for the targets.
+        // This might seem redundant, but it's an easy way for us to take into account inhibitors at the very end of a path,
+        // which might still change the distance for the entire path, even if the distance to the end node doesn't change.
+        PriorityQueue<PqSidedNode> targets = new PriorityQueue<>(Comparator.comparingLong(PqSidedNode::distance));
 
         pq.add(new PqNode(startingPoint.node, 0));
         distance.put(startingPoint.node, 0);
@@ -60,7 +64,14 @@ public class ItemPathCache {
             }
 
             for (var side : currentNode.getHost().getInventoryConnections()) {
-                targets.add(new SidedNode(currentNode, side));
+                var attachment = currentNode.getHost().getAttachment(side);
+                if (attachment == null || attachment.allowsItemConnection()) { // Check that the attachment allows the connection in the first place.
+                    long edgeWeight = 1;
+                    if (currentNode.getHost().getAttachment(side) instanceof AttachedInhibitor) {
+                        edgeWeight += 1000;
+                    }
+                    targets.add(new PqSidedNode(new SidedNode(currentNode, side), currentDistance + edgeWeight));
+                }
             }
 
             for (var connection : currentNode.getConnections()) {
@@ -83,26 +94,28 @@ public class ItemPathCache {
 
         // Build the paths
         List<ItemPath> computedPaths = new ArrayList<>(targets.size());
-        for (var target : targets) {
-            for (var side : target.node.getHost().getInventoryConnections()) {
-                if (target.node == startingPoint.node && side == startingPoint.side.getOpposite()) {
-                    continue; // prevent insertion back into the source
-                }
-                var adjPos = target.node.getHost().getPipe().getBlockPos().relative(side);
+        for (var pqTarget : targets) {
+            var target = pqTarget.sidedNode;
+            var side = target.side;
 
-                // Backtrack to find the path.
-                List<Direction> reversedPath = new ArrayList<>();
-                var current = target.node;
-                var currentDir = side;
-                while (current != null) {
-                    reversedPath.add(currentDir);
-                    currentDir = prevDirection.get(current);
-                    current = prevNode.get(current);
-                }
-                reversedPath.add(startingPoint.side);
-                Direction[] path = Lists.reverse(reversedPath).toArray(Direction[]::new);
-                computedPaths.add(new ItemPath(startingPoint.node.getHost().getPipe().getBlockPos(), adjPos, path));
+            if (target.node == startingPoint.node && side == startingPoint.side.getOpposite()) {
+                continue; // prevent insertion back into the source
             }
+            var adjPos = target.node.getHost().getPipe().getBlockPos().relative(side);
+
+            // Backtrack to find the path.
+            List<Direction> reversedPath = new ArrayList<>();
+            var current = target.node;
+            var currentDir = side;
+            while (current != null) {
+                reversedPath.add(currentDir);
+                currentDir = prevDirection.get(current);
+                current = prevNode.get(current);
+            }
+            reversedPath.add(startingPoint.side);
+            Direction[] path = Lists.reverse(reversedPath).toArray(Direction[]::new);
+            var startPos = startingPoint.node.getHost().getPipe().getBlockPos().relative(startingPoint.side.getOpposite());
+            computedPaths.add(new ItemPath(startPos, adjPos, path));
         }
 
         return computedPaths;
@@ -112,5 +125,8 @@ public class ItemPathCache {
     }
 
     private record PqNode(NetworkNode<ItemHost, ItemCache> node, long distance) {
+    }
+
+    private record PqSidedNode(SidedNode sidedNode, long distance) {
     }
 }

@@ -60,7 +60,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         super(type, pos, state);
     }
 
-    private final NodeHost[] hosts = createHosts();
+    private NodeHost[] hosts;
     private boolean hostsRegistered = false;
     public int connectionBlacklist = 0;
     private VoxelShape cachedShape = PipeBoundingBoxes.CORE_SHAPE;
@@ -71,6 +71,9 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     protected abstract NodeHost[] createHosts();
 
     public final NodeHost[] getHosts() {
+        if (hosts == null) {
+            hosts = createHosts();
+        }
         return hosts;
     }
 

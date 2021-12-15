@@ -30,6 +30,7 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import org.jetbrains.annotations.Nullable;
 
+// TODO: needs to support recursive queries if filters are being used.
 public class SimulatedInsertionTarget {
     private final Supplier<@Nullable Storage<ItemVariant>> storageFinder;
     private final Object2LongMap<ItemVariant> awaitedStacks = new Object2LongLinkedOpenHashMap<>();
@@ -37,6 +38,10 @@ public class SimulatedInsertionTarget {
 
     public SimulatedInsertionTarget(Supplier<@Nullable Storage<ItemVariant>> storageFinder) {
         this.storageFinder = storageFinder;
+    }
+
+    public boolean hasStorage() {
+        return storageFinder.get() != null;
     }
 
     public long insert(ItemVariant variant, long maxAmount, TransactionContext transaction, StartTravelCallback callback) {
@@ -65,7 +70,7 @@ public class SimulatedInsertionTarget {
 
         // Schedule stack to be sent on commit
         participant.updateSnapshots(transaction);
-        // TODO: add to awaitedStacks directly, and remove if the tx is cancelled!
+        startAwaiting(variant, maxAmount);
         participant.pendingStacks.add(new PendingStack(variant, maxAmount, callback));
 
         return maxAmount;
@@ -98,14 +103,15 @@ public class SimulatedInsertionTarget {
 
         @Override
         protected void readSnapshot(Integer snapshot) {
-            // Not sure if this works, but Chocohead says it should.
-            pendingStacks.subList(snapshot, pendingStacks.size()).clear();
+            while (pendingStacks.size() > snapshot) {
+                var stack = pendingStacks.remove(pendingStacks.size() - 1);
+                stopAwaiting(stack.variant, stack.amount);
+            }
         }
 
         @Override
         protected void onFinalCommit() {
             for (var pendingStack : pendingStacks) {
-                startAwaiting(pendingStack.variant, pendingStack.amount);
                 pendingStack.callback.startTravel(pendingStack.variant, pendingStack.amount);
             }
             pendingStacks.clear();

@@ -24,14 +24,15 @@ import dev.technici4n.moderndynamics.network.NetworkNode;
 import java.util.*;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.minecraft.server.level.ServerLevel;
 import team.reborn.energy.api.EnergyStorage;
 import team.reborn.energy.api.base.SimpleEnergyStorage;
 
 public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
     private SimpleEnergyStorage energyStorage = null;
 
-    public EnergyCache(List<NetworkNode<EnergyHost, EnergyCache>> nodes) {
-        super(nodes);
+    public EnergyCache(ServerLevel level, List<NetworkNode<EnergyHost, EnergyCache>> nodes) {
+        super(level, nodes);
     }
 
     public long getAmount() {

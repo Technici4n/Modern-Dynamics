@@ -26,17 +26,14 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 
 public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
     private boolean inserting = false;
-    private ItemPathCache pathCache = new ItemPathCache();
+    protected final ItemPathCache pathCache = new ItemPathCache();
 
-    protected ItemCache(List<NetworkNode<ItemHost, ItemCache>> networkNodes) {
-        super(networkNodes);
-    }
-
-    protected void invalidatePathCache() {
-        pathCache = new ItemPathCache();
+    protected ItemCache(ServerLevel level, List<NetworkNode<ItemHost, ItemCache>> networkNodes) {
+        super(level, networkNodes);
     }
 
     @Override
@@ -69,6 +66,11 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
 
             long totalInserted = 0;
             for (var path : paths) {
+                // Check possible filter at the endpoint.
+                if (!path.getEndFilter(level).test(variant)) {
+                    continue;
+                }
+
                 var simulatedTarget = path.getInsertionTarget(startingPoint.getHost().getPipe().getLevel());
 
                 totalInserted += simulatedTarget.insert(variant, maxAmount - totalInserted, transaction, (v, amount) -> {

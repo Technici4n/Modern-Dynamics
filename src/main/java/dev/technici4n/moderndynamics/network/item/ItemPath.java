@@ -18,9 +18,13 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
+import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
+import dev.technici4n.moderndynamics.network.NetworkNode;
+import java.util.function.Predicate;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 
 public class ItemPath {
@@ -37,6 +41,10 @@ public class ItemPath {
         this.path = path;
     }
 
+    public NetworkNode<ItemHost, ItemCache> getStartingPoint(ServerLevel level) {
+        return ItemHost.MANAGER.findNode(level, startingPos.relative(path[0]));
+    }
+
     public SimulatedInsertionTarget getInsertionTarget(Level world) {
         return SimulatedInsertionTargets.getTarget(world, targetPos, path[path.length - 1].getOpposite());
     }
@@ -48,5 +56,23 @@ public class ItemPath {
                 this,
                 FailedInsertStrategy.SEND_BACK_TO_SOURCE,
                 0);
+    }
+
+    /**
+     * Return the predicate for the attachment at the very end of the pipe.
+     */
+    Predicate<ItemVariant> getEndFilter(ServerLevel level) {
+        var lastNode = ItemHost.MANAGER.findNode(level, targetPos.relative(path[path.length - 1].getOpposite()));
+        var host = lastNode.getHost();
+        var attachment = host.getAttachment(path[path.length - 1]);
+        return attachment instanceof AttachedIO io ? io::matchesItemFilter : v -> true;
+    }
+
+    public ItemPath reverse() {
+        Direction[] reversedPath = new Direction[path.length];
+        for (int i = 0; i < path.length; ++i) {
+            reversedPath[path.length - i - 1] = path[i].getOpposite();
+        }
+        return new ItemPath(targetPos, startingPos, reversedPath);
     }
 }

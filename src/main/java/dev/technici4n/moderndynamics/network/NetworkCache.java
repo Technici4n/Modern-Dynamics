@@ -19,11 +19,13 @@
 package dev.technici4n.moderndynamics.network;
 
 import java.util.*;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * Cache for a given network, storing the actual logic.
  */
 public abstract class NetworkCache<H extends NodeHost, C extends NetworkCache<H, C>> {
+    public final ServerLevel level;
     protected final List<NetworkNode<H, C>> nodes;
     /**
      * A network can be in two states: combined and separated (not combined).
@@ -35,7 +37,8 @@ public abstract class NetworkCache<H extends NodeHost, C extends NetworkCache<H,
     private boolean combined = false;
     private final Set<NodeHost> hostsToUpdate = Collections.newSetFromMap(new IdentityHashMap<>());
 
-    protected NetworkCache(List<NetworkNode<H, C>> nodes) {
+    protected NetworkCache(ServerLevel level, List<NetworkNode<H, C>> nodes) {
+        this.level = level;
         this.nodes = nodes;
 
         for (NetworkNode<H, C> node : nodes) {
@@ -97,6 +100,6 @@ public abstract class NetworkCache<H extends NodeHost, C extends NetworkCache<H,
     }
 
     public interface Factory<H extends NodeHost, C extends NetworkCache<H, C>> {
-        C build(List<NetworkNode<H, C>> nodes);
+        C build(ServerLevel level, List<NetworkNode<H, C>> nodes);
     }
 }

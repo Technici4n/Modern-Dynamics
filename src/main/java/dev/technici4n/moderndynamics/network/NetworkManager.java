@@ -168,7 +168,7 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
                 List<NetworkNode<H, C>> nodes = new ArrayList<>();
                 Network<H, C> network = new Network<>(nodes);
                 assignNetworkDfs(node, network);
-                network.cache = cacheFactory.build(network.nodes);
+                network.cache = cacheFactory.build((ServerLevel) node.getHost().pipe.getLevel(), network.nodes);
                 networks.add(network);
             }
         }
