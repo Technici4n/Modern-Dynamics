@@ -18,13 +18,15 @@
  */
 package dev.technici4n.moderndynamics.pipe;
 
+import com.google.common.base.Preconditions;
 import dev.technici4n.moderndynamics.MdBlockEntity;
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
+import dev.technici4n.moderndynamics.model.AttachmentModelData;
 import dev.technici4n.moderndynamics.model.PipeModelData;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.TickHelper;
-import dev.technici4n.moderndynamics.screen.PipeScreenFactory;
+import dev.technici4n.moderndynamics.screen.AttachmentMenuType;
 import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.ShapeHelper;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
@@ -34,6 +36,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -57,6 +61,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         super(type, pos, state);
     }
 
+    private final NodeHost[] hosts = createHosts();
     private boolean hostsRegistered = false;
     public int connectionBlacklist = 0;
     private VoxelShape cachedShape = PipeBoundingBoxes.CORE_SHAPE;
@@ -64,9 +69,23 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     private PipeModelData clientModelData = null;
     private int clientSideConnections = 0;
 
-    public abstract NodeHost[] getHosts();
+    protected abstract NodeHost[] createHosts();
+
+    public final NodeHost[] getHosts() {
+        return hosts;
+    }
+
+    private boolean hasAttachment(Direction side) {
+        if (isClientSide()) {
+            return clientModelData != null && clientModelData.attachments()[side.get3DDataValue()] != null;
+        } else {
+            return getAttachment(side) != null;
+        }
+    }
 
     public final AttachedAttachment getAttachment(Direction side) {
+        Preconditions.checkState(!isClientSide(), "Attachments don't exist on the client.");
+
         for (var host : getHosts()) {
             var attachment = host.getAttachment(side);
             if (attachment != null) {
@@ -90,6 +109,16 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         for (var host : getHosts()) {
             host.writeClientNbt(tag);
         }
+        var attachments = new ListTag();
+        for (var direction : Direction.values()) {
+            var attachment = getAttachment(direction);
+            if (attachment != null) {
+                attachments.add(attachment.getModelData().write(new CompoundTag()));
+            } else {
+                attachments.add(new CompoundTag());
+            }
+        }
+        tag.put("attachments", attachments);
     }
 
     @Override
@@ -103,16 +132,18 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         for (var host : getHosts()) {
             host.readClientNbt(tag);
         }
-
-        updateCachedShape(connections, inventoryConnections);
-
-        var attachments = new AttachedAttachment[6];
+        var attachmentTags = tag.getList("attachments", Tag.TAG_COMPOUND);
+        var attachments = new AttachmentModelData[6];
         for (var direction : Direction.values()) {
-            attachments[direction.get3DDataValue()] = getAttachment(direction);
+            var attachmentTag = attachmentTags.getCompound(direction.get3DDataValue());
+            attachments[direction.get3DDataValue()] = AttachmentModelData.from(attachmentTag);
         }
 
         clientModelData = new PipeModelData(connections, inventoryConnections, attachments);
         clientSideConnections = connections | inventoryConnections;
+
+        updateCachedShape(connections, inventoryConnections);
+
     }
 
     @Override
@@ -230,12 +261,12 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         VoxelShape shape = PipeBoundingBoxes.CORE_SHAPE;
 
         for (int i = 0; i < 6; ++i) {
-            var attachment = getAttachment(Direction.from3DDataValue(i));
-            if ((allConnections & (1 << i)) > 0 || attachment != null) {
+            var hasAttachment = hasAttachment(Direction.from3DDataValue(i));
+            if ((allConnections & (1 << i)) > 0 || hasAttachment) {
                 shape = Shapes.or(shape, PipeBoundingBoxes.PIPE_CONNECTIONS[i]);
             }
 
-            if ((inventoryConnections & (1 << i)) > 0 || attachment != null) {
+            if ((inventoryConnections & (1 << i)) > 0 || hasAttachment) {
                 shape = Shapes.or(shape, PipeBoundingBoxes.CONNECTOR_SHAPES[i]);
             }
         }
@@ -299,7 +330,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
             for (int i = 0; i < 6; ++i) {
                 if (ShapeHelper.shapeContains(PipeBoundingBoxes.INVENTORY_CONNECTIONS[i], posInBlock)) {
                     var side = Direction.from3DDataValue(i);
-                    if (getAttachment(side) != null) {
+                    if (hasAttachment(side)) {
                         // Remove attachment
                         if (level.isClientSide()) {
                             return InteractionResult.SUCCESS;
@@ -345,7 +376,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
             }
 
             if (hitSide != null) {
-                if (getAttachment(hitSide) == null) {
+                if (!hasAttachment(hitSide)) {
                     for (var host : getHosts()) {
                         if (host.acceptsAttachment(attachmentItem, stack)) {
                             if (!level.isClientSide) {
@@ -369,25 +400,29 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         }
 
         // Handle click on attachment
-        var attachmentHit = hitTestAttachments(posInBlock);
-        if (attachmentHit != null) {
-            if (attachmentHit.hasScreen()) {
-                // Open attachment GUI
-                player.openMenu(new PipeScreenFactory(attachmentHit));
-                return InteractionResult.sidedSuccess(level.isClientSide);
+        var hitSide = hitTestAttachments(posInBlock);
+        if (hitSide != null) {
+            if (!isClientSide()) {
+                var attachment = getAttachment(hitSide);
+                if (attachment != null && attachment.hasScreen()) {
+                    // Open attachment GUI
+                    player.openMenu(new AttachmentMenuType(this, hitSide, attachment));
+                }
             }
+            return InteractionResult.sidedSuccess(isClientSide());
         }
 
         return InteractionResult.PASS;
     }
 
     @Nullable
-    public AttachedAttachment hitTestAttachments(Vec3 posInBlock) {
+    public Direction hitTestAttachments(Vec3 posInBlock) {
         // Handle click on attachment
         for (int i = 0; i < 6; ++i) {
-            if (ShapeHelper.shapeContains(PipeBoundingBoxes.INVENTORY_CONNECTIONS[i], posInBlock)) {
-                var side = Direction.from3DDataValue(i);
-                return getAttachment(side);
+            var direction = Direction.from3DDataValue(i);
+            if (hasAttachment(direction)
+                    && ShapeHelper.shapeContains(PipeBoundingBoxes.INVENTORY_CONNECTIONS[i], posInBlock)) {
+                return direction;
             }
         }
 

@@ -29,7 +29,7 @@ public class NyiPipeBlockEntity extends PipeBlockEntity {
     }
 
     @Override
-    public NodeHost[] getHosts() {
+    protected NodeHost[] createHosts() {
         return new NodeHost[0];
     }
 }

@@ -75,7 +75,7 @@ public abstract class NodeHost {
                 scheduleUpdate();
             }
         } else {
-            attachments[side.get3DDataValue()] = item.createAttached(pipe, side, data);
+            attachments[side.get3DDataValue()] = item.createAttached(data);
             scheduleUpdate();
         }
     }
@@ -196,7 +196,7 @@ public abstract class NodeHost {
                 if (attachment != null) {
                     var id = Registry.ITEM.getKey(attachment.getItem());
                     attachmentTag.putString("#i", id.toString());
-                    attachment.writeNbt(attachmentTag);
+                    attachment.writeConfigTag(attachmentTag);
                 }
                 attachmentTags.add(attachmentTag);
             }
@@ -214,7 +214,7 @@ public abstract class NodeHost {
                     var attachmentTag = attachmentTags.getCompound(i);
                     var item = Registry.ITEM.get(new ResourceLocation(attachmentTag.getString("#i")));
                     if ((item instanceof AttachmentItem attachmentItem)) {
-                        this.attachments[i] = attachmentItem.createAttached(pipe, Direction.from3DDataValue(i), attachmentTag);
+                        this.attachments[i] = attachmentItem.createAttached(attachmentTag);
                     }
                 }
             }
@@ -223,12 +223,10 @@ public abstract class NodeHost {
 
     @MustBeInvokedByOverriders
     public void writeClientNbt(CompoundTag tag) {
-        writeNbt(tag);
     }
 
     @MustBeInvokedByOverriders
     public void readClientNbt(CompoundTag tag) {
-        readNbt(tag);
     }
 
     public void onRemoved() {

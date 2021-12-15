@@ -26,17 +26,20 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class EnergyPipeBlockEntity extends PipeBlockEntity {
-    private final NodeHost[] hosts;
+    private final EnergyPipeTier tier;
 
     public EnergyPipeBlockEntity(BlockEntityType<?> type, EnergyPipeTier tier, BlockPos pos, BlockState state) {
         super(type, pos, state);
+        this.tier = tier;
+    }
 
+    public EnergyPipeTier getTier() {
+        return tier;
+    }
+
+    protected NodeHost[] createHosts() {
         EnergyHost energy = new EnergyHost(this, tier);
-        this.hosts = new NodeHost[] { energy };
+        return new NodeHost[] { energy };
     }
 
-    @Override
-    public NodeHost[] getHosts() {
-        return hosts;
-    }
 }

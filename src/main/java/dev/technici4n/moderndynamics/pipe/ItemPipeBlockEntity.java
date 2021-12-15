@@ -25,17 +25,13 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class ItemPipeBlockEntity extends PipeBlockEntity {
-    private final NodeHost[] hosts;
-
     public ItemPipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
-
-        ItemHost item = new ItemHost(this);
-        this.hosts = new NodeHost[] { item };
     }
 
     @Override
-    public NodeHost[] getHosts() {
-        return hosts;
+    protected NodeHost[] createHosts() {
+        ItemHost item = new ItemHost(this);
+        return new NodeHost[] { item };
     }
 }

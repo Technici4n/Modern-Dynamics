@@ -20,8 +20,6 @@ package dev.technici4n.moderndynamics.attachment;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
-import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
 public class IoAttachmentItem extends ConfigurableAttachmentItem {
@@ -43,7 +41,7 @@ public class IoAttachmentItem extends ConfigurableAttachmentItem {
     }
 
     @Override
-    public AttachedAttachment createAttached(PipeBlockEntity pipe, Direction side, CompoundTag initialData) {
-        return new AttachedIO(pipe, side, this, initialData);
+    public AttachedAttachment createAttached(CompoundTag initialData) {
+        return new AttachedIO(this, initialData);
     }
 }

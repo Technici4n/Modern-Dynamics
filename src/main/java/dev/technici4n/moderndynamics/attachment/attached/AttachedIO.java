@@ -18,16 +18,15 @@
  */
 package dev.technici4n.moderndynamics.attachment.attached;
 
+import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.AttachmentTier;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
-import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
 public class AttachedIO extends AttachedAttachment {
-    public AttachedIO(PipeBlockEntity pipe, Direction side, IoAttachmentItem item, CompoundTag initialData) {
-        super(pipe, side, item, initialData);
+    public AttachedIO(AttachmentItem item, CompoundTag initialData) {
+        super(item, initialData);
     }
 
     @Override

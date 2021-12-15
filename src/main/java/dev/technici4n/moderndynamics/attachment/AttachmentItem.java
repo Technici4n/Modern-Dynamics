@@ -19,9 +19,7 @@
 package dev.technici4n.moderndynamics.attachment;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
-import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.MdItemGroup;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
 
@@ -33,7 +31,7 @@ public class AttachmentItem extends Item {
         this.attachment = attachment;
     }
 
-    public AttachedAttachment createAttached(PipeBlockEntity pipe, Direction side, CompoundTag initialData) {
-        return new AttachedAttachment(pipe, side, this, initialData);
+    public AttachedAttachment createAttached(CompoundTag initialData) {
+        return new AttachedAttachment(this, initialData);
     }
 }

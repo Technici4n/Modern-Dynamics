@@ -18,5 +18,23 @@
  */
 package dev.technici4n.moderndynamics.model;
 
+import net.minecraft.nbt.CompoundTag;
+import org.jetbrains.annotations.Nullable;
+
 public record AttachmentModelData(String modelId) {
+
+    public CompoundTag write(CompoundTag tag) {
+        tag.putString("model", modelId);
+        return tag;
+    }
+
+    @Nullable
+    public static AttachmentModelData from(CompoundTag tag) {
+        var modelId = tag.getString("model");
+        if (!modelId.isEmpty()) {
+            return new AttachmentModelData(modelId);
+        }
+        return null;
+    }
+
 }

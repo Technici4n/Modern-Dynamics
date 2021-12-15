@@ -20,45 +20,26 @@ package dev.technici4n.moderndynamics.screen;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import dev.technici4n.moderndynamics.util.MdId;
-import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public class AttachmentMenu extends AbstractContainerMenu {
-    public static final MenuType<AttachmentMenu> TYPE = ScreenHandlerRegistry.registerExtended(
-            MdId.of("attachment"),
-            AttachmentMenu::fromPacket);
 
-    private static AttachmentMenu fromPacket(int syncId, Inventory playerInventory, FriendlyByteBuf packetByteBuf) {
-        var world = playerInventory.player.level;
-
-        var bet = Registry.BLOCK_ENTITY_TYPE.get(packetByteBuf.readResourceLocation());
-        var side = packetByteBuf.readEnum(Direction.class);
-        return world.getBlockEntity(packetByteBuf.readBlockPos(), bet).map(blockEntity -> {
-            if (blockEntity instanceof PipeBlockEntity pipe) {
-                var attachment = pipe.getAttachment(side);
-                if (attachment != null) {
-                    return new AttachmentMenu(syncId, playerInventory, attachment);
-                }
-            }
-            return null;
-        }).orElse(null);
-    }
-
+    public final PipeBlockEntity pipe;
+    public final Direction side;
     public final AttachedAttachment attachment;
 
-    protected AttachmentMenu(int syncId, Inventory playerInventory, AttachedAttachment attachment) {
-        super(TYPE, syncId);
+    protected AttachmentMenu(int syncId, Inventory playerInventory, PipeBlockEntity pipe, Direction side, AttachedAttachment attachment) {
+        super(AttachmentMenuType.TYPE, syncId);
+
+        this.pipe = pipe;
+        this.side = side;
         this.attachment = attachment;
 
         // Config slots

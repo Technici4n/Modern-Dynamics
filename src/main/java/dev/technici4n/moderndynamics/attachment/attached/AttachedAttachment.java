@@ -22,11 +22,9 @@ import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.ConfigurableAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.model.AttachmentModelData;
-import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.Collections;
 import java.util.List;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -37,23 +35,11 @@ import net.minecraft.world.item.ItemStack;
  */
 public class AttachedAttachment {
     /**
-     * The pipe this is attached to.
-     */
-    private final PipeBlockEntity pipe;
-
-    /**
-     * Which side of {@link #pipe} is this attached to.
-     */
-    private final Direction side;
-
-    /**
      * The item that is attached.
      */
     private final AttachmentItem item;
 
-    public AttachedAttachment(PipeBlockEntity pipe, Direction side, AttachmentItem item, CompoundTag initialData) {
-        this.pipe = pipe;
-        this.side = side;
+    public AttachedAttachment(AttachmentItem item, CompoundTag configTag) {
         this.item = item;
     }
 
@@ -61,21 +47,10 @@ public class AttachedAttachment {
         return item;
     }
 
-    public PipeBlockEntity getPipe() {
-        return pipe;
-    }
-
-    public Direction getSide() {
-        return side;
-    }
-
-    public void writeNbt(CompoundTag tag) {
-    }
-
     public ItemStack toStack() {
         var stack = new ItemStack(item);
         var tag = stack.getOrCreateTag();
-        writeNbt(tag);
+        writeConfigTag(tag);
         if (tag.isEmpty()) {
             stack.setTag(null);
         }
@@ -114,10 +89,6 @@ public class AttachedAttachment {
         return new AttachmentModelData(getItem().attachment.id);
     }
 
-    public boolean isAttached() {
-        return pipe.getAttachment(side) == this;
-    }
-
     public boolean allowsItemConnection() {
         // Servos prevent connections using the transport item
         return !(getItem() instanceof IoAttachmentItem ticking) || !ticking.isServo();
@@ -130,5 +101,9 @@ public class AttachedAttachment {
      */
     public boolean update(CompoundTag data) {
         return true;
+    }
+
+    public CompoundTag writeConfigTag(CompoundTag tag) {
+        return tag;
     }
 }

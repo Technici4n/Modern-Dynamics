@@ -95,4 +95,11 @@ public abstract class MdBlockEntity extends BlockEntity {
 
         level.sendBlockUpdated(worldPosition, null, null, 0);
     }
+
+    protected final boolean isClientSide() {
+        if (level == null) {
+            throw new IllegalStateException("Cannot determine if the BE is client-side if it has no level yet");
+        }
+        return level.isClientSide;
+    }
 }

@@ -24,7 +24,7 @@ import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntityRenderer;
 import dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes;
-import dev.technici4n.moderndynamics.screen.AttachmentMenu;
+import dev.technici4n.moderndynamics.screen.AttachmentMenuType;
 import dev.technici4n.moderndynamics.screen.AttachmentScreen;
 import dev.technici4n.moderndynamics.screen.MdPackets;
 import net.fabricmc.api.ClientModInitializer;
@@ -51,7 +51,7 @@ public final class ModernDynamicsClient implements ClientModInitializer {
             }
         }
 
-        ScreenRegistry.register(AttachmentMenu.TYPE, AttachmentScreen::new);
+        ScreenRegistry.register(AttachmentMenuType.TYPE, AttachmentScreen::new);
 
         ClientPlayNetworking.registerGlobalReceiver(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER::handleS2C);
 
@@ -73,13 +73,12 @@ public final class ModernDynamicsClient implements ClientModInitializer {
                 var hitPosInBlock = Minecraft.getInstance().hitResult.getLocation();
                 hitPosInBlock = hitPosInBlock.subtract(pos.getX(), pos.getY(), pos.getZ());
 
-                var attachment = pipe.hitTestAttachments(hitPosInBlock);
-                if (attachment != null) {
-
+                var hitSide = pipe.hitTestAttachments(hitPosInBlock);
+                if (hitSide != null) {
                     LevelRenderer.renderShape(
                             worldRenderContext.matrixStack(),
                             blockOutlineContext.vertexConsumer(),
-                            PipeBoundingBoxes.INVENTORY_CONNECTIONS[attachment.getSide().ordinal()],
+                            PipeBoundingBoxes.INVENTORY_CONNECTIONS[hitSide.ordinal()],
                             (double) pos.getX() - blockOutlineContext.cameraX(),
                             (double) pos.getY() - blockOutlineContext.cameraY(),
                             (double) pos.getZ() - blockOutlineContext.cameraZ(),
