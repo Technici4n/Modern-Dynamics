@@ -22,7 +22,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.util.MdId;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -117,7 +119,7 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
         addRenderableWidget(redstoneModeHigh);
 
         // After the buttons, add a handler for opening and closing the tab
-        addWidget(new RedstoneTabOpenCloseHandler());
+        addRenderableWidget(new RedstoneTabOpenCloseHandler());
     }
 
     @Override
@@ -298,7 +300,7 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
                 && mouseY < redstoneTabRect.getY() + redstoneTabRect.getHeight();
     }
 
-    private class RedstoneTabOpenCloseHandler implements GuiEventListener, NarratableEntry {
+    private class RedstoneTabOpenCloseHandler implements GuiEventListener, NarratableEntry, Widget {
         @Override
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
             if (isInRedstoneTabRect(mouseX, mouseY) && button == 0) {
@@ -315,6 +317,20 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
 
         @Override
         public void updateNarration(NarrationElementOutput narrationElementOutput) {
+        }
+
+        @Override
+        public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+            if (redstoneTabCurrentOpen <= 0 && isInRedstoneTabRect(mouseX, mouseY)) {
+                var lines = List.<Component>of(
+                        new TranslatableComponent("gui.moderndynamics.setting.redstone_control.header")
+                                .withStyle(ChatFormatting.WHITE),
+                        menu.getRedstoneMode().getTranslation()
+                                .copy()
+                                .withStyle(ChatFormatting.YELLOW)
+                );
+                renderComponentTooltip(poseStack, lines, mouseX, mouseY);
+            }
         }
     }
 
