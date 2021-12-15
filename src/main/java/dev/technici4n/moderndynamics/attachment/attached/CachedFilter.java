@@ -100,7 +100,12 @@ public final class CachedFilter {
     }
 
     public boolean matchesItem(ItemVariant variant) {
-        return false;
+        if (listedItems.size() == 0) {
+            // An empty list always matches.
+            return true;
+        } else {
+            return isItemListed(variant) == (filterInversion == FilterInversionMode.WHITELIST);
+        }
     }
 
     private Set<String> getListedMods() {
