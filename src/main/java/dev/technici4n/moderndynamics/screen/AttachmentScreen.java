@@ -22,6 +22,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.util.MdId;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Widget;
@@ -38,9 +40,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
     /**
@@ -120,6 +119,12 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
 
         // After the buttons, add a handler for opening and closing the tab
         addRenderableWidget(new RedstoneTabOpenCloseHandler());
+    }
+
+    @Override
+    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+        super.render(poseStack, mouseX, mouseY, partialTick);
+        this.renderTooltip(poseStack, mouseX, mouseY);
     }
 
     @Override
@@ -327,8 +332,7 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
                                 .withStyle(ChatFormatting.WHITE),
                         menu.getRedstoneMode().getTranslation()
                                 .copy()
-                                .withStyle(ChatFormatting.YELLOW)
-                );
+                                .withStyle(ChatFormatting.YELLOW));
                 renderComponentTooltip(poseStack, lines, mouseX, mouseY);
             }
         }
