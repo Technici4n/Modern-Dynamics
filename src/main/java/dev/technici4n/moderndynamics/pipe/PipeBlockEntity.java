@@ -342,6 +342,8 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
                                 if (attachment != null) {
                                     DropHelper.dropStacks(this, attachment.getDrops());
                                     level.blockUpdated(worldPosition, getBlockState().getBlock());
+                                    refreshHosts();
+                                    scheduleHostUpdates();
                                     setChanged();
                                     sync();
                                     return InteractionResult.CONSUME;
@@ -388,6 +390,8 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
                                 }
                                 host.setAttachment(hitSide, attachmentItem, initialData);
                                 level.blockUpdated(worldPosition, getBlockState().getBlock());
+                                refreshHosts();
+                                scheduleHostUpdates();
                                 setChanged();
                                 sync();
                             }

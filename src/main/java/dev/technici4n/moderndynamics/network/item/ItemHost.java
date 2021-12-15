@@ -65,6 +65,15 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
+    public boolean canConnectTo(Direction connectionDirection, NodeHost adjacentHost) {
+        var attachment = getAttachment(connectionDirection);
+        if (attachment instanceof AttachedIO) {
+            return false;
+        }
+        return super.canConnectTo(connectionDirection, adjacentHost);
+    }
+
+    @Override
     @Nullable
     public Object getApiInstance(BlockApiLookup<?, Direction> lookup, Direction side) {
         if (lookup == ItemStorage.SIDED && allowItemConnection(side)) {
