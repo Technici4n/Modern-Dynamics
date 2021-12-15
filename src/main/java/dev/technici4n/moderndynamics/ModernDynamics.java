@@ -55,6 +55,15 @@ public class ModernDynamics implements ModInitializer {
 
         ServerPlayNetworking.registerGlobalReceiver(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER::handleC2S);
         ServerPlayNetworking.registerGlobalReceiver(MdPackets.SET_FILTER_MODE, MdPackets.SET_FILTER_MODE_HANDLER::handleC2S);
+        ServerPlayNetworking.registerGlobalReceiver(MdPackets.SET_FILTER_DAMAGE, MdPackets.SET_FILTER_DAMAGE_HANDLER::handleC2S);
+        ServerPlayNetworking.registerGlobalReceiver(MdPackets.SET_FILTER_NBT, MdPackets.SET_FILTER_NBT_HANDLER::handleC2S);
+        ServerPlayNetworking.registerGlobalReceiver(MdPackets.SET_FILTER_MOD, MdPackets.SET_FILTER_MOD_HANDLER::handleC2S);
+        ServerPlayNetworking.registerGlobalReceiver(MdPackets.SET_FILTER_SIMILAR, MdPackets.SET_FILTER_SIMILAR_HANDLER::handleC2S);
+        ServerPlayNetworking.registerGlobalReceiver(MdPackets.SET_ROUTING_MODE, MdPackets.SET_ROUTING_MODE_HANDLER::handleC2S);
+        ServerPlayNetworking.registerGlobalReceiver(MdPackets.SET_OVERSENDING_MODE, MdPackets.SET_OVERSENDING_MODE_HANDLER::handleC2S);
+        ServerPlayNetworking.registerGlobalReceiver(MdPackets.SET_REDSTONE_MODE, MdPackets.SET_REDSTONE_MODE_HANDLER::handleC2S);
+        ServerPlayNetworking.registerGlobalReceiver(MdPackets.SET_MAX_ITEMS_IN_INVENTORY, MdPackets.SET_MAX_ITEMS_IN_INVENTORY_HANDLER::handleC2S);
+        ServerPlayNetworking.registerGlobalReceiver(MdPackets.SET_MAX_ITEMS_EXTRACTED, MdPackets.SET_MAX_ITEMS_EXTRACTED_HANDLER::handleC2S);
 
         LOGGER.info("Successfully loaded Modern Dynamics!");
     }

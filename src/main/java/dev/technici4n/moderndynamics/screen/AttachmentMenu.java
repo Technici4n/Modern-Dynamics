@@ -19,7 +19,14 @@
 package dev.technici4n.moderndynamics.screen;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
-import dev.technici4n.moderndynamics.attachment.settings.FilterMode;
+import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
+import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
+import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
+import dev.technici4n.moderndynamics.attachment.settings.FilterNbtMode;
+import dev.technici4n.moderndynamics.attachment.settings.FilterSimilarMode;
+import dev.technici4n.moderndynamics.attachment.settings.OversendingMode;
+import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
+import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.Direction;
@@ -92,16 +99,114 @@ public class AttachmentMenu extends AbstractContainerMenu {
         super.broadcastChanges();
     }
 
-    public FilterMode getFilterMode() {
-        return attachment.getFilterMode();
+    public FilterInversionMode getFilterMode() {
+        return attachment.getFilterInversion();
     }
 
-    public void setFilterMode(FilterMode filterMode) {
+    public void setFilterMode(FilterInversionMode value) {
         if (isClientSide()) {
-            MdPackets.sendSetFilterMode(containerId, filterMode);
-        } else {
-            attachment.setFilterMode(filterMode);
+            MdPackets.sendSetFilterMode(containerId, value);
         }
+        attachment.setFilterInversion(value);
+    }
+
+    public FilterDamageMode getFilterDamage() {
+        return attachment.getFilterDamage();
+    }
+
+    public void setFilterDamage(FilterDamageMode value) {
+        if (isClientSide()) {
+            MdPackets.sendSetFilterDamage(containerId, value);
+        }
+        attachment.setFilterDamage(value);
+    }
+
+    public FilterNbtMode getFilterNbt() {
+        return attachment.getFilterNbt();
+    }
+
+    public void setFilterNbt(FilterNbtMode value) {
+        if (isClientSide()) {
+            MdPackets.sendSetFilterNbt(containerId, value);
+        }
+        attachment.setFilterNbt(value);
+    }
+
+    public FilterModMode getFilterMod() {
+        return attachment.getFilterMod();
+    }
+
+    public void setFilterMod(FilterModMode value) {
+        if (isClientSide()) {
+            MdPackets.sendSetFilterMod(containerId, value);
+        }
+        attachment.setFilterMod(value);
+    }
+
+    public FilterSimilarMode getFilterSimilar() {
+        return attachment.getFilterSimilar();
+    }
+
+    public void setFilterSimilar(FilterSimilarMode value) {
+        if (isClientSide()) {
+            MdPackets.sendSetFilterSimilar(containerId, value);
+        }
+        attachment.setFilterSimilar(value);
+    }
+
+    public RoutingMode getRoutingMode() {
+        return attachment.getRoutingMode();
+    }
+
+    public void setRoutingMode(RoutingMode routingMode) {
+        if (isClientSide()) {
+            MdPackets.sendSetRoutingMode(containerId, routingMode);
+        }
+        attachment.setRoutingMode(routingMode);
+    }
+
+    public OversendingMode getOversendingMode() {
+        return attachment.getOversendingMode();
+    }
+
+    public void setOversendingMode(OversendingMode oversendingMode) {
+        if (isClientSide()) {
+            MdPackets.sendSetOversendingMode(containerId, oversendingMode);
+        }
+        attachment.setOversendingMode(oversendingMode);
+    }
+
+    public RedstoneMode getRedstoneMode() {
+        return attachment.getRedstoneMode();
+    }
+
+    public void setRedstoneMode(RedstoneMode redstoneMode) {
+        if (isClientSide()) {
+            MdPackets.sendSetRedstoneMode(containerId, redstoneMode);
+        }
+        attachment.setRedstoneMode(redstoneMode);
+    }
+
+    public int getMaxItemsInInventory() {
+        return attachment.getMaxItemsInInventory();
+    }
+
+    public void setMaxItemsInInventory(int maxItemsInInventory) {
+        if (isClientSide()) {
+            MdPackets.sendSetMaxItemsInInventory(containerId, maxItemsInInventory);
+        }
+        attachment.setMaxItemsInInventory(maxItemsInInventory);
+    }
+
+    public int getMaxItemsExtracted() {
+        return attachment.getMaxItemsExtracted();
+    }
+
+    public void setMaxItemsExtracted(int maxItemsExtracted) {
+        if (isClientSide()) {
+            MdPackets.sendSetMaxItemsExtracted(containerId, maxItemsExtracted);
+        }
+        attachment.setMaxItemsExtracted(maxItemsExtracted);
     }
 
     public boolean isClientSide() {
@@ -115,4 +220,16 @@ public class AttachmentMenu extends AbstractContainerMenu {
         return player;
     }
 
+    public boolean isEnabledViaRedstone() {
+        if (getRedstoneMode() == RedstoneMode.IGNORED) {
+            return true;
+        }
+
+        var signal = pipe.getLevel().hasNeighborSignal(pipe.getBlockPos());
+        if (signal) {
+            return getRedstoneMode() == RedstoneMode.REQUIRES_HIGH;
+        } else {
+            return getRedstoneMode() == RedstoneMode.REQUIRES_LOW;
+        }
+    }
 }

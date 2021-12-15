@@ -18,7 +18,7 @@
  */
 package dev.technici4n.moderndynamics.attachment.settings;
 
-public enum FilterMode {
-    WHITELIST,
-    BLACKLIST,
+public enum FilterModMode {
+    IGNORE_MOD,
+    INCLUDE_ALL_OF_MOD
 }

@@ -20,7 +20,9 @@ package dev.technici4n.moderndynamics.util;
 
 import net.minecraft.resources.ResourceLocation;
 
-public class MdId {
+public final class MdId {
+    private MdId() {
+    }
 
     public static final String MOD_ID = "moderndynamics";
 

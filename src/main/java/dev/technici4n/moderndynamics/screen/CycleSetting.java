@@ -16,10 +16,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.attachment.settings;
+package dev.technici4n.moderndynamics.screen;
 
-public enum FilterFuzzy {
-    IGNORE_NBT,
-    MATCH_DAMAGED,
-    EXACT,
+import net.minecraft.network.chat.Component;
+
+record CycleSetting<T> (T value, Component tooltip, int spriteX, int spriteY) {
 }

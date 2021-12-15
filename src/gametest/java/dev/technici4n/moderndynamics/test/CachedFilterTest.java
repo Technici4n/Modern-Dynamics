@@ -16,23 +16,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.attachment.settings;
+package dev.technici4n.moderndynamics.test;
 
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
-
-public enum RedstoneMode {
-    IGNORED("gui.moderndynamics.setting.redstone_control.ignored"),
-    REQUIRES_LOW("gui.moderndynamics.setting.redstone_control.low"),
-    REQUIRES_HIGH("gui.moderndynamics.setting.redstone_control.high");
-
-    private final Component component;
-
-    public Component getTranslation() {
-        return component;
-    }
-
-    RedstoneMode(String translationKey) {
-        this.component = new TranslatableComponent(translationKey);
-    }
+public class CachedFilterTest {
 }
