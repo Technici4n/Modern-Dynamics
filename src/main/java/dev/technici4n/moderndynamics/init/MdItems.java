@@ -22,6 +22,7 @@ import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.AttachmentTier;
 import dev.technici4n.moderndynamics.attachment.InhibitorAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
+import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.MdAttachments;
 import dev.technici4n.moderndynamics.debug.DebugToolItem;
 import dev.technici4n.moderndynamics.pipe.PipeItem;
@@ -55,15 +56,22 @@ public class MdItems {
     public static final PipeItem EMPTY_RESONANT_ENERGY_PIPE = new PipeItem(MdBlocks.EMPTY_RESONANT_ENERGY_PIPE);
     public static final PipeItem EMPTY_SUPERCONDUCTING_PIPE = new PipeItem(MdBlocks.EMPTY_SUPERCONDUCTING_PIPE);
 
-    public static final AttachmentItem BASIC_SERVO = new IoAttachmentItem(MdAttachments.BASIC_SERVO, AttachmentTier.BASIC, true);
-    public static final AttachmentItem IMPROVED_SERVO = new IoAttachmentItem(MdAttachments.IMPROVED_SERVO, AttachmentTier.IMPROVED, true);
-    public static final AttachmentItem ADVANCED_SERVO = new IoAttachmentItem(MdAttachments.ADVANCED_SERVO, AttachmentTier.ADVANCED, true);
-    public static final AttachmentItem BASIC_RETRIEVER = new IoAttachmentItem(MdAttachments.BASIC_RETRIEVER, AttachmentTier.BASIC, false);
-    public static final AttachmentItem IMPROVED_RETRIEVER = new IoAttachmentItem(MdAttachments.IMPROVED_RETRIEVER, AttachmentTier.IMPROVED, false);
-    public static final AttachmentItem ADVANCED_RETRIEVER = new IoAttachmentItem(MdAttachments.ADVANCED_RETRIEVER, AttachmentTier.ADVANCED, false);
-    public static final AttachmentItem BASIC_FILTER = new AttachmentItem(MdAttachments.BASIC_FILTER);
-    public static final AttachmentItem IMPROVED_FILTER = new AttachmentItem(MdAttachments.IMPROVED_FILTER);
-    public static final AttachmentItem ADVANCED_FILTER = new AttachmentItem(MdAttachments.ADVANCED_FILTER);
+    public static final AttachmentItem BASIC_SERVO = new IoAttachmentItem(MdAttachments.BASIC_SERVO, AttachmentTier.BASIC, IoAttachmentType.SERVO);
+    public static final AttachmentItem IMPROVED_SERVO = new IoAttachmentItem(MdAttachments.IMPROVED_SERVO, AttachmentTier.IMPROVED,
+            IoAttachmentType.SERVO);
+    public static final AttachmentItem ADVANCED_SERVO = new IoAttachmentItem(MdAttachments.ADVANCED_SERVO, AttachmentTier.ADVANCED,
+            IoAttachmentType.SERVO);
+    public static final AttachmentItem BASIC_RETRIEVER = new IoAttachmentItem(MdAttachments.BASIC_RETRIEVER, AttachmentTier.BASIC,
+            IoAttachmentType.RETRIEVER);
+    public static final AttachmentItem IMPROVED_RETRIEVER = new IoAttachmentItem(MdAttachments.IMPROVED_RETRIEVER, AttachmentTier.IMPROVED,
+            IoAttachmentType.RETRIEVER);
+    public static final AttachmentItem ADVANCED_RETRIEVER = new IoAttachmentItem(MdAttachments.ADVANCED_RETRIEVER, AttachmentTier.ADVANCED,
+            IoAttachmentType.RETRIEVER);
+    public static final AttachmentItem BASIC_FILTER = new IoAttachmentItem(MdAttachments.BASIC_FILTER, AttachmentTier.BASIC, IoAttachmentType.FILTER);
+    public static final AttachmentItem IMPROVED_FILTER = new IoAttachmentItem(MdAttachments.IMPROVED_FILTER, AttachmentTier.IMPROVED,
+            IoAttachmentType.FILTER);
+    public static final AttachmentItem ADVANCED_FILTER = new IoAttachmentItem(MdAttachments.ADVANCED_FILTER, AttachmentTier.ADVANCED,
+            IoAttachmentType.FILTER);
     public static final AttachmentItem INHIBITOR = new InhibitorAttachmentItem(MdAttachments.INHIBITOR);
 
     public static final Item WRENCH = new Item(new Item.Properties().tab(MdItemGroup.getInstance()));

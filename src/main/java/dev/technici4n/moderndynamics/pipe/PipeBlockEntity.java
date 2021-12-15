@@ -26,7 +26,6 @@ import dev.technici4n.moderndynamics.model.AttachmentModelData;
 import dev.technici4n.moderndynamics.model.PipeModelData;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.TickHelper;
-import dev.technici4n.moderndynamics.screen.AttachmentMenuType;
 import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.ShapeHelper;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
@@ -404,9 +403,9 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         if (hitSide != null) {
             if (!isClientSide()) {
                 var attachment = getAttachment(hitSide);
-                if (attachment != null && attachment.hasScreen()) {
+                if (attachment != null && attachment.hasMenu()) {
                     // Open attachment GUI
-                    player.openMenu(new AttachmentMenuType(this, hitSide, attachment));
+                    player.openMenu(attachment.createMenu(this, hitSide));
                 }
             }
             return InteractionResult.sidedSuccess(isClientSide());

@@ -19,16 +19,19 @@
 package dev.technici4n.moderndynamics.attachment.attached;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
-import dev.technici4n.moderndynamics.attachment.ConfigurableAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
+import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.model.AttachmentModelData;
+import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.Collections;
 import java.util.List;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base interface for an active attachment on a pipe.
@@ -61,28 +64,8 @@ public class AttachedAttachment {
         return Collections.singletonList(toStack());
     }
 
-    public boolean hasScreen() {
-        return getItem() instanceof ConfigurableAttachmentItem;
-    }
-
     public Component getDisplayName() {
-        return new TextComponent("");
-    }
-
-    public int getConfigHeight() {
-        return 0;
-    }
-
-    public int getConfigWidth() {
-        return 0;
-    }
-
-    public ItemVariant getFilter(int x, int y) {
-        return null;
-    }
-
-    public void setFilter(int configX, int configY, ItemVariant variant) {
-
+        return item.getDescription();
     }
 
     public AttachmentModelData getModelData() {
@@ -91,7 +74,7 @@ public class AttachedAttachment {
 
     public boolean allowsItemConnection() {
         // Servos prevent connections using the transport item
-        return !(getItem() instanceof IoAttachmentItem ticking) || !ticking.isServo();
+        return !(getItem() instanceof IoAttachmentItem ticking) || ticking.getType() != IoAttachmentType.SERVO;
     }
 
     /**
@@ -103,7 +86,17 @@ public class AttachedAttachment {
         return true;
     }
 
+    @MustBeInvokedByOverriders
     public CompoundTag writeConfigTag(CompoundTag tag) {
         return tag;
+    }
+
+    public boolean hasMenu() {
+        return false;
+    }
+
+    @Nullable
+    public MenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
+        return null;
     }
 }

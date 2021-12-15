@@ -24,5 +24,7 @@
     "block.moderndynamics.reinforced_energy_pipe": "Reinforced Energy Pipe",
     "block.moderndynamics.resonant_energy_pipe": "Resonant Energy Pipe",
     "block.moderndynamics.signalum_energy_pipe": "Signalum Energy Pipe",
-    "block.moderndynamics.superconducting_pipe": "Superconducting Pipe"
+    "block.moderndynamics.superconducting_pipe": "Superconducting Pipe",
+    "gui.moderndynamics.setting.filter_mode.blacklist": "Blacklist",
+    "gui.moderndynamics.setting.filter_mode.whitelist": "Whitelist"
 }

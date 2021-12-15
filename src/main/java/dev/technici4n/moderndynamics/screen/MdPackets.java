@@ -18,9 +18,13 @@
  */
 package dev.technici4n.moderndynamics.screen;
 
+import dev.technici4n.moderndynamics.attachment.settings.FilterMode;
 import dev.technici4n.moderndynamics.util.MdId;
 import dev.technici4n.moderndynamics.util.UnsidedPacketHandler;
+import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
@@ -28,14 +32,32 @@ public class MdPackets {
     public static final ResourceLocation SET_ITEM_VARIANT = MdId.of("set_item_variant");
     public static final UnsidedPacketHandler SET_ITEM_VARIANT_HANDLER = (player, buf) -> {
         int syncId = buf.readInt();
-        int x = buf.readInt();
-        int y = buf.readInt();
+        int configIdx = buf.readInt();
         ItemVariant variant = ItemVariant.fromPacket(buf);
         return () -> {
             AbstractContainerMenu handler = player.containerMenu;
-            if (handler.containerId == syncId) {
-                ((AttachmentMenu) handler).attachment.setFilter(x, y, variant);
+            if (handler.containerId == syncId && handler instanceof AttachmentMenu attachmentMenu) {
+                attachmentMenu.attachment.setFilter(configIdx, variant);
             }
         };
     };
+
+    public static final ResourceLocation SET_FILTER_MODE = MdId.of("set_filter_mode");
+    public static final UnsidedPacketHandler SET_FILTER_MODE_HANDLER = (player, buf) -> {
+        int syncId = buf.readInt();
+        var mode = buf.readEnum(FilterMode.class);
+        return () -> {
+            AbstractContainerMenu handler = player.containerMenu;
+            if (handler.containerId == syncId && handler instanceof AttachmentMenu attachmentMenu) {
+                attachmentMenu.setFilterMode(mode);
+            }
+        };
+    };
+
+    public static void sendSetFilterMode(int syncId, FilterMode filterMode) {
+        var buffer = new FriendlyByteBuf(Unpooled.buffer(64));
+        buffer.writeInt(syncId);
+        buffer.writeEnum(filterMode);
+        ClientPlayNetworking.send(SET_FILTER_MODE, buffer);
+    }
 }

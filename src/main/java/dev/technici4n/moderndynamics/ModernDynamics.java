@@ -54,6 +54,7 @@ public class ModernDynamics implements ModInitializer {
         WrenchHelper.registerEvents();
 
         ServerPlayNetworking.registerGlobalReceiver(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER::handleC2S);
+        ServerPlayNetworking.registerGlobalReceiver(MdPackets.SET_FILTER_MODE, MdPackets.SET_FILTER_MODE_HANDLER::handleC2S);
 
         LOGGER.info("Successfully loaded Modern Dynamics!");
     }

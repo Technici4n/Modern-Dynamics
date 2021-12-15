@@ -18,8 +18,16 @@
  */
 package dev.technici4n.moderndynamics.attachment;
 
+import dev.technici4n.moderndynamics.attachment.attached.AttachedInhibitor;
+import net.minecraft.nbt.CompoundTag;
+
 public class InhibitorAttachmentItem extends AttachmentItem {
     public InhibitorAttachmentItem(RenderedAttachment attachment) {
         super(attachment);
+    }
+
+    @Override
+    public AttachedInhibitor createAttached(CompoundTag configTag) {
+        return new AttachedInhibitor(this, configTag);
     }
 }

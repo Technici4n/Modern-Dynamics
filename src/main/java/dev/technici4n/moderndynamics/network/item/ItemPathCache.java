@@ -19,7 +19,7 @@
 package dev.technici4n.moderndynamics.network.item;
 
 import com.google.common.collect.Lists;
-import dev.technici4n.moderndynamics.attachment.InhibitorAttachmentItem;
+import dev.technici4n.moderndynamics.attachment.attached.AttachedInhibitor;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import it.unimi.dsi.fastutil.objects.Reference2LongMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
@@ -65,10 +65,10 @@ public class ItemPathCache {
 
             for (var connection : currentNode.getConnections()) {
                 long edgeWeight = 1;
-                if (currentNode.getHost().getAttachment(connection.direction).getItem() instanceof InhibitorAttachmentItem) {
+                if (currentNode.getHost().getAttachment(connection.direction) instanceof AttachedInhibitor) {
                     edgeWeight += 1000;
                 }
-                if (connection.target.getHost().getAttachment(connection.direction.getOpposite()).getItem() instanceof InhibitorAttachmentItem) {
+                if (connection.target.getHost().getAttachment(connection.direction.getOpposite()) instanceof AttachedInhibitor) {
                     edgeWeight += 1000;
                 }
                 long newDistance = currentDistance + edgeWeight;

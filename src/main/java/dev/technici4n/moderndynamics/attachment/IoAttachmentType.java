@@ -18,18 +18,8 @@
  */
 package dev.technici4n.moderndynamics.attachment;
 
-import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
-import dev.technici4n.moderndynamics.util.MdItemGroup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.item.Item;
-
-public abstract class AttachmentItem extends Item {
-    public final RenderedAttachment attachment;
-
-    public AttachmentItem(RenderedAttachment attachment) {
-        super(new Properties().tab(MdItemGroup.getInstance()));
-        this.attachment = attachment;
-    }
-
-    public abstract AttachedAttachment createAttached(CompoundTag configTag);
+public enum IoAttachmentType {
+    FILTER,
+    SERVO,
+    RETRIEVER
 }

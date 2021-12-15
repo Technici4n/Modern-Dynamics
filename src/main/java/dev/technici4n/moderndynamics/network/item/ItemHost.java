@@ -19,6 +19,7 @@
 package dev.technici4n.moderndynamics.network.item;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
+import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
@@ -121,7 +122,7 @@ public class ItemHost extends NodeHost {
         long currentTick = TickHelper.getTickCounter();
         for (var side : Direction.values()) {
             var attachment = getAttachment(side);
-            if (attachment instanceof AttachedIO attachedIO && attachedIO.isServo()) {
+            if (attachment instanceof AttachedIO attachedIO && attachedIO.getType() == IoAttachmentType.SERVO) {
                 if (currentTick - lastOperationTick[side.get3DDataValue()] < attachedIO.getTier().transferCount)
                     continue;
                 lastOperationTick[side.get3DDataValue()] = currentTick;
@@ -140,6 +141,10 @@ public class ItemHost extends NodeHost {
         }
     }
 
+    public double getSpeed() {
+        return 0.05; // WARNING: must always be < 1.
+    }
+
     public void tickMovingItems() {
         if (travelingItems.size() == 0) {
             return;
@@ -148,7 +153,8 @@ public class ItemHost extends NodeHost {
         // List of items that moved out of this pipe.
         List<TravelingItem> movedOut = new ArrayList<>();
 
-        double speed = 0.05; // WARNING: must always be < 1.
+        var speed = getSpeed();
+
         for (var iterator = travelingItems.iterator(); iterator.hasNext();) {
             var travelingItem = iterator.next();
             int currentIndex = (int) Math.floor(travelingItem.traveledDistance);

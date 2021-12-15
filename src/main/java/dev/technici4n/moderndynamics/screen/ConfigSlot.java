@@ -18,19 +18,18 @@
  */
 package dev.technici4n.moderndynamics.screen;
 
-import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
+import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public class ConfigSlot extends Slot {
-    public final int configX, configY;
-    private final AttachedAttachment attachment;
+    public final int configIdx;
+    private final AttachedIO attachment;
 
-    public ConfigSlot(int x, int y, AttachedAttachment attachment, int configX, int configY) {
+    public ConfigSlot(int x, int y, AttachedIO attachment, int configIdx) {
         super(new SimpleContainer(1), 0, x, y);
-        this.configX = configX;
-        this.configY = configY;
+        this.configIdx = configIdx;
         this.attachment = attachment;
     }
 
@@ -41,6 +40,6 @@ public class ConfigSlot extends Slot {
 
     @Override
     public ItemStack getItem() {
-        return attachment.getFilter(configX, configY).toStack();
+        return attachment.getFilter(configIdx).toStack();
     }
 }

@@ -18,7 +18,8 @@
  */
 package dev.technici4n.moderndynamics.screen;
 
-import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
+import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
+import dev.technici4n.moderndynamics.attachment.settings.FilterMode;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.Direction;
@@ -33,19 +34,25 @@ public class AttachmentMenu extends AbstractContainerMenu {
 
     public final PipeBlockEntity pipe;
     public final Direction side;
-    public final AttachedAttachment attachment;
+    public final AttachedIO attachment;
+    private final Player player;
 
-    protected AttachmentMenu(int syncId, Inventory playerInventory, PipeBlockEntity pipe, Direction side, AttachedAttachment attachment) {
+    protected AttachmentMenu(int syncId, Inventory playerInventory, PipeBlockEntity pipe, Direction side, AttachedIO attachment) {
         super(AttachmentMenuType.TYPE, syncId);
+        this.player = playerInventory.player;
 
         this.pipe = pipe;
         this.side = side;
         this.attachment = attachment;
 
         // Config slots
-        for (int i = 0; i < attachment.getConfigHeight(); ++i) {
-            for (int j = 0; j < attachment.getConfigWidth(); ++j) {
-                this.addSlot(new ConfigSlot(8 + j * 18, 30 + i * 18, attachment, i, j));
+        var row = 0;
+        var col = 0;
+        for (int i = 0; i < attachment.getFilterSize(); i++) {
+            this.addSlot(new ConfigSlot(44 + col * 18, 20 + row * 18, attachment, i));
+            if (++col >= 5) {
+                col = 0;
+                row++;
             }
         }
 
@@ -69,7 +76,7 @@ public class AttachmentMenu extends AbstractContainerMenu {
     @Override
     public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
         if (slotIndex >= 0 && getSlot(slotIndex) instanceof ConfigSlot configSlot) {
-            attachment.setFilter(configSlot.configX, configSlot.configY, ItemVariant.of(getCarried()));
+            attachment.setFilter(configSlot.configIdx, ItemVariant.of(getCarried()));
         } else {
             super.clicked(slotIndex, button, actionType, player);
         }
@@ -84,4 +91,28 @@ public class AttachmentMenu extends AbstractContainerMenu {
     public void broadcastChanges() {
         super.broadcastChanges();
     }
+
+    public FilterMode getFilterMode() {
+        return attachment.getFilterMode();
+    }
+
+    public void setFilterMode(FilterMode filterMode) {
+        if (isClientSide()) {
+            MdPackets.sendSetFilterMode(containerId, filterMode);
+        } else {
+            attachment.setFilterMode(filterMode);
+        }
+    }
+
+    public boolean isClientSide() {
+        return player.getCommandSenderWorld().isClientSide();
+    }
+
+    /**
+     * Convenience method to get the player owning this menu.
+     */
+    public Player getPlayer() {
+        return player;
+    }
+
 }

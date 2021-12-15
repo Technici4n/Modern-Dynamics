@@ -18,30 +18,29 @@
  */
 package dev.technici4n.moderndynamics.attachment;
 
-import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
 import net.minecraft.nbt.CompoundTag;
 
-public class IoAttachmentItem extends ConfigurableAttachmentItem {
-    public final AttachmentTier tier;
-    private final boolean servo;
+public class IoAttachmentItem extends AttachmentItem {
+    private final AttachmentTier tier;
+    private final IoAttachmentType type;
 
-    public IoAttachmentItem(RenderedAttachment attachment, AttachmentTier tier, boolean servo) {
-        super(attachment, tier.configWidth, tier.configHeight);
+    public IoAttachmentItem(RenderedAttachment attachment, AttachmentTier tier, IoAttachmentType type) {
+        super(attachment);
         this.tier = tier;
-        this.servo = servo;
+        this.type = type;
     }
 
-    public boolean isServo() {
-        return servo;
+    public AttachmentTier getTier() {
+        return tier;
     }
 
-    public boolean isRetriever() {
-        return !servo;
+    public IoAttachmentType getType() {
+        return type;
     }
 
     @Override
-    public AttachedAttachment createAttached(CompoundTag initialData) {
-        return new AttachedIO(this, initialData);
+    public AttachedIO createAttached(CompoundTag configTag) {
+        return new AttachedIO(this, configTag);
     }
 }

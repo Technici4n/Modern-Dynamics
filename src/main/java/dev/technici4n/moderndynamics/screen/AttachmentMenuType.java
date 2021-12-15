@@ -18,8 +18,8 @@
  */
 package dev.technici4n.moderndynamics.screen;
 
-import dev.technici4n.moderndynamics.attachment.AttachmentItem;
-import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
+import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
+import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -43,9 +43,9 @@ public class AttachmentMenuType implements ExtendedScreenHandlerFactory {
 
     private final PipeBlockEntity pipe;
     private final Direction side;
-    private final AttachedAttachment attachment;
+    private final AttachedIO attachment;
 
-    public AttachmentMenuType(PipeBlockEntity pipe, Direction side, AttachedAttachment attachment) {
+    public AttachmentMenuType(PipeBlockEntity pipe, Direction side, AttachedIO attachment) {
         this.pipe = pipe;
         this.side = side;
         this.attachment = attachment;
@@ -58,7 +58,7 @@ public class AttachmentMenuType implements ExtendedScreenHandlerFactory {
         var side = packetByteBuf.readEnum(Direction.class);
         var pos = packetByteBuf.readBlockPos();
         var item = Registry.ITEM.byId(packetByteBuf.readVarInt());
-        if (!(item instanceof AttachmentItem attachmentItem)) {
+        if (!(item instanceof IoAttachmentItem attachmentItem)) {
             throw new IllegalStateException("Server sent a non-attachment item as menu host: " + item);
         }
         var tag = packetByteBuf.readNbt();

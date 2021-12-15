@@ -19,20 +19,18 @@
 package dev.technici4n.moderndynamics.attachment;
 
 public enum AttachmentTier {
-    BASIC(5, 1, 4, 40, 1),
-    IMPROVED(5, 2, 16, 20, 2),
-    ADVANCED(5, 3, 64, 10, 3),
+    BASIC(5, 4, 40, 1),
+    IMPROVED(10, 16, 20, 2),
+    ADVANCED(15, 64, 10, 3),
     ;
 
-    public final int configWidth;
-    public final int configHeight;
+    public final int filterSize;
     public final int transferCount;
     public final int transferFrequency;
     public final int speedupFactor;
 
-    AttachmentTier(int configWidth, int configHeight, int transferCount, int transferFrequency, int speedupFactor) {
-        this.configWidth = configWidth;
-        this.configHeight = configHeight;
+    AttachmentTier(int filterSize, int transferCount, int transferFrequency, int speedupFactor) {
+        this.filterSize = filterSize;
         this.transferCount = transferCount;
         this.transferFrequency = transferFrequency;
         this.speedupFactor = speedupFactor;

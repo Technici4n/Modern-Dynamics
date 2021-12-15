@@ -16,20 +16,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.attachment;
+package dev.technici4n.moderndynamics.attachment.attached;
 
-import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
-import dev.technici4n.moderndynamics.util.MdItemGroup;
+import dev.technici4n.moderndynamics.attachment.InhibitorAttachmentItem;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.item.Item;
 
-public abstract class AttachmentItem extends Item {
-    public final RenderedAttachment attachment;
-
-    public AttachmentItem(RenderedAttachment attachment) {
-        super(new Properties().tab(MdItemGroup.getInstance()));
-        this.attachment = attachment;
+public class AttachedInhibitor extends AttachedAttachment {
+    public AttachedInhibitor(InhibitorAttachmentItem item, CompoundTag configTag) {
+        super(item, configTag);
     }
-
-    public abstract AttachedAttachment createAttached(CompoundTag configTag);
 }
