@@ -191,22 +191,26 @@ public class AttachmentMenu extends AbstractContainerMenu {
         return attachment.getMaxItemsInInventory();
     }
 
-    public void setMaxItemsInInventory(int maxItemsInInventory) {
+    public void setMaxItemsInInventory(int value) {
+        attachment.setMaxItemsInInventory(value);
         if (isClientSide()) {
-            MdPackets.sendSetMaxItemsInInventory(containerId, maxItemsInInventory);
+            MdPackets.sendSetMaxItemsInInventory(containerId, getMaxItemsInInventory());
         }
-        attachment.setMaxItemsInInventory(maxItemsInInventory);
     }
 
     public int getMaxItemsExtracted() {
         return attachment.getMaxItemsExtracted();
     }
 
-    public void setMaxItemsExtracted(int maxItemsExtracted) {
+    public void setMaxItemsExtracted(int value) {
+        attachment.setMaxItemsExtracted(value);
         if (isClientSide()) {
-            MdPackets.sendSetMaxItemsExtracted(containerId, maxItemsExtracted);
+            MdPackets.sendSetMaxItemsExtracted(containerId, getMaxItemsExtracted());
         }
-        attachment.setMaxItemsExtracted(maxItemsExtracted);
+    }
+
+    public int getMaxItemsExtractedMaximum() {
+        return attachment.getMaxItemsExtractedMaximum();
     }
 
     public boolean isClientSide() {
@@ -232,4 +236,5 @@ public class AttachmentMenu extends AbstractContainerMenu {
             return getRedstoneMode() == RedstoneMode.REQUIRES_LOW;
         }
     }
+
 }

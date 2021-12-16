@@ -37,6 +37,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +58,7 @@ public class AttachedIO extends AttachedAttachment {
     /**
      * Maximum number of items ín the target inventory. Across all slots.
      */
-    private int maxItemsInInventory = -1;
+    private int maxItemsInInventory = 0;
     /**
      * Maximum amount of items extracted per operation.
      */
@@ -85,6 +87,14 @@ public class AttachedIO extends AttachedAttachment {
         this.routingMode = readEnum(RoutingMode.values(), configData, "routingMode");
         this.oversendingMode = readEnum(OversendingMode.values(), configData, "oversendingMode");
         this.redstoneMode = readEnum(RedstoneMode.values(), configData, "redstoneMode");
+        if (configData.contains("maxItemsExtracted", Tag.TAG_INT)) {
+            this.maxItemsExtracted = Mth.clamp(configData.getInt("maxItemsExtracted"),
+                    1, getMaxItemsExtractedMaximum());
+        } else {
+            this.maxItemsExtracted = getMaxItemsExtractedMaximum();
+        }
+        this.maxItemsInInventory = configData.getInt("maxItemsInInventory");
+        this.maxItemsInInventory = Mth.clamp(this.maxItemsInInventory, 0, getMaxItemsExtractedMaximum());
     }
 
     @Override
@@ -109,6 +119,16 @@ public class AttachedIO extends AttachedAttachment {
         writeEnum(this.routingMode, configData, "routingMode");
         writeEnum(this.oversendingMode, configData, "oversendingMode");
         writeEnum(this.redstoneMode, configData, "redstoneMode");
+        if (this.maxItemsExtracted < getMaxItemsExtractedMaximum()) {
+            configData.putInt("maxItemsExtracted", this.maxItemsExtracted);
+        } else {
+            configData.remove("maxItemsExtracted");
+        }
+        if (this.maxItemsInInventory > 0) {
+            configData.putInt("maxItemsInInventory", this.maxItemsInInventory);
+        } else {
+            configData.remove("maxItemsInInventory");
+        }
 
         return configData;
     }
@@ -235,7 +255,7 @@ public class AttachedIO extends AttachedAttachment {
     }
 
     public void setMaxItemsInInventory(int value) {
-        this.maxItemsInInventory = value;
+        this.maxItemsInInventory = Mth.clamp(value, 0, Integer.MAX_VALUE);
     }
 
     public int getMaxItemsExtracted() {
@@ -243,7 +263,15 @@ public class AttachedIO extends AttachedAttachment {
     }
 
     public void setMaxItemsExtracted(int value) {
-        this.maxItemsExtracted = value;
+        this.maxItemsExtracted = Mth.clamp(value, 1, getMaxItemsExtractedMaximum());
+    }
+
+    public int getMaxItemsExtractedMaximum() {
+        return switch (getTier()) {
+        case BASIC -> 8;
+        case IMPROVED -> 24;
+        case ADVANCED -> 64;
+        };
     }
 
     public RedstoneMode getRedstoneMode() {

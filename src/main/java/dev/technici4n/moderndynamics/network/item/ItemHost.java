@@ -187,9 +187,10 @@ public class ItemHost extends NodeHost {
 
         for (var iterator = travelingItems.iterator(); iterator.hasNext();) {
             var travelingItem = iterator.next();
-            int currentIndex = (int) Math.floor(travelingItem.traveledDistance);
+            // Calculate in which path segment the item is now, and in which segment it is after moving it
+            int currentIndex = (int) travelingItem.traveledDistance;
             travelingItem.traveledDistance += speed;
-            int newIndex = (int) Math.floor(travelingItem.traveledDistance);
+            int newIndex = (int) travelingItem.traveledDistance;
 
             if (newIndex != currentIndex) {
                 // Item is moving out of this pipe!
@@ -199,9 +200,9 @@ public class ItemHost extends NodeHost {
         }
 
         for (var travelingItem : movedOut) {
-            int newIndex = (int) Math.floor(travelingItem.traveledDistance);
+            int newIndex = (int) travelingItem.traveledDistance;
 
-            if (newIndex == travelingItem.getPathLength() - 1) {
+            if (newIndex >= travelingItem.getPathLength() - 1) {
                 // End of path: inserting into a target storage.
                 // Prefer ignoring an attachment over dropping the item on the ground.
                 boolean checkAttachments = travelingItem.strategy != FailedInsertStrategy.DROP;

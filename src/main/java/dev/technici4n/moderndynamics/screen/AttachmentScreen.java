@@ -33,6 +33,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -40,6 +41,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.jetbrains.annotations.Nullable;
 
 public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
     /**
@@ -60,10 +62,18 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
     private boolean redstoneTabOpen;
     private float redstoneTabCurrentOpen;
     private Rect2i redstoneTabRect = new Rect2i(0, 0, 0, 0);
+    @Nullable
+    private Rect2i maxItemsInInventoryTooltipRect;
+    @Nullable
+    private Rect2i maxItemsExtractedTooltipRect;
     private final RedstoneModeButton redstoneModeIgnored;
     private final RedstoneModeButton redstoneModeLow;
     private final RedstoneModeButton redstoneModeHigh;
     private final List<RedstoneModeButton> redstoneButtons;
+    private PlusMinusButton decMaxItemsInInventory;
+    private PlusMinusButton incMaxItemsInInventory;
+    private PlusMinusButton decMaxItemsExtracted;
+    private PlusMinusButton incMaxItemsExtracted;
 
     public AttachmentScreen(AttachmentMenu handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
@@ -105,6 +115,18 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
             addRenderableWidget(toggleButton);
         }
 
+        // Add the segment for setting the inventory target size
+        decMaxItemsInInventory = new PlusMinusButton(leftPos + 137, topPos + 28, true, () -> adjustMaxItemsInInventory(-1));
+        addRenderableWidget(decMaxItemsInInventory);
+        incMaxItemsInInventory = new PlusMinusButton(leftPos + 153, topPos + 28, false, () -> adjustMaxItemsInInventory(1));
+        addRenderableWidget(incMaxItemsInInventory);
+
+        // Add the segment for setting the max extraction size
+        decMaxItemsExtracted = new PlusMinusButton(leftPos + 137, topPos + 57, true, () -> adjustMaxItemsExtracted(-1));
+        addRenderableWidget(decMaxItemsExtracted);
+        incMaxItemsExtracted = new PlusMinusButton(leftPos + 153, topPos + 57, false, () -> adjustMaxItemsExtracted(1));
+        addRenderableWidget(incMaxItemsExtracted);
+
         // Reposition redstone tab buttons
         updateRedstoneTabRect(0);
         redstoneModeIgnored.x = redstoneTabRect.getX() + 28;
@@ -121,23 +143,90 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
         addRenderableWidget(new RedstoneTabOpenCloseHandler());
     }
 
+    private void adjustMaxItemsInInventory(int i) {
+        if (hasShiftDown()) {
+            i *= 16;
+        }
+        menu.setMaxItemsInInventory(menu.getMaxItemsInInventory() + i);
+    }
+
+    private void adjustMaxItemsExtracted(int i) {
+        if (hasShiftDown()) {
+            i *= 16;
+        }
+        menu.setMaxItemsExtracted(menu.getMaxItemsExtracted() + i);
+    }
+
     @Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+        decMaxItemsInInventory.active = menu.getMaxItemsInInventory() > 0;
+        incMaxItemsInInventory.active = menu.getMaxItemsInInventory() < Integer.MAX_VALUE;
+        decMaxItemsExtracted.active = menu.getMaxItemsExtracted() > 1;
+        incMaxItemsExtracted.active = menu.getMaxItemsExtracted() < menu.getMaxItemsExtractedMaximum();
+
         super.render(poseStack, mouseX, mouseY, partialTick);
-        this.renderTooltip(poseStack, mouseX, mouseY);
+
+        // Render tooltips (except buttons, those are handled in the buttons themselves)
+        if (maxItemsInInventoryTooltipRect != null && maxItemsInInventoryTooltipRect.contains(Math.round(mouseX), Math.round(mouseY))) {
+            renderTooltip(poseStack, new TranslatableComponent("gui.moderndynamics.setting.max_items_in_inventory.tooltip"), mouseX, mouseY);
+        } else if (maxItemsExtractedTooltipRect != null && maxItemsExtractedTooltipRect.contains(Math.round(mouseX), Math.round(mouseY))) {
+            renderTooltip(poseStack, new TranslatableComponent("gui.moderndynamics.setting.max_items_extracted.tooltip"), mouseX, mouseY);
+        } else {
+            this.renderTooltip(poseStack, mouseX, mouseY);
+        }
     }
 
     @Override
     protected void renderBg(PoseStack matrices, float delta, int mouseX, int mouseY) {
         renderRedstoneTabBg(matrices, delta);
+
         // Background
         RenderSystem.setShaderTexture(0, TEXTURE);
         blit(matrices, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+
         // Draw each slot's background
         for (Slot slot : getMenu().slots) {
             if (slot instanceof ConfigSlot) {
                 blit(matrices, leftPos + slot.x - 1, topPos + slot.y - 1, 7, 122, 18, 18);
             }
+        }
+
+        // Render current settings for max total items
+        renderMaxItemsInInventoryValue(matrices);
+
+        // Render current settings for max extraction amount
+        renderMaxItemsExtractedValue(matrices);
+    }
+
+    private void renderMaxItemsInInventoryValue(PoseStack matrices) {
+        var text = getMaxItemsInInventoryText();
+        var width = font.width(text);
+        var rect = new Rect2i(
+                leftPos + 152 - width / 2,
+                topPos + 17,
+                width,
+                font.lineHeight);
+        font.draw(matrices, text, rect.getX(), rect.getY(), 0x404040);
+        maxItemsInInventoryTooltipRect = rect;
+    }
+
+    private void renderMaxItemsExtractedValue(PoseStack matrices) {
+        var text = String.valueOf(menu.getMaxItemsExtracted());
+        var width = font.width(text);
+        var rect = new Rect2i(
+                leftPos + 152 - width / 2,
+                topPos + 45,
+                width,
+                font.lineHeight);
+        font.draw(matrices, text, rect.getX(), rect.getY(), 0x404040);
+        maxItemsExtractedTooltipRect = rect;
+    }
+
+    private Component getMaxItemsInInventoryText() {
+        if (menu.getMaxItemsInInventory() <= 0) {
+            return new TranslatableComponent("gui.moderndynamics.setting.max_items_in_inventory.infinite");
+        } else {
+            return new TextComponent(String.valueOf(menu.getMaxItemsInInventory()));
         }
     }
 
