@@ -21,6 +21,7 @@ package dev.technici4n.moderndynamics.attachment.attached;
 import dev.technici4n.moderndynamics.attachment.AttachmentTier;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
+import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
@@ -31,6 +32,7 @@ import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.screen.AttachmentMenuType;
+import java.util.Set;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.Direction;
@@ -314,5 +316,9 @@ public class AttachedIO extends AttachedAttachment {
 
     private void resetCachedFilter() {
         this.cachedFilter = null;
+    }
+
+    public Set<Setting> getSupportedSettings() {
+        return getItem().getSupportedSettings();
     }
 }

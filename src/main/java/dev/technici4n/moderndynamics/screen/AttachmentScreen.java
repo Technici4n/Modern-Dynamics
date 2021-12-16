@@ -20,6 +20,7 @@ package dev.technici4n.moderndynamics.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
@@ -94,13 +95,27 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
         titleLabelX = (imageWidth - font.width(title)) / 2;
 
         var toggleButtons = new ArrayList<CycleSettingButton<?>>();
-        toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_INVERSION, menu.getFilterMode(), menu::setFilterMode));
-        toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_DAMAGE, menu.getFilterDamage(), menu::setFilterDamage));
-        toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_NBT, menu.getFilterNbt(), menu::setFilterNbt));
-        toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_MOD, menu.getFilterMod(), menu::setFilterMod));
-        toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_SIMILAR, menu.getFilterSimilar(), menu::setFilterSimilar));
-        toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.ROUTING_MODE, menu.getRoutingMode(), menu::setRoutingMode));
-        toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.OVERSENDING_MODE, menu.getOversendingMode(), menu::setOversendingMode));
+        if (menu.isSettingSupported(Setting.FILTER_INVERSION)) {
+            toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_INVERSION, menu.getFilterMode(), menu::setFilterMode));
+        }
+        if (menu.isSettingSupported(Setting.FILTER_DAMAGE)) {
+            toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_DAMAGE, menu.getFilterDamage(), menu::setFilterDamage));
+        }
+        if (menu.isSettingSupported(Setting.FILTER_NBT)) {
+            toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_NBT, menu.getFilterNbt(), menu::setFilterNbt));
+        }
+        if (menu.isSettingSupported(Setting.FILTER_SIMILAR)) {
+            toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_SIMILAR, menu.getFilterSimilar(), menu::setFilterSimilar));
+        }
+        if (menu.isSettingSupported(Setting.FILTER_MOD)) {
+            toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_MOD, menu.getFilterMod(), menu::setFilterMod));
+        }
+        if (menu.isSettingSupported(Setting.ROUTING_MODE)) {
+            toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.ROUTING_MODE, menu.getRoutingMode(), menu::setRoutingMode));
+        }
+        if (menu.isSettingSupported(Setting.OVERSENDING_MODE)) {
+            toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.OVERSENDING_MODE, menu.getOversendingMode(), menu::setOversendingMode));
+        }
 
         // Lay out toggle buttons
         var overallWidth = toggleButtons.stream().mapToInt(AbstractWidget::getWidth).sum()
@@ -116,16 +131,20 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
         }
 
         // Add the segment for setting the inventory target size
-        decMaxItemsInInventory = new PlusMinusButton(leftPos + 137, topPos + 28, true, () -> adjustMaxItemsInInventory(-1));
-        addRenderableWidget(decMaxItemsInInventory);
-        incMaxItemsInInventory = new PlusMinusButton(leftPos + 153, topPos + 28, false, () -> adjustMaxItemsInInventory(1));
-        addRenderableWidget(incMaxItemsInInventory);
+        if (menu.isSettingSupported(Setting.MAX_ITEMS_IN_INVENTORY)) {
+            decMaxItemsInInventory = new PlusMinusButton(leftPos + 137, topPos + 28, true, () -> adjustMaxItemsInInventory(-1));
+            addRenderableWidget(decMaxItemsInInventory);
+            incMaxItemsInInventory = new PlusMinusButton(leftPos + 153, topPos + 28, false, () -> adjustMaxItemsInInventory(1));
+            addRenderableWidget(incMaxItemsInInventory);
+        }
 
         // Add the segment for setting the max extraction size
-        decMaxItemsExtracted = new PlusMinusButton(leftPos + 137, topPos + 57, true, () -> adjustMaxItemsExtracted(-1));
-        addRenderableWidget(decMaxItemsExtracted);
-        incMaxItemsExtracted = new PlusMinusButton(leftPos + 153, topPos + 57, false, () -> adjustMaxItemsExtracted(1));
-        addRenderableWidget(incMaxItemsExtracted);
+        if (menu.isSettingSupported(Setting.MAX_ITEMS_EXTRACTED)) {
+            decMaxItemsExtracted = new PlusMinusButton(leftPos + 137, topPos + 57, true, () -> adjustMaxItemsExtracted(-1));
+            addRenderableWidget(decMaxItemsExtracted);
+            incMaxItemsExtracted = new PlusMinusButton(leftPos + 153, topPos + 57, false, () -> adjustMaxItemsExtracted(1));
+            addRenderableWidget(incMaxItemsExtracted);
+        }
 
         // Reposition redstone tab buttons
         updateRedstoneTabRect(0);
@@ -159,10 +178,14 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
 
     @Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
-        decMaxItemsInInventory.active = menu.getMaxItemsInInventory() > 0;
-        incMaxItemsInInventory.active = menu.getMaxItemsInInventory() < Integer.MAX_VALUE;
-        decMaxItemsExtracted.active = menu.getMaxItemsExtracted() > 1;
-        incMaxItemsExtracted.active = menu.getMaxItemsExtracted() < menu.getMaxItemsExtractedMaximum();
+        if (decMaxItemsInInventory != null && incMaxItemsInInventory != null) {
+            decMaxItemsInInventory.active = menu.getMaxItemsInInventory() > 0;
+            incMaxItemsInInventory.active = menu.getMaxItemsInInventory() < Integer.MAX_VALUE;
+        }
+        if (decMaxItemsExtracted != null && incMaxItemsExtracted != null) {
+            decMaxItemsExtracted.active = menu.getMaxItemsExtracted() > 1;
+            incMaxItemsExtracted.active = menu.getMaxItemsExtracted() < menu.getMaxItemsExtractedMaximum();
+        }
 
         super.render(poseStack, mouseX, mouseY, partialTick);
 
@@ -192,10 +215,14 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
         }
 
         // Render current settings for max total items
-        renderMaxItemsInInventoryValue(matrices);
+        if (menu.isSettingSupported(Setting.MAX_ITEMS_IN_INVENTORY)) {
+            renderMaxItemsInInventoryValue(matrices);
+        }
 
         // Render current settings for max extraction amount
-        renderMaxItemsExtractedValue(matrices);
+        if (menu.isSettingSupported(Setting.MAX_ITEMS_EXTRACTED)) {
+            renderMaxItemsExtractedValue(matrices);
+        }
     }
 
     private void renderMaxItemsInInventoryValue(PoseStack matrices) {
@@ -203,7 +230,7 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
         var width = font.width(text);
         var rect = new Rect2i(
                 leftPos + 152 - width / 2,
-                topPos + 17,
+                topPos + 18,
                 width,
                 font.lineHeight);
         font.draw(matrices, text, rect.getX(), rect.getY(), 0x404040);
@@ -215,7 +242,7 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
         var width = font.width(text);
         var rect = new Rect2i(
                 leftPos + 152 - width / 2,
-                topPos + 45,
+                topPos + 46,
                 width,
                 font.lineHeight);
         font.draw(matrices, text, rect.getX(), rect.getY(), 0x404040);

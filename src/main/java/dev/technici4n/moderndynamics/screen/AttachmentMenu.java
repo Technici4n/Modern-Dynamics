@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.screen;
 
+import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
@@ -237,4 +238,7 @@ public class AttachmentMenu extends AbstractContainerMenu {
         }
     }
 
+    public boolean isSettingSupported(Setting setting) {
+        return attachment.getSupportedSettings().contains(setting);
+    }
 }

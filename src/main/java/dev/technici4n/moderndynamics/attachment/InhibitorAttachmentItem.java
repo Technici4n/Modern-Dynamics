@@ -20,10 +20,11 @@ package dev.technici4n.moderndynamics.attachment;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedInhibitor;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.Rarity;
 
 public class InhibitorAttachmentItem extends AttachmentItem {
     public InhibitorAttachmentItem(RenderedAttachment attachment) {
-        super(attachment);
+        super(attachment, Rarity.COMMON);
     }
 
     @Override

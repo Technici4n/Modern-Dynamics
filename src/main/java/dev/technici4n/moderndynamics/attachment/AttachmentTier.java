@@ -18,22 +18,26 @@
  */
 package dev.technici4n.moderndynamics.attachment;
 
+import net.minecraft.world.item.Rarity;
+
 public enum AttachmentTier {
-    BASIC(5, 4, 40, 1),
-    IMPROVED(10, 16, 20, 2),
-    ADVANCED(15, 64, 10, 3),
+    BASIC(3, 4, 40, 1, Rarity.COMMON),
+    IMPROVED(9, 16, 20, 2, Rarity.UNCOMMON),
+    ADVANCED(15, 64, 10, 3, Rarity.RARE),
     ;
 
     public final int filterSize;
     public final int transferCount;
     public final int transferFrequency;
     public final int speedupFactor;
+    public final Rarity rarity;
 
-    AttachmentTier(int filterSize, int transferCount, int transferFrequency, int speedupFactor) {
+    AttachmentTier(int filterSize, int transferCount, int transferFrequency, int speedupFactor, Rarity rarity) {
         this.filterSize = filterSize;
         this.transferCount = transferCount;
         this.transferFrequency = transferFrequency;
         this.speedupFactor = speedupFactor;
+        this.rarity = rarity;
     }
 
     public boolean allowAdvancedBehavior() {
