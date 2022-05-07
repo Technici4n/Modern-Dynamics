@@ -31,7 +31,7 @@ import net.minecraft.world.level.block.Blocks;
  */
 public class WrenchHelper {
     public static boolean isWrench(ItemStack stack) {
-        return MdTags.WRENCHES.contains(stack.getItem());
+        return stack.is(MdTags.WRENCHES);
     }
 
     /**

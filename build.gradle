@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '0.10-SNAPSHOT'
+    id 'fabric-loom' version '0.12-SNAPSHOT'
     id 'maven-publish'
     id 'com.diffplug.spotless' version '5.14.0'
 }
@@ -18,6 +18,21 @@ repositories {
             includeGroup "org.parchmentmc.data"
         }
     }
+    maven {
+        url "https://maven.shedaniel.me"
+        content {
+            includeGroup "me.sargunvohra.mcmods"
+            includeGroup "me.shedaniel.cloth"
+            includeGroup "me.shedaniel"
+            includeGroup "dev.architectury"
+        }
+    }
+    maven {
+        url 'https://maven.bai.lol'
+        content {
+            includeGroup "mcp.mobius.waila"
+        }
+    }
 }
 
 dependencies {
@@ -25,12 +40,19 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings loom.layered() {
         officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-1.17.1:2021.12.12@zip")
+        parchment("org.parchmentmc.data:parchment-1.18.2:2022.05.02@zip")
     }
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation "teamreborn:energy:${project.energy_version}"
+
+    modRuntimeOnly("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
+        exclude group: "net.fabricmc.fabric-api"
+    }
+    modRuntimeOnly("mcp.mobius.waila:wthit:fabric-${project.wthit_version}") {
+        exclude group: "net.fabricmc.fabric-api"
+    }
 }
 
 processResources {

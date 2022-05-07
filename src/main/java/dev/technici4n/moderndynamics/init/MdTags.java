@@ -18,13 +18,13 @@
  */
 package dev.technici4n.moderndynamics.init;
 
-import net.fabricmc.fabric.api.tag.TagFactory;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.Tag;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 
 public class MdTags {
-    public static final Tag.Named<Item> WRENCHES = TagFactory.ITEM.create(new ResourceLocation("c:wrenches"));
+    public static final TagKey<Item> WRENCHES = TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation("c:wrenches"));
 
     public static void init() {
         // init static
