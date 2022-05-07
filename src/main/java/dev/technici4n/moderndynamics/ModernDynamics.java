@@ -25,6 +25,7 @@ import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.init.MdTags;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.TickHelper;
+import dev.technici4n.moderndynamics.screen.AttachmentMenuType;
 import dev.technici4n.moderndynamics.screen.MdPackets;
 import dev.technici4n.moderndynamics.util.MdItemGroup;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
@@ -47,6 +48,7 @@ public class ModernDynamics implements ModInitializer {
         MdBlockEntities.init();
         MdAttachments.init();
         MdTags.init();
+        AttachmentMenuType.init();
 
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> NetworkManager.onServerStopped());
         ServerTickEvents.END_SERVER_TICK.register(server -> TickHelper.onEndTick());

@@ -33,8 +33,8 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderType;
 
@@ -51,7 +51,7 @@ public final class ModernDynamicsClient implements ClientModInitializer {
             }
         }
 
-        ScreenRegistry.register(AttachmentMenuType.TYPE, AttachmentScreen::new);
+        MenuScreens.register(AttachmentMenuType.TYPE, AttachmentScreen::new);
 
         ClientPlayNetworking.registerGlobalReceiver(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER::handleS2C);
 
@@ -77,7 +77,7 @@ public final class ModernDynamicsClient implements ClientModInitializer {
                 if (hitSide != null) {
                     LevelRenderer.renderShape(
                             worldRenderContext.matrixStack(),
-                            blockOutlineContext.vertexConsumer(),
+                            worldRenderContext.consumers().getBuffer(RenderType.lines()),
                             PipeBoundingBoxes.INVENTORY_CONNECTIONS[hitSide.ordinal()],
                             (double) pos.getX() - blockOutlineContext.cameraX(),
                             (double) pos.getY() - blockOutlineContext.cameraY(),

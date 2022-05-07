@@ -20,12 +20,12 @@ package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.init.MdItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockStateDefinitionProvider;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 import net.minecraft.data.models.BlockModelGenerators;
 import net.minecraft.data.models.ItemModelGenerators;
 import net.minecraft.data.models.model.ModelTemplates;
 
-public class ItemModelsProvider extends FabricBlockStateDefinitionProvider {
+public class ItemModelsProvider extends FabricModelProvider {
     public ItemModelsProvider(FabricDataGenerator dataGenerator) {
         super(dataGenerator);
     }

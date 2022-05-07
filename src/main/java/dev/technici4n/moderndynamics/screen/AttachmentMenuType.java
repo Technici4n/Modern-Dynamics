@@ -23,7 +23,7 @@ import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
@@ -37,9 +37,11 @@ import net.minecraft.world.inventory.MenuType;
 import org.jetbrains.annotations.Nullable;
 
 public class AttachmentMenuType implements ExtendedScreenHandlerFactory {
-    public static final MenuType<AttachmentMenu> TYPE = ScreenHandlerRegistry.registerExtended(
-            MdId.of("attachment"),
-            AttachmentMenuType::fromPacket);
+    public static final MenuType<AttachmentMenu> TYPE = new ExtendedScreenHandlerType<>(AttachmentMenuType::fromPacket);
+
+    public static void init() {
+        Registry.register(Registry.MENU, MdId.of("attachment"), TYPE);
+    }
 
     private final PipeBlockEntity pipe;
     private final Direction side;
