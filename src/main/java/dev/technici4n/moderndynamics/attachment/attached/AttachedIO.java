@@ -30,8 +30,14 @@ import dev.technici4n.moderndynamics.attachment.settings.FilterSimilarMode;
 import dev.technici4n.moderndynamics.attachment.settings.OversendingMode;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
+import dev.technici4n.moderndynamics.model.AttachmentModelData;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.screen.AttachmentMenuType;
+import dev.technici4n.moderndynamics.util.DropHelper;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -43,9 +49,12 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public class AttachedIO extends AttachedAttachment {
+
+    private final Map<ItemVariant, Long> stuffedItems = new LinkedHashMap<>(); // TODO: read/write nbt
 
     private final NonNullList<ItemVariant> filters;
 
@@ -179,6 +188,34 @@ public class AttachedIO extends AttachedAttachment {
     @Override
     public @Nullable MenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
         return new AttachmentMenuType(pipe, side, this);
+    }
+
+    @Override
+    public AttachmentModelData getModelData() {
+        if (isStuffed()) {
+            return AttachmentModelData.from(getItem().attachment.getStuffed());
+        }
+        return super.getModelData();
+    }
+
+    @Override
+    public List<ItemStack> getDrops() {
+        var drops = new ArrayList<>(super.getDrops());
+        for (var entry : stuffedItems.entrySet()) {
+            DropHelper.splitIntoStacks(entry.getKey(), entry.getValue(), drops::add);
+        }
+        return drops;
+    }
+
+    public boolean isStuffed() {
+        return stuffedItems.size() > 0;
+    }
+
+    /**
+     * Returns the raw map of stuffed items, be careful.
+     */
+    public Map<ItemVariant, Long> getStuffedItems() {
+        return stuffedItems;
     }
 
     public FilterInversionMode getFilterInversion() {

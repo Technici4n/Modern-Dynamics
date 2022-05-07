@@ -137,7 +137,7 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
             var attachment = data.attachments()[i];
             if (attachment != null) {
                 context.fallbackConsumer().accept(connectionPipe[i]);
-                context.fallbackConsumer().accept(attachments.attachmentModels.get(attachment.modelId())[i]);
+                context.fallbackConsumer().accept(attachments.attachmentModels.get(attachment.getModelId())[i]);
             }
         }
     }

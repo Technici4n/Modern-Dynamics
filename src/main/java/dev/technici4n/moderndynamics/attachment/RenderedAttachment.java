@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class RenderedAttachment {
     private static final Map<String, RenderedAttachment> REGISTERED_ATTACHMENTS = new HashMap<>();
@@ -42,5 +43,11 @@ public class RenderedAttachment {
         if (REGISTERED_ATTACHMENTS.put(id, this) != null) {
             throw new IllegalStateException("Duplicate attachment registration with id " + id);
         }
+    }
+
+    public RenderedAttachment getStuffed() {
+        var stuffed = REGISTERED_ATTACHMENTS.get(id + "_stuffed");
+        Objects.requireNonNull(stuffed, "Could not find stuffed variant for attachment " + id);
+        return stuffed;
     }
 }

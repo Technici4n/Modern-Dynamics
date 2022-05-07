@@ -120,6 +120,14 @@ public class PipeModelsProvider implements DataProvider {
         registerAttachment(cache, MdAttachments.IMPROVED_RETRIEVER, "attachment/retriever_base_0_1");
         registerAttachment(cache, MdAttachments.ADVANCED_RETRIEVER, "attachment/retriever_base_0_2");
 
+        registerAttachment(cache, MdAttachments.BASIC_SERVO_STUFFED, "attachment/servo_base_1_0");
+        registerAttachment(cache, MdAttachments.IMPROVED_SERVO_STUFFED, "attachment/servo_base_1_1");
+        registerAttachment(cache, MdAttachments.ADVANCED_SERVO_STUFFED, "attachment/servo_base_1_2");
+
+        registerAttachment(cache, MdAttachments.BASIC_RETRIEVER_STUFFED, "attachment/retriever_base_1_0");
+        registerAttachment(cache, MdAttachments.IMPROVED_RETRIEVER_STUFFED, "attachment/retriever_base_1_1");
+        registerAttachment(cache, MdAttachments.ADVANCED_RETRIEVER_STUFFED, "attachment/retriever_base_1_2");
+
         registerAttachment(cache, MdAttachments.INHIBITOR, "attachment/inhibitor");
 
         // Now register the base model json.

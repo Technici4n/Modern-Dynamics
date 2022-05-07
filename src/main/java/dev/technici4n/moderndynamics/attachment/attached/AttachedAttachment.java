@@ -23,7 +23,6 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.model.AttachmentModelData;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import java.util.Collections;
 import java.util.List;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -61,7 +60,7 @@ public class AttachedAttachment {
     }
 
     public List<ItemStack> getDrops() {
-        return Collections.singletonList(toStack());
+        return List.of(new ItemStack(item));
     }
 
     public Component getDisplayName() {
@@ -69,7 +68,7 @@ public class AttachedAttachment {
     }
 
     public AttachmentModelData getModelData() {
-        return new AttachmentModelData(getItem().attachment.id);
+        return AttachmentModelData.from(getItem().attachment);
     }
 
     public boolean allowsItemConnection() {

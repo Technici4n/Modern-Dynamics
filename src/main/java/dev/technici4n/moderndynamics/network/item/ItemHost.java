@@ -253,7 +253,16 @@ public class ItemHost extends NodeHost {
         item.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(item.variant, item.amount);
         long leftover = item.amount - inserted;
 
-        if (leftover > 0) {
+        // Try to stuff first!
+        var attachment = getAttachment(item.path.path[item.getPathLength() - 1]);
+        if (leftover > 0 && attachment instanceof AttachedIO io && io.getType() != IoAttachmentType.FILTER) {
+            boolean wasStuffed = io.isStuffed();
+            io.getStuffedItems().merge(item.variant, item.amount, Long::sum);
+            pipe.setChanged();
+            if (wasStuffed != io.isStuffed()) {
+                pipe.sync();
+            }
+        } else if (leftover > 0) {
             if (item.strategy == FailedInsertStrategy.SEND_BACK_TO_SOURCE) {
                 Direction[] revertedPath = new Direction[item.getPathLength()];
                 for (int i = 0; i < item.getPathLength(); ++i) {

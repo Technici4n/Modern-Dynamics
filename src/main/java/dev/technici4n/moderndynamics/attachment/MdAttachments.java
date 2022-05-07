@@ -22,12 +22,21 @@ public class MdAttachments {
     public static final RenderedAttachment BASIC_SERVO = new RenderedAttachment("basic_servo");
     public static final RenderedAttachment IMPROVED_SERVO = new RenderedAttachment("improved_servo");
     public static final RenderedAttachment ADVANCED_SERVO = new RenderedAttachment("advanced_servo");
+    public static final RenderedAttachment BASIC_SERVO_STUFFED = new RenderedAttachment("basic_servo_stuffed");
+    public static final RenderedAttachment IMPROVED_SERVO_STUFFED = new RenderedAttachment("improved_servo_stuffed");
+    public static final RenderedAttachment ADVANCED_SERVO_STUFFED = new RenderedAttachment("advanced_servo_stuffed");
+
     public static final RenderedAttachment BASIC_RETRIEVER = new RenderedAttachment("basic_retriever");
     public static final RenderedAttachment IMPROVED_RETRIEVER = new RenderedAttachment("improved_retriever");
     public static final RenderedAttachment ADVANCED_RETRIEVER = new RenderedAttachment("advanced_retriever");
+    public static final RenderedAttachment BASIC_RETRIEVER_STUFFED = new RenderedAttachment("basic_retriever_stuffed");
+    public static final RenderedAttachment IMPROVED_RETRIEVER_STUFFED = new RenderedAttachment("improved_retriever_stuffed");
+    public static final RenderedAttachment ADVANCED_RETRIEVER_STUFFED = new RenderedAttachment("advanced_retriever_stuffed");
+
     public static final RenderedAttachment BASIC_FILTER = new RenderedAttachment("basic_filter");
     public static final RenderedAttachment IMPROVED_FILTER = new RenderedAttachment("improved_filter");
     public static final RenderedAttachment ADVANCED_FILTER = new RenderedAttachment("advanced_filter");
+
     public static final RenderedAttachment INHIBITOR = new RenderedAttachment("inhibitor");
 
     public static void init() {
