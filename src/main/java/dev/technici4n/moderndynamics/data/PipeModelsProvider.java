@@ -58,7 +58,7 @@ public class PipeModelsProvider implements DataProvider {
         registerPipeModel(cache, MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE, "lead", "connection_lead");
         registerPipeModel(cache, MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE, "lead", "connection_lead");
 
-        registerPipeModel(cache, MdBlocks.BASIC_FLUID_PIPE, "lead", "connection_lead");
+        registerPipeModel(cache, MdBlocks.BASIC_FLUID_PIPE, "base/fluid/basic", "connector/copper");
         registerPipeModel(cache, MdBlocks.BASIC_FLUID_PIPE_OPAQUE, "lead", "connection_lead");
         registerPipeModel(cache, MdBlocks.FAST_FLUID_PIPE, "lead", "connection_lead");
         registerPipeModel(cache, MdBlocks.FAST_FLUID_PIPE_OPAQUE, "lead", "connection_lead");

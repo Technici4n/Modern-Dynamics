@@ -73,5 +73,6 @@
     "item.moderndynamics.improved_filter": "Improved Filter",
     "item.moderndynamics.improved_retriever": "Improved Retriever",
     "item.moderndynamics.improved_servo": "Improved Servo",
-    "item.moderndynamics.inhibitor": "Inhibitor"
+    "item.moderndynamics.inhibitor": "Inhibitor",
+    "itemGroup.moderndynamics.moderndynamics": "Modern Dynamics"
 }

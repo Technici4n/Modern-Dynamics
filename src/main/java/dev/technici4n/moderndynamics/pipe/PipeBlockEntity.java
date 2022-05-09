@@ -158,9 +158,11 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     public void toTag(CompoundTag nbt) {
         nbt.putByte("connectionBlacklist", (byte) connectionBlacklist);
 
-        for (NodeHost host : getHosts()) {
-            host.separateNetwork();
-            host.writeNbt(nbt);
+        if (!level.isClientSide()) { // WTHIT calls this on the client side
+            for (NodeHost host : getHosts()) {
+                host.separateNetwork();
+                host.writeNbt(nbt);
+            }
         }
     }
 

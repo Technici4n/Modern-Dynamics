@@ -47,7 +47,7 @@ public final class MdBlockEntities {
             MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE);
     public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
             MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE);
-    public static final BlockEntityType<PipeBlockEntity> BASIC_FLUID_PIPE = register(NyiPipeBlockEntity::new, MdBlocks.BASIC_FLUID_PIPE);
+    public static final BlockEntityType<PipeBlockEntity> BASIC_FLUID_PIPE = register(FluidPipeBlockEntity::new, MdBlocks.BASIC_FLUID_PIPE);
     public static final BlockEntityType<PipeBlockEntity> BASIC_FLUID_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
             MdBlocks.BASIC_FLUID_PIPE_OPAQUE);
     public static final BlockEntityType<PipeBlockEntity> FAST_FLUID_PIPE = register(NyiPipeBlockEntity::new, MdBlocks.FAST_FLUID_PIPE);

@@ -23,6 +23,7 @@ import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.TickHelper;
+import dev.technici4n.moderndynamics.network.shared.TransferLimits;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.List;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
@@ -41,8 +42,8 @@ public class EnergyHost extends NodeHost {
     private long energy;
     // Rate limiting
     private long lastRateUpdate = 0;
-    private final EnergyLimits insertLimit = new EnergyLimits(); // inserted INTO the neighbor inventories
-    private final EnergyLimits extractLimit = new EnergyLimits(); // extracted FROM the neighbor inventories
+    private final TransferLimits insertLimit = new TransferLimits(); // inserted INTO the neighbor inventories
+    private final TransferLimits extractLimit = new TransferLimits(); // extracted FROM the neighbor inventories
     // Caps
     private final EnergyStorage[] caps = new EnergyStorage[6];
 
