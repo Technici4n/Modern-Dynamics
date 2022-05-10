@@ -18,7 +18,11 @@
  */
 package dev.technici4n.moderndynamics.attachment;
 
-import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
+import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
+import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
+import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
+import dev.technici4n.moderndynamics.network.NodeHost;
+import dev.technici4n.moderndynamics.network.item.ItemHost;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -52,8 +56,12 @@ public class IoAttachmentItem extends AttachmentItem {
     }
 
     @Override
-    public AttachedIO createAttached(CompoundTag configTag) {
-        return new AttachedIO(this, configTag);
+    public AttachedAttachment createAttached(NodeHost host, CompoundTag configTag) {
+        if (host instanceof ItemHost) {
+            return new ItemAttachedIo(this, configTag);
+        } else {
+            return new FluidAttachedIo(this, configTag);
+        }
     }
 
     public Set<Setting> getSupportedSettings() {

@@ -16,22 +16,30 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.attachment;
+package dev.technici4n.moderndynamics.gui.menu;
 
-import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
-import dev.technici4n.moderndynamics.network.NodeHost;
-import dev.technici4n.moderndynamics.util.MdItemGroup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Rarity;
+import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
-public abstract class AttachmentItem extends Item {
-    public final RenderedAttachment attachment;
+public class ConfigSlot extends Slot {
+    public final int configIdx;
+    private final ItemAttachedIo attachment;
 
-    public AttachmentItem(RenderedAttachment attachment, Rarity rarity) {
-        super(new Properties().tab(MdItemGroup.getInstance()).rarity(rarity));
+    public ConfigSlot(int x, int y, ItemAttachedIo attachment, int configIdx) {
+        super(new SimpleContainer(1), 0, x, y);
+        this.configIdx = configIdx;
         this.attachment = attachment;
     }
 
-    public abstract AttachedAttachment createAttached(NodeHost host, CompoundTag configTag);
+    @Override
+    public boolean mayPlace(ItemStack stack) {
+        return false;
+    }
+
+    @Override
+    public ItemStack getItem() {
+        return attachment.getFilter(configIdx).toStack();
+    }
 }

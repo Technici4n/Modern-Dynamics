@@ -16,42 +16,31 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.screen;
+package dev.technici4n.moderndynamics.gui.menu;
 
 import dev.technici4n.moderndynamics.attachment.Setting;
-import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
+import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
-import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterNbtMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterSimilarMode;
 import dev.technici4n.moderndynamics.attachment.settings.OversendingMode;
-import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
+import dev.technici4n.moderndynamics.gui.MdPackets;
+import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-public class AttachmentMenu extends AbstractContainerMenu {
+public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
 
-    public final PipeBlockEntity pipe;
-    public final Direction side;
-    public final AttachedIO attachment;
-    private final Player player;
-
-    protected AttachmentMenu(int syncId, Inventory playerInventory, PipeBlockEntity pipe, Direction side, AttachedIO attachment) {
-        super(AttachmentMenuType.TYPE, syncId);
-        this.player = playerInventory.player;
-
-        this.pipe = pipe;
-        this.side = side;
-        this.attachment = attachment;
+    public ItemAttachedIoMenu(int syncId, Inventory playerInventory, PipeBlockEntity pipe, Direction side, ItemAttachedIo attachment) {
+        super(MdMenus.ITEM_IO, syncId, playerInventory, pipe, side, attachment);
 
         // Config slots
         var row = 0;
@@ -77,11 +66,6 @@ public class AttachmentMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public boolean stillValid(Player player) {
-        return true;
-    }
-
-    @Override
     public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
         if (slotIndex >= 0 && getSlot(slotIndex) instanceof ConfigSlot configSlot) {
             attachment.setFilter(configSlot.configIdx, ItemVariant.of(getCarried()));
@@ -98,17 +82,6 @@ public class AttachmentMenu extends AbstractContainerMenu {
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
-    }
-
-    public FilterInversionMode getFilterMode() {
-        return attachment.getFilterInversion();
-    }
-
-    public void setFilterMode(FilterInversionMode value) {
-        if (isClientSide()) {
-            MdPackets.sendSetFilterMode(containerId, value);
-        }
-        attachment.setFilterInversion(value);
     }
 
     public FilterDamageMode getFilterDamage() {
@@ -177,17 +150,6 @@ public class AttachmentMenu extends AbstractContainerMenu {
         attachment.setOversendingMode(oversendingMode);
     }
 
-    public RedstoneMode getRedstoneMode() {
-        return attachment.getRedstoneMode();
-    }
-
-    public void setRedstoneMode(RedstoneMode redstoneMode) {
-        if (isClientSide()) {
-            MdPackets.sendSetRedstoneMode(containerId, redstoneMode);
-        }
-        attachment.setRedstoneMode(redstoneMode);
-    }
-
     public int getMaxItemsInInventory() {
         return attachment.getMaxItemsInInventory();
     }
@@ -212,30 +174,6 @@ public class AttachmentMenu extends AbstractContainerMenu {
 
     public int getMaxItemsExtractedMaximum() {
         return attachment.getMaxItemsExtractedMaximum();
-    }
-
-    public boolean isClientSide() {
-        return player.getCommandSenderWorld().isClientSide();
-    }
-
-    /**
-     * Convenience method to get the player owning this menu.
-     */
-    public Player getPlayer() {
-        return player;
-    }
-
-    public boolean isEnabledViaRedstone() {
-        if (getRedstoneMode() == RedstoneMode.IGNORED) {
-            return true;
-        }
-
-        var signal = pipe.getLevel().hasNeighborSignal(pipe.getBlockPos());
-        if (signal) {
-            return getRedstoneMode() == RedstoneMode.REQUIRES_HIGH;
-        } else {
-            return getRedstoneMode() == RedstoneMode.REQUIRES_LOW;
-        }
     }
 
     public boolean isSettingSupported(Setting setting) {

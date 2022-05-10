@@ -16,22 +16,9 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.attachment;
+package dev.technici4n.moderndynamics.gui.screen;
 
-import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
-import dev.technici4n.moderndynamics.network.NodeHost;
-import dev.technici4n.moderndynamics.util.MdItemGroup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Rarity;
+import net.minecraft.network.chat.Component;
 
-public abstract class AttachmentItem extends Item {
-    public final RenderedAttachment attachment;
-
-    public AttachmentItem(RenderedAttachment attachment, Rarity rarity) {
-        super(new Properties().tab(MdItemGroup.getInstance()).rarity(rarity));
-        this.attachment = attachment;
-    }
-
-    public abstract AttachedAttachment createAttached(NodeHost host, CompoundTag configTag);
+record CycleSetting<T> (T value, Component tooltip, int spriteX, int spriteY) {
 }

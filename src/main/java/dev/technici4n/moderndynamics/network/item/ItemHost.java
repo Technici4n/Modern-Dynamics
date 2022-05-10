@@ -20,7 +20,7 @@ package dev.technici4n.moderndynamics.network.item;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
-import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
+import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
@@ -67,7 +67,7 @@ public class ItemHost extends NodeHost {
     @Override
     public boolean canConnectTo(Direction connectionDirection, NodeHost adjacentHost) {
         var attachment = getAttachment(connectionDirection);
-        if (attachment instanceof AttachedIO) {
+        if (attachment instanceof ItemAttachedIo) {
             return false;
         }
         return super.canConnectTo(connectionDirection, adjacentHost);
@@ -118,11 +118,11 @@ public class ItemHost extends NodeHost {
         long currentTick = TickHelper.getTickCounter();
         for (var side : Direction.values()) {
             var attachment = getAttachment(side);
-            if (attachment instanceof AttachedIO attachedIO) {
-                if (currentTick - lastOperationTick[side.get3DDataValue()] < attachedIO.getTier().transferFrequency)
+            if (attachment instanceof ItemAttachedIo itemAttachedIo) {
+                if (currentTick - lastOperationTick[side.get3DDataValue()] < itemAttachedIo.getTier().transferFrequency)
                     continue;
                 lastOperationTick[side.get3DDataValue()] = currentTick;
-                if (attachedIO.getType() == IoAttachmentType.SERVO) {
+                if (itemAttachedIo.getType() == IoAttachmentType.SERVO) {
                     var adjStorage = getAdjacentStorage(side, false);
                     if (adjStorage == null)
                         continue;
@@ -130,10 +130,10 @@ public class ItemHost extends NodeHost {
                     StorageUtil.move(
                             adjStorage,
                             buildNetworkInjectStorage(side),
-                            attachedIO::matchesItemFilter,
-                            attachedIO.getTier().transferCount,
+                            itemAttachedIo::matchesItemFilter,
+                            itemAttachedIo.getTier().transferCount,
                             null);
-                } else if (attachedIO.getType() == IoAttachmentType.RETRIEVER) {
+                } else if (itemAttachedIo.getType() == IoAttachmentType.RETRIEVER) {
                     var insertTarget = SimulatedInsertionTargets.getTarget(pipe.getLevel(), pipe.getBlockPos().relative(side), side.getOpposite());
                     if (!insertTarget.hasStorage())
                         continue;
@@ -141,7 +141,7 @@ public class ItemHost extends NodeHost {
                     NetworkNode<ItemHost, ItemCache> thisNode = findNode();
                     var cache = thisNode.getNetworkCache();
                     var paths = cache.pathCache;
-                    long toTransfer = attachedIO.getTier().transferCount;
+                    long toTransfer = itemAttachedIo.getTier().transferCount;
 
                     for (var path : paths.getPaths(thisNode, side.getOpposite())) {
                         var extractTarget = ItemStorage.SIDED.find(pipe.getLevel(), path.targetPos, path.path[path.path.length - 1]);
@@ -159,7 +159,7 @@ public class ItemHost extends NodeHost {
                             toTransfer -= StorageUtil.move(
                                     extractTarget,
                                     insertStorage,
-                                    v -> attachedIO.matchesItemFilter(v) && endpointFilter.test(v),
+                                    v -> itemAttachedIo.matchesItemFilter(v) && endpointFilter.test(v),
                                     toTransfer,
                                     null);
                             if (toTransfer == 0)
@@ -213,7 +213,7 @@ public class ItemHost extends NodeHost {
                 }
                 long inserted = 0;
                 // Check filter.
-                if (!checkAttachments || !(getAttachment(side) instanceof AttachedIO io) || io.matchesItemFilter(travelingItem.variant)) {
+                if (!checkAttachments || !(getAttachment(side) instanceof ItemAttachedIo io) || io.matchesItemFilter(travelingItem.variant)) {
                     try (var transaction = Transaction.openOuter()) {
                         inserted = storage.insert(travelingItem.variant, travelingItem.amount, transaction);
                         transaction.commit();
@@ -255,7 +255,7 @@ public class ItemHost extends NodeHost {
 
         // Try to stuff first!
         var attachment = getAttachment(item.path.path[item.getPathLength() - 1]);
-        if (leftover > 0 && attachment instanceof AttachedIO io && io.getType() != IoAttachmentType.FILTER) {
+        if (leftover > 0 && attachment instanceof ItemAttachedIo io && io.getType() != IoAttachmentType.FILTER) {
             boolean wasStuffed = io.isStuffed();
             io.getStuffedItems().merge(item.variant, item.amount, Long::sum);
             pipe.setChanged();

@@ -18,7 +18,7 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
-import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
+import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import java.util.function.Predicate;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -65,7 +65,7 @@ public class ItemPath {
         var lastNode = ItemHost.MANAGER.findNode(level, targetPos.relative(path[path.length - 1].getOpposite()));
         var host = lastNode.getHost();
         var attachment = host.getAttachment(path[path.length - 1]);
-        return attachment instanceof AttachedIO io ? io::matchesItemFilter : v -> true;
+        return attachment instanceof ItemAttachedIo io ? io::matchesItemFilter : v -> true;
     }
 
     public ItemPath reverse() {

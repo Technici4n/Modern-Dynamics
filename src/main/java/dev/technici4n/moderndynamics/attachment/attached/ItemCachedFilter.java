@@ -33,7 +33,7 @@ import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Nullable;
 
-public final class CachedFilter {
+public final class ItemCachedFilter {
     private final Set<ItemVariant> listedItems;
     private final FilterInversionMode filterInversion;
     private final FilterDamageMode filterDamage;
@@ -50,7 +50,7 @@ public final class CachedFilter {
     @Nullable
     private Set<ItemVariant> fluidFilter;
 
-    public CachedFilter(NonNullList<ItemVariant> filterConfig,
+    public ItemCachedFilter(NonNullList<ItemVariant> filterConfig,
             FilterInversionMode filterInversion,
             FilterDamageMode filterDamage,
             FilterNbtMode filterNbt,

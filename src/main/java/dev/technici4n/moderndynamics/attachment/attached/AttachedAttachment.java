@@ -41,7 +41,7 @@ public class AttachedAttachment {
      */
     private final AttachmentItem item;
 
-    public AttachedAttachment(AttachmentItem item, CompoundTag configTag) {
+    public AttachedAttachment(AttachmentItem item, CompoundTag configData) {
         this.item = item;
     }
 
@@ -86,8 +86,8 @@ public class AttachedAttachment {
     }
 
     @MustBeInvokedByOverriders
-    public CompoundTag writeConfigTag(CompoundTag tag) {
-        return tag;
+    public CompoundTag writeConfigTag(CompoundTag configData) {
+        return configData;
     }
 
     public boolean hasMenu() {

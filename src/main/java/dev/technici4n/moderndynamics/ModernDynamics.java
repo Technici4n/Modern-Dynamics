@@ -19,14 +19,13 @@
 package dev.technici4n.moderndynamics;
 
 import dev.technici4n.moderndynamics.attachment.MdAttachments;
+import dev.technici4n.moderndynamics.gui.MdPackets;
 import dev.technici4n.moderndynamics.init.MdBlockEntities;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdItems;
-import dev.technici4n.moderndynamics.init.MdTags;
+import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.TickHelper;
-import dev.technici4n.moderndynamics.screen.AttachmentMenuType;
-import dev.technici4n.moderndynamics.screen.MdPackets;
 import dev.technici4n.moderndynamics.util.MdItemGroup;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
 import net.fabricmc.api.ModInitializer;
@@ -47,8 +46,7 @@ public class ModernDynamics implements ModInitializer {
         MdItems.init();
         MdBlockEntities.init();
         MdAttachments.init();
-        MdTags.init();
-        AttachmentMenuType.init();
+        MdMenus.init();
 
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> NetworkManager.onServerStopped());
         ServerTickEvents.END_SERVER_TICK.register(server -> TickHelper.onEndTick());

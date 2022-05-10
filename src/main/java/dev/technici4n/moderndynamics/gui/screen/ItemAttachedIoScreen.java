@@ -16,12 +16,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.screen;
+package dev.technici4n.moderndynamics.gui.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
+import dev.technici4n.moderndynamics.gui.menu.ConfigSlot;
+import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +33,6 @@ import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -44,7 +45,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
-public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
+public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
     /**
      * Horizontal gap between setting buttons.
      */
@@ -76,7 +77,7 @@ public class AttachmentScreen extends AbstractContainerScreen<AttachmentMenu> {
     private PlusMinusButton decMaxItemsExtracted;
     private PlusMinusButton incMaxItemsExtracted;
 
-    public AttachmentScreen(AttachmentMenu handler, Inventory inventory, Component title) {
+    public ItemAttachedIoScreen(ItemAttachedIoMenu handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
         this.imageHeight = 204;
         this.inventoryLabelY = this.imageHeight - 93;

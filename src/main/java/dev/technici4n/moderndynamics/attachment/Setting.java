@@ -18,46 +18,46 @@
  */
 package dev.technici4n.moderndynamics.attachment;
 
-import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
+import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import java.util.Locale;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 
 public enum Setting {
     /**
-     * @see AttachedIO#setFilterInversion
+     * @see ItemAttachedIo#setFilterInversion
      */
     FILTER_INVERSION,
     /**
-     * @see AttachedIO#setFilterDamage
+     * @see ItemAttachedIo#setFilterDamage
      */
     FILTER_DAMAGE,
     /**
-     * @see AttachedIO#setFilterNbt
+     * @see ItemAttachedIo#setFilterNbt
      */
     FILTER_NBT,
     /**
-     * @see AttachedIO#setFilterSimilar
+     * @see ItemAttachedIo#setFilterSimilar
      */
     FILTER_SIMILAR,
     /**
-     * @see AttachedIO#setFilterMod
+     * @see ItemAttachedIo#setFilterMod
      */
     FILTER_MOD,
     /**
-     * @see AttachedIO#setRoutingMode
+     * @see ItemAttachedIo#setRoutingMode
      */
     ROUTING_MODE,
     /**
-     * @see AttachedIO#setOversendingMode
+     * @see ItemAttachedIo#setOversendingMode
      */
     OVERSENDING_MODE,
     /**
-     * @see AttachedIO#setMaxItemsInInventory
+     * @see ItemAttachedIo#setMaxItemsInInventory
      */
     MAX_ITEMS_IN_INVENTORY,
     /**
-     * @see AttachedIO#setMaxItemsExtracted
+     * @see ItemAttachedIo#setMaxItemsExtracted
      */
     MAX_ITEMS_EXTRACTED;
 

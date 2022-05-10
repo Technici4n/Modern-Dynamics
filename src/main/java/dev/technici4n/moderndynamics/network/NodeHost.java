@@ -75,7 +75,7 @@ public abstract class NodeHost {
                 scheduleUpdate();
             }
         } else {
-            attachments[side.get3DDataValue()] = item.createAttached(data);
+            attachments[side.get3DDataValue()] = item.createAttached(this, data);
             scheduleUpdate();
         }
     }
@@ -214,7 +214,7 @@ public abstract class NodeHost {
                     var attachmentTag = attachmentTags.getCompound(i);
                     var item = Registry.ITEM.get(new ResourceLocation(attachmentTag.getString("#i")));
                     if ((item instanceof AttachmentItem attachmentItem)) {
-                        this.attachments[i] = attachmentItem.createAttached(attachmentTag);
+                        this.attachments[i] = attachmentItem.createAttached(this, attachmentTag);
                     }
                 }
             }

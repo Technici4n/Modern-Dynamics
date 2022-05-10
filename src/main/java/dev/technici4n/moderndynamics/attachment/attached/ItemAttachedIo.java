@@ -23,16 +23,14 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
-import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterNbtMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterSimilarMode;
 import dev.technici4n.moderndynamics.attachment.settings.OversendingMode;
-import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
+import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.model.AttachmentModelData;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import dev.technici4n.moderndynamics.screen.AttachmentMenuType;
 import dev.technici4n.moderndynamics.util.DropHelper;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -52,20 +50,18 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-public class AttachedIO extends AttachedAttachment {
+public class ItemAttachedIo extends AbstractAttachedIo {
 
     private final Map<ItemVariant, Long> stuffedItems = new LinkedHashMap<>(); // TODO: read/write nbt
 
     private final NonNullList<ItemVariant> filters;
 
-    private FilterInversionMode filterInversion = FilterInversionMode.WHITELIST;
     private FilterDamageMode filterDamage = FilterDamageMode.RESPECT_DAMAGE;
     private FilterNbtMode filterNbt = FilterNbtMode.RESPECT_NBT;
     private FilterModMode filterMod = FilterModMode.IGNORE_MOD;
     private FilterSimilarMode filterSimilar = FilterSimilarMode.IGNORE_SIMILAR;
     private RoutingMode routingMode = RoutingMode.CLOSEST;
     private OversendingMode oversendingMode = OversendingMode.PREVENT_OVERSENDING;
-    private RedstoneMode redstoneMode = RedstoneMode.IGNORED;
     /**
      * Maximum number of items ín the target inventory. Across all slots.
      */
@@ -76,9 +72,9 @@ public class AttachedIO extends AttachedAttachment {
     private int maxItemsExtracted = Container.LARGE_MAX_STACK_SIZE;
     // Is lazily initialized when it is needed and reset to null if any of the config changes
     @Nullable
-    private CachedFilter cachedFilter;
+    private ItemCachedFilter cachedFilter;
 
-    public AttachedIO(IoAttachmentItem item, CompoundTag configData) {
+    public ItemAttachedIo(IoAttachmentItem item, CompoundTag configData) {
         super(item, configData);
 
         this.filters = NonNullList.withSize(item.getTier().filterSize, ItemVariant.blank());
@@ -90,14 +86,12 @@ public class AttachedIO extends AttachedAttachment {
             }
         }
 
-        this.filterInversion = readEnum(FilterInversionMode.values(), configData, "filterInversion");
         this.filterDamage = readEnum(FilterDamageMode.values(), configData, "filterDamage");
         this.filterNbt = readEnum(FilterNbtMode.values(), configData, "filterNbt");
         this.filterMod = readEnum(FilterModMode.values(), configData, "filterMod");
         this.filterSimilar = readEnum(FilterSimilarMode.values(), configData, "filterSimilar");
         this.routingMode = readEnum(RoutingMode.values(), configData, "routingMode");
         this.oversendingMode = readEnum(OversendingMode.values(), configData, "oversendingMode");
-        this.redstoneMode = readEnum(RedstoneMode.values(), configData, "redstoneMode");
         if (configData.contains("maxItemsExtracted", Tag.TAG_INT)) {
             this.maxItemsExtracted = Mth.clamp(configData.getInt("maxItemsExtracted"),
                     1, getMaxItemsExtractedMaximum());
@@ -122,14 +116,12 @@ public class AttachedIO extends AttachedAttachment {
         }
         configData.put("filters", filterTags);
 
-        writeEnum(this.filterInversion, configData, "filterInversion");
         writeEnum(this.filterDamage, configData, "filterDamage");
         writeEnum(this.filterNbt, configData, "filterNbt");
         writeEnum(this.filterMod, configData, "filterMod");
         writeEnum(this.filterSimilar, configData, "filterSimilar");
         writeEnum(this.routingMode, configData, "routingMode");
         writeEnum(this.oversendingMode, configData, "oversendingMode");
-        writeEnum(this.redstoneMode, configData, "redstoneMode");
         if (this.maxItemsExtracted < getMaxItemsExtractedMaximum()) {
             configData.putInt("maxItemsExtracted", this.maxItemsExtracted);
         } else {
@@ -187,7 +179,7 @@ public class AttachedIO extends AttachedAttachment {
 
     @Override
     public @Nullable MenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
-        return new AttachmentMenuType(pipe, side, this);
+        return MdMenus.ITEM_IO.createMenu(pipe, side, this);
     }
 
     @Override
@@ -216,17 +208,6 @@ public class AttachedIO extends AttachedAttachment {
      */
     public Map<ItemVariant, Long> getStuffedItems() {
         return stuffedItems;
-    }
-
-    public FilterInversionMode getFilterInversion() {
-        return filterInversion;
-    }
-
-    public void setFilterInversion(FilterInversionMode filterInversion) {
-        if (filterInversion != this.filterInversion) {
-            this.filterInversion = filterInversion;
-            resetCachedFilter();
-        }
     }
 
     public FilterDamageMode getFilterDamage() {
@@ -313,37 +294,11 @@ public class AttachedIO extends AttachedAttachment {
         };
     }
 
-    public RedstoneMode getRedstoneMode() {
-        return redstoneMode;
-    }
-
-    public void setRedstoneMode(RedstoneMode mode) {
-        this.redstoneMode = mode;
-    }
-
-    private static <T extends Enum<T>> T readEnum(T[] enumValues, CompoundTag tag, String key) {
-        var idx = tag.getByte(key);
-        if (idx > 0 && idx < enumValues.length) {
-            return enumValues[idx];
-        } else {
-            // TODO LOG
-            return enumValues[0];
-        }
-    }
-
-    private static <T extends Enum<T>> void writeEnum(T enumValue, CompoundTag tag, String key) {
-        if (enumValue.ordinal() == 0) {
-            tag.remove(key);
-        } else {
-            tag.putByte(key, (byte) enumValue.ordinal());
-        }
-    }
-
-    private CachedFilter getCachedFilter() {
+    private ItemCachedFilter getCachedFilter() {
         if (this.cachedFilter == null) {
-            this.cachedFilter = new CachedFilter(
+            this.cachedFilter = new ItemCachedFilter(
                     this.filters,
-                    this.filterInversion,
+                    getFilterInversion(),
                     this.filterDamage,
                     this.filterNbt,
                     this.filterMod);
@@ -351,7 +306,8 @@ public class AttachedIO extends AttachedAttachment {
         return this.cachedFilter;
     }
 
-    private void resetCachedFilter() {
+    @Override
+    protected void resetCachedFilter() {
         this.cachedFilter = null;
     }
 

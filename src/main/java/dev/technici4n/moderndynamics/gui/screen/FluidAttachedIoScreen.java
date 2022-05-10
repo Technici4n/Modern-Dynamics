@@ -16,9 +16,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.screen;
+package dev.technici4n.moderndynamics.gui.screen;
 
+import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
 
-record CycleSetting<T> (T value, Component tooltip, int spriteX, int spriteY) {
+public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu> {
+    public FluidAttachedIoScreen(FluidAttachedIoMenu abstractContainerMenu, Inventory inventory, Component component) {
+        super(abstractContainerMenu, inventory, component);
+    }
 }

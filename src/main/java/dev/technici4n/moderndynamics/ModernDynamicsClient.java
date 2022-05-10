@@ -19,14 +19,15 @@
 package dev.technici4n.moderndynamics;
 
 import dev.technici4n.moderndynamics.client.ber.PipeBlockEntityRenderer;
+import dev.technici4n.moderndynamics.gui.MdPackets;
+import dev.technici4n.moderndynamics.gui.screen.FluidAttachedIoScreen;
+import dev.technici4n.moderndynamics.gui.screen.ItemAttachedIoScreen;
 import dev.technici4n.moderndynamics.init.MdBlocks;
+import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.model.MdModelLoader;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes;
-import dev.technici4n.moderndynamics.screen.AttachmentMenuType;
-import dev.technici4n.moderndynamics.screen.AttachmentScreen;
-import dev.technici4n.moderndynamics.screen.MdPackets;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -51,7 +52,8 @@ public final class ModernDynamicsClient implements ClientModInitializer {
             }
         }
 
-        MenuScreens.register(AttachmentMenuType.TYPE, AttachmentScreen::new);
+        MenuScreens.register(MdMenus.ITEM_IO, ItemAttachedIoScreen::new);
+        MenuScreens.register(MdMenus.FLUID_IO, FluidAttachedIoScreen::new);
 
         ClientPlayNetworking.registerGlobalReceiver(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER::handleS2C);
 

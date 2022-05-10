@@ -16,30 +16,17 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.screen;
+package dev.technici4n.moderndynamics.gui.menu;
 
-import dev.technici4n.moderndynamics.attachment.attached.AttachedIO;
-import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
+import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
+import dev.technici4n.moderndynamics.init.MdMenus;
+import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.player.Inventory;
 
-public class ConfigSlot extends Slot {
-    public final int configIdx;
-    private final AttachedIO attachment;
+public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
 
-    public ConfigSlot(int x, int y, AttachedIO attachment, int configIdx) {
-        super(new SimpleContainer(1), 0, x, y);
-        this.configIdx = configIdx;
-        this.attachment = attachment;
-    }
-
-    @Override
-    public boolean mayPlace(ItemStack stack) {
-        return false;
-    }
-
-    @Override
-    public ItemStack getItem() {
-        return attachment.getFilter(configIdx).toStack();
+    public FluidAttachedIoMenu(int syncId, Inventory playerInventory, PipeBlockEntity pipe, Direction side, FluidAttachedIo attachment) {
+        super(MdMenus.FLUID_IO, syncId, playerInventory, pipe, side, attachment);
     }
 }
