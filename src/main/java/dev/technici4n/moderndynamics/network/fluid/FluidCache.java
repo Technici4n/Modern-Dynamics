@@ -19,6 +19,7 @@
 package dev.technici4n.moderndynamics.network.fluid;
 
 import com.google.common.primitives.Ints;
+import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.network.NetworkCache;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import java.util.ArrayList;
@@ -65,7 +66,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
 
             @Override
             protected long getCapacity(FluidVariant variant) {
-                return nodes.size() * FluidHost.MAX_CAPACITY;
+                return nodes.size() * Constants.Fluids.CAPACITY;
             }
         };
         fluidStorage.variant = fv;
@@ -80,13 +81,13 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
 
         // Distribute new energy among nodes
         // Start with nodes with the lowest capacity
-        nodes.sort(Comparator.comparingLong(node -> FluidHost.MAX_CAPACITY));
+        nodes.sort(Comparator.comparingLong(node -> Constants.Fluids.CAPACITY));
         int remainingNodes = nodes.size();
 
         for (NetworkNode<FluidHost, FluidCache> node : nodes) {
             FluidHost host = node.getHost();
 
-            long nodeAmount = Math.min(FluidHost.MAX_CAPACITY, fluidStorage.amount / remainingNodes);
+            long nodeAmount = Math.min(Constants.Fluids.CAPACITY, fluidStorage.amount / remainingNodes);
             host.setContents(fluidStorage.variant, nodeAmount);
             fluidStorage.amount -= nodeAmount;
             remainingNodes--;
@@ -133,6 +134,13 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
             }
 
             tx.commit();
+        }
+
+        // For the MVP, we separate again and then sync each fluid value.
+        // TODO: smarter fluid syncing logic
+        separate();
+        for (var node : nodes) {
+            node.getHost().getPipe().sync();
         }
     }
 

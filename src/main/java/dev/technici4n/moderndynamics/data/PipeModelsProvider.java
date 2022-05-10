@@ -49,8 +49,8 @@ public class PipeModelsProvider implements DataProvider {
     }
 
     private void registerPipeModels(HashCache cache) throws IOException {
-        registerPipeModel(cache, MdBlocks.BASIC_ITEM_PIPE, "base/item/basic", "connector/tin");
-        registerPipeModel(cache, MdBlocks.BASIC_ITEM_PIPE_OPAQUE, "base/item/basic_opaque", "connector/tin");
+        registerPipeModel(cache, MdBlocks.BASIC_ITEM_PIPE, "base/item/basic", "connector/tin", true);
+        registerPipeModel(cache, MdBlocks.BASIC_ITEM_PIPE_OPAQUE, "base/item/basic_opaque", "connector/tin", false);
         registerPipeModel(cache, MdBlocks.FAST_ITEM_PIPE, "lead", "connection_lead");
         registerPipeModel(cache, MdBlocks.FAST_ITEM_PIPE_OPAQUE, "lead", "connection_lead");
         registerPipeModel(cache, MdBlocks.CONDUCTIVE_ITEM_PIPE, "lead", "connection_lead");
@@ -58,7 +58,7 @@ public class PipeModelsProvider implements DataProvider {
         registerPipeModel(cache, MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE, "lead", "connection_lead");
         registerPipeModel(cache, MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE, "lead", "connection_lead");
 
-        registerPipeModel(cache, MdBlocks.BASIC_FLUID_PIPE, "base/fluid/basic", "connector/copper");
+        registerPipeModel(cache, MdBlocks.BASIC_FLUID_PIPE, "base/fluid/basic", "connector/copper", true);
         registerPipeModel(cache, MdBlocks.BASIC_FLUID_PIPE_OPAQUE, "lead", "connection_lead");
         registerPipeModel(cache, MdBlocks.FAST_FLUID_PIPE, "lead", "connection_lead");
         registerPipeModel(cache, MdBlocks.FAST_FLUID_PIPE_OPAQUE, "lead", "connection_lead");
@@ -77,12 +77,18 @@ public class PipeModelsProvider implements DataProvider {
         registerPipeModel(cache, MdBlocks.EMPTY_SUPERCONDUCTING_PIPE, "lead", "connection_lead");
     }
 
+    // TODO: remove
     private void registerPipeModel(HashCache cache, PipeBlock pipe, String texture, String connectionTexture) throws IOException {
-        var baseFolder = gen.getOutputFolder().resolve("assets/%s/models/%s".formatted(gen.getModId(), pipe.id));
+        registerPipeModel(cache, pipe, texture, connectionTexture, false);
+    }
 
-        var noneModel = registerPipePart(cache, baseFolder, pipe, "none", texture);
-        var inventoryModel = registerPipePart(cache, baseFolder, pipe, "inventory", connectionTexture);
-        var pipeModel = registerPipePart(cache, baseFolder, pipe, "pipe", texture);
+    private void registerPipeModel(HashCache cache, PipeBlock pipe, String texture, String connectionTexture, boolean transparent)
+            throws IOException {
+        var baseFolder = gen.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(gen.getModId(), pipe.id));
+
+        var noneModel = registerPipePart(cache, baseFolder, pipe, "none", texture, transparent);
+        var inventoryModel = registerPipePart(cache, baseFolder, pipe, "inventory", connectionTexture, transparent);
+        var pipeModel = registerPipePart(cache, baseFolder, pipe, "pipe", texture, transparent);
 
         var modelJson = new JsonObject();
         modelJson.addProperty("connection_none", noneModel);
@@ -94,16 +100,17 @@ public class PipeModelsProvider implements DataProvider {
     /**
      * Register a simple textures pipe part model, and return the id of the model.
      */
-    private String registerPipePart(HashCache cache, Path baseFolder, PipeBlock pipe, String kind, String texture) throws IOException {
+    private String registerPipePart(HashCache cache, Path baseFolder, PipeBlock pipe, String kind, String texture, boolean transparentSuffix)
+            throws IOException {
         var obj = new JsonObject();
-        obj.addProperty("parent", MdId.of("base/pipe_%s".formatted(kind)).toString());
+        obj.addProperty("parent", MdId.of("base/pipe_%s%s".formatted(kind, transparentSuffix ? "_transparent" : "")).toString());
         var textures = new JsonObject();
         obj.add("textures", textures);
         textures.addProperty("0", MdId.of(texture).toString());
 
         DataProvider.save(GSON, cache, obj, baseFolder.resolve(kind + ".json"));
 
-        var id = "%s/%s".formatted(pipe.id, kind);
+        var id = "pipe/%s/%s".formatted(pipe.id, kind);
         return MdId.of(id).toString();
     }
 
@@ -133,11 +140,11 @@ public class PipeModelsProvider implements DataProvider {
         // Now register the base model json.
         var obj = new JsonObject();
         for (var attachment : RenderedAttachment.getAllAttachments()) {
-            Path modelPath = gen.getOutputFolder().resolve("assets/%s/models/attachments/%s.json".formatted(gen.getModId(), attachment.id));
+            Path modelPath = gen.getOutputFolder().resolve("assets/%s/models/attachment/%s.json".formatted(gen.getModId(), attachment.id));
             if (!Files.exists(modelPath)) {
                 throw new RuntimeException("Missing attachment json file: " + modelPath);
             }
-            obj.addProperty(attachment.id, MdId.of("attachments/%s".formatted(attachment.id)).toString());
+            obj.addProperty(attachment.id, MdId.of("attachment/%s".formatted(attachment.id)).toString());
         }
         DataProvider.save(GSON, cache, obj, gen.getOutputFolder().resolve("assets/%s/models/attachments.json".formatted(gen.getModId())));
     }
@@ -153,7 +160,7 @@ public class PipeModelsProvider implements DataProvider {
         textures.addProperty("0", MdId.of(texture).toString());
 
         DataProvider.save(GSON, cache, obj,
-                gen.getOutputFolder().resolve("assets/%s/models/attachments/%s.json".formatted(gen.getModId(), attachment.id)));
+                gen.getOutputFolder().resolve("assets/%s/models/attachment/%s.json".formatted(gen.getModId(), attachment.id)));
     }
 
     @Override

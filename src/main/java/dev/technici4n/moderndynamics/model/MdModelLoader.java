@@ -71,7 +71,7 @@ public final class MdModelLoader {
             var path = modelId.getPath();
             if (ALL_PIPES.contains(path)) {
                 // This is a pipe, try to load its json model.
-                try (var resource = this.resourceManager.getResource(MdId.of("models/" + path + "/main.json"))) {
+                try (var resource = this.resourceManager.getResource(MdId.of("models/pipe/" + path + "/main.json"))) {
                     var obj = JsonParser.parseReader(new InputStreamReader(resource.getInputStream())).getAsJsonObject();
                     return new PipeUnbakedModel(new ResourceLocation(GsonHelper.getAsString(obj, "connection_none")),
                             new ResourceLocation(GsonHelper.getAsString(obj, "connection_pipe")),

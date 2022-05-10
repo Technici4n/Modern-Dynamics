@@ -44,8 +44,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class FluidHost extends NodeHost {
     private static final NetworkManager<FluidHost, FluidCache> MANAGER = NetworkManager.get(FluidCache.class, FluidCache::new);
-    private static final long IO_LIMIT = 81000;
-    static final long MAX_CAPACITY = 81000;
 
     private FluidVariant variant = FluidVariant.blank();
     private long amount = 0;
@@ -160,11 +158,25 @@ public class FluidHost extends NodeHost {
         super.readNbt(tag);
         variant = FluidVariant.fromNbt(tag.getCompound("variant"));
         // Guard against max changes
-        amount = Math.max(0, Math.min(tag.getLong("amount"), MAX_CAPACITY));
+        amount = Math.max(0, Math.min(tag.getLong("amount"), Constants.Fluids.CAPACITY));
         // Guard against removed variant
         if (variant.isBlank()) {
             amount = 0;
         }
+    }
+
+    @Override
+    public void writeClientNbt(CompoundTag tag) {
+        super.writeClientNbt(tag);
+        tag.putLong("amount", amount);
+        tag.put("variant", variant.toNbt());
+    }
+
+    @Override
+    public void readClientNbt(CompoundTag tag) {
+        super.readClientNbt(tag);
+        variant = FluidVariant.fromNbt(tag.getCompound("variant"));
+        amount = tag.getLong("amount");
     }
 
     private void updateRateLimits() {

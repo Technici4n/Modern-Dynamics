@@ -16,10 +16,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.pipe;
+package dev.technici4n.moderndynamics.client.ber;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import dev.technici4n.moderndynamics.Constants;
+import dev.technici4n.moderndynamics.network.fluid.FluidHost;
 import dev.technici4n.moderndynamics.network.item.ItemHost;
+import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -68,6 +71,9 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
 
                     matrices.popPose();
                 }
+            } else if (host instanceof FluidHost fluidHost) {
+                FluidPipeRendering.drawFluidInPipe(pipe, matrices, vertexConsumers, fluidHost.getVariant(),
+                        (float) fluidHost.getAmount() / Constants.Fluids.CAPACITY);
             }
         }
     }

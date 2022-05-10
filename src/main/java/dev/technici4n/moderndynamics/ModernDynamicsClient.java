@@ -18,11 +18,11 @@
  */
 package dev.technici4n.moderndynamics;
 
+import dev.technici4n.moderndynamics.client.ber.PipeBlockEntityRenderer;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.model.MdModelLoader;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import dev.technici4n.moderndynamics.pipe.PipeBlockEntityRenderer;
 import dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes;
 import dev.technici4n.moderndynamics.screen.AttachmentMenuType;
 import dev.technici4n.moderndynamics.screen.AttachmentScreen;

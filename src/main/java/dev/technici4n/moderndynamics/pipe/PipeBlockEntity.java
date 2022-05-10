@@ -66,6 +66,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     private VoxelShape cachedShape = PipeBoundingBoxes.CORE_SHAPE;
     /* client side stuff */
     private PipeModelData clientModelData = null;
+
     private int clientSideConnections = 0;
 
     protected abstract NodeHost[] createHosts();
@@ -441,5 +442,10 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         for (var host : getHosts()) {
             host.onRemoved();
         }
+    }
+
+    public int getClientSideConnections() {
+        Preconditions.checkState(isClientSide());
+        return clientSideConnections;
     }
 }
