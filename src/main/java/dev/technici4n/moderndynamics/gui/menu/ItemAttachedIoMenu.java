@@ -18,7 +18,6 @@
  */
 package dev.technici4n.moderndynamics.gui.menu;
 
-import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
@@ -34,7 +33,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
@@ -51,17 +49,6 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
                 col = 0;
                 row++;
             }
-        }
-
-        // Player inventory slots
-        int i;
-        for (i = 0; i < 3; ++i) {
-            for (int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, 8 + j * 18, 123 + i * 18));
-            }
-        }
-        for (i = 0; i < 9; ++i) {
-            this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 181));
         }
     }
 
@@ -174,9 +161,5 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
 
     public int getMaxItemsExtractedMaximum() {
         return attachment.getMaxItemsExtractedMaximum();
-    }
-
-    public boolean isSettingSupported(Setting setting) {
-        return attachment.getSupportedSettings().contains(setting);
     }
 }

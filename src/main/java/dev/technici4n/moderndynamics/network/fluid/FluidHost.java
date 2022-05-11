@@ -23,7 +23,7 @@ import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
-import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
+import dev.technici4n.moderndynamics.attachment.attached.AbstractAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.TickHelper;
@@ -97,7 +97,7 @@ public class FluidHost extends NodeHost {
     @Override
     public boolean canConnectTo(Direction connectionDirection, NodeHost adjacentHost) {
         var attachment = getAttachment(connectionDirection);
-        if (attachment instanceof ItemAttachedIo) {
+        if (attachment instanceof AbstractAttachedIo) {
             return false;
         }
         // TODO: should check the entire networks somehow, not just the two hosts!
@@ -190,7 +190,7 @@ public class FluidHost extends NodeHost {
     }
 
     private long getNetworkToOutsideLimit(Direction side) {
-        if (getAttachment(side) instanceof ItemAttachedIo io) {
+        if (getAttachment(side) instanceof AbstractAttachedIo io) {
             if (io.getType() == IoAttachmentType.SERVO)
                 return 0;
             if (io.getType() == IoAttachmentType.RETRIEVER) {
@@ -201,7 +201,7 @@ public class FluidHost extends NodeHost {
     }
 
     private long getOutsideToNetworkLimit(Direction side) {
-        if (getAttachment(side) instanceof ItemAttachedIo io) {
+        if (getAttachment(side) instanceof AbstractAttachedIo io) {
             if (io.getType() == IoAttachmentType.SERVO) {
                 return Constants.Fluids.BASE_IO << io.getTier().speedupFactor;
             }

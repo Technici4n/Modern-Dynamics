@@ -18,10 +18,7 @@
  */
 package dev.technici4n.moderndynamics.attachment.attached;
 
-import dev.technici4n.moderndynamics.attachment.AttachmentTier;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
-import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
-import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterNbtMode;
@@ -36,7 +33,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.Direction;
@@ -134,19 +130,6 @@ public class ItemAttachedIo extends AbstractAttachedIo {
         }
 
         return configData;
-    }
-
-    @Override
-    public IoAttachmentItem getItem() {
-        return (IoAttachmentItem) super.getItem();
-    }
-
-    public IoAttachmentType getType() {
-        return getItem().getType();
-    }
-
-    public AttachmentTier getTier() {
-        return getItem().getTier();
     }
 
     public boolean matchesItemFilter(ItemVariant variant) {
@@ -309,9 +292,5 @@ public class ItemAttachedIo extends AbstractAttachedIo {
     @Override
     protected void resetCachedFilter() {
         this.cachedFilter = null;
-    }
-
-    public Set<Setting> getSupportedSettings() {
-        return getItem().getSupportedSettings();
     }
 }

@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.gui.menu;
 
+import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.attached.AbstractAttachedIo;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
@@ -28,6 +29,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
 
 public class AttachedIoMenu<A extends AbstractAttachedIo> extends AbstractContainerMenu {
     public final PipeBlockEntity pipe;
@@ -41,6 +43,17 @@ public class AttachedIoMenu<A extends AbstractAttachedIo> extends AbstractContai
         this.side = side;
         this.attachment = attachment;
         this.player = playerInventory.player;
+
+        // Player inventory slots
+        int i;
+        for (i = 0; i < 3; ++i) {
+            for (int j = 0; j < 9; ++j) {
+                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, 8 + j * 18, 123 + i * 18));
+            }
+        }
+        for (i = 0; i < 9; ++i) {
+            this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 181));
+        }
     }
 
     @Override
@@ -78,6 +91,10 @@ public class AttachedIoMenu<A extends AbstractAttachedIo> extends AbstractContai
             MdPackets.sendSetRedstoneMode(containerId, redstoneMode);
         }
         attachment.setRedstoneMode(redstoneMode);
+    }
+
+    public boolean isSettingSupported(Setting setting) {
+        return attachment.getSupportedSettings().contains(setting);
     }
 
     public boolean isClientSide() {

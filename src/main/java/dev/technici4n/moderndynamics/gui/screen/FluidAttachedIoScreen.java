@@ -25,5 +25,7 @@ import net.minecraft.world.entity.player.Inventory;
 public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu> {
     public FluidAttachedIoScreen(FluidAttachedIoMenu abstractContainerMenu, Inventory inventory, Component component) {
         super(abstractContainerMenu, inventory, component);
+        this.imageHeight = 204;
+        this.inventoryLabelY = this.imageHeight - 93;
     }
 }

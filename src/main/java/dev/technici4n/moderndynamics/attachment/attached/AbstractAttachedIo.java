@@ -19,8 +19,13 @@
 package dev.technici4n.moderndynamics.attachment.attached;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
+import dev.technici4n.moderndynamics.attachment.AttachmentTier;
+import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
+import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
+import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
+import java.util.Set;
 import net.minecraft.nbt.CompoundTag;
 
 public abstract class AbstractAttachedIo extends AttachedAttachment {
@@ -64,6 +69,23 @@ public abstract class AbstractAttachedIo extends AttachedAttachment {
     }
 
     protected abstract void resetCachedFilter();
+
+    @Override
+    public IoAttachmentItem getItem() {
+        return (IoAttachmentItem) super.getItem();
+    }
+
+    public IoAttachmentType getType() {
+        return getItem().getType();
+    }
+
+    public AttachmentTier getTier() {
+        return getItem().getTier();
+    }
+
+    public Set<Setting> getSupportedSettings() {
+        return getItem().getSupportedSettings();
+    }
 
     protected static <T extends Enum<T>> T readEnum(T[] enumValues, CompoundTag tag, String key) {
         var idx = tag.getByte(key);
