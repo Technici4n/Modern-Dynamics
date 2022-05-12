@@ -24,6 +24,7 @@ import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.attached.AbstractAttachedIo;
+import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.TickHelper;
@@ -189,8 +190,11 @@ public class FluidHost extends NodeHost {
         }
     }
 
-    private long getNetworkToOutsideLimit(Direction side) {
-        if (getAttachment(side) instanceof AbstractAttachedIo io) {
+    private long getNetworkToOutsideLimit(Direction side, FluidVariant variant) {
+        if (getAttachment(side) instanceof FluidAttachedIo io) {
+            if (!io.matchesFilter(variant)) {
+                return 0;
+            }
             if (io.getType() == IoAttachmentType.SERVO)
                 return 0;
             if (io.getType() == IoAttachmentType.RETRIEVER) {
@@ -200,8 +204,11 @@ public class FluidHost extends NodeHost {
         return Constants.Fluids.BASE_IO;
     }
 
-    private long getOutsideToNetworkLimit(Direction side) {
-        if (getAttachment(side) instanceof AbstractAttachedIo io) {
+    private long getOutsideToNetworkLimit(Direction side, FluidVariant variant) {
+        if (getAttachment(side) instanceof FluidAttachedIo io) {
+            if (!io.matchesFilter(variant)) {
+                return 0;
+            }
             if (io.getType() == IoAttachmentType.SERVO) {
                 return Constants.Fluids.BASE_IO << io.getTier().speedupFactor;
             }
@@ -221,7 +228,8 @@ public class FluidHost extends NodeHost {
         @Override
         public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
             updateRateLimits();
-            maxAmount = Math.min(maxAmount, getNetworkToOutsideLimit(Direction.from3DDataValue(directionId)) - insertLimit.used[directionId]);
+            maxAmount = Math.min(maxAmount,
+                    getNetworkToOutsideLimit(Direction.from3DDataValue(directionId), resource) - insertLimit.used[directionId]);
             if (maxAmount <= 0)
                 return 0;
 
@@ -233,7 +241,8 @@ public class FluidHost extends NodeHost {
         @Override
         public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
             updateRateLimits();
-            maxAmount = Math.min(maxAmount, getOutsideToNetworkLimit(Direction.from3DDataValue(directionId)) - extractLimit.used[directionId]);
+            maxAmount = Math.min(maxAmount,
+                    getOutsideToNetworkLimit(Direction.from3DDataValue(directionId), resource) - extractLimit.used[directionId]);
             if (maxAmount <= 0)
                 return 0;
 
@@ -257,7 +266,8 @@ public class FluidHost extends NodeHost {
             @Override
             public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
                 updateRateLimits();
-                maxAmount = Math.min(maxAmount, getOutsideToNetworkLimit(Direction.from3DDataValue(directionId)) - extractLimit.used[directionId]);
+                maxAmount = Math.min(maxAmount,
+                        getOutsideToNetworkLimit(Direction.from3DDataValue(directionId), resource) - extractLimit.used[directionId]);
                 if (maxAmount <= 0)
                     return 0;
 

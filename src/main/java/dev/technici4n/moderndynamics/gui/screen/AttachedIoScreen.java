@@ -24,6 +24,7 @@ import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.gui.menu.AttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.ConfigSlot;
+import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
 import java.util.List;
@@ -133,7 +134,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
 
         // Draw each slot's background
         for (Slot slot : getMenu().slots) {
-            if (slot instanceof ConfigSlot) {
+            if (slot instanceof ConfigSlot || slot instanceof FluidConfigSlot) {
                 blit(poseStack, leftPos + slot.x - 1, topPos + slot.y - 1, 7, 122, 18, 18);
             }
         }

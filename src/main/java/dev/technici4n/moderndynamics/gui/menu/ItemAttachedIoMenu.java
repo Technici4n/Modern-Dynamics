@@ -33,7 +33,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.item.ItemStack;
 
 public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
 
@@ -59,16 +58,6 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
         } else {
             super.clicked(slotIndex, button, actionType, player);
         }
-    }
-
-    @Override
-    public ItemStack quickMoveStack(Player player, int index) {
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    public void broadcastChanges() {
-        super.broadcastChanges();
     }
 
     public FilterDamageMode getFilterDamage() {

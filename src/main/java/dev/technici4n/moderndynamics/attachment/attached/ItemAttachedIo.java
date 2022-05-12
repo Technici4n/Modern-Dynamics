@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -134,14 +133,6 @@ public class ItemAttachedIo extends AbstractAttachedIo {
 
     public boolean matchesItemFilter(ItemVariant variant) {
         return getCachedFilter().matchesItem(variant);
-    }
-
-    public boolean matchesFluidFilter(FluidVariant variant) {
-        return getCachedFilter().matchesFluid(variant);
-    }
-
-    public int getFilterSize() {
-        return getTier().filterSize;
     }
 
     public ItemVariant getFilter(int idx) {

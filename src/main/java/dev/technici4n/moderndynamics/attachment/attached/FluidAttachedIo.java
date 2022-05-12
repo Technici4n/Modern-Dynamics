@@ -29,8 +29,11 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.world.MenuProvider;
 import org.jetbrains.annotations.Nullable;
 
+// TODO: also allow nbt filtering
 public class FluidAttachedIo extends AbstractAttachedIo {
     private final NonNullList<FluidVariant> filters;
+    @Nullable
+    private FluidCachedFilter cachedFilter = null;
 
     public FluidAttachedIo(IoAttachmentItem item, CompoundTag configData) {
         super(item, configData);
@@ -64,7 +67,25 @@ public class FluidAttachedIo extends AbstractAttachedIo {
 
     @Override
     protected void resetCachedFilter() {
+        cachedFilter = null;
+    }
 
+    public FluidVariant getFilter(int idx) {
+        return filters.get(idx);
+    }
+
+    public void setFilter(int idx, FluidVariant variant) {
+        if (!variant.equals(this.filters.get(idx))) {
+            this.filters.set(idx, variant);
+            resetCachedFilter();
+        }
+    }
+
+    public boolean matchesFilter(FluidVariant variant) {
+        if (cachedFilter == null) {
+            cachedFilter = new FluidCachedFilter(filters, getFilterInversion());
+        }
+        return cachedFilter.matches(variant);
     }
 
     @Override

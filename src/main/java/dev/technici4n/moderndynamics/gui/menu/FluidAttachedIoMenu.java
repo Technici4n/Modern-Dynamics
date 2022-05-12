@@ -21,12 +21,44 @@ package dev.technici4n.moderndynamics.gui.menu;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import java.util.Objects;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
 
 public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
 
     public FluidAttachedIoMenu(int syncId, Inventory playerInventory, PipeBlockEntity pipe, Direction side, FluidAttachedIo attachment) {
         super(MdMenus.FLUID_IO, syncId, playerInventory, pipe, side, attachment);
+
+        // Config slots
+        var row = 0;
+        var col = 0;
+        for (int i = 0; i < attachment.getFilterSize(); i++) {
+            this.addSlot(new FluidConfigSlot(44 + col * 18, 20 + row * 18, attachment, i));
+            if (++col >= 5) {
+                col = 0;
+                row++;
+            }
+        }
+    }
+
+    @Override
+    public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
+        if (slotIndex >= 0 && getSlot(slotIndex) instanceof FluidConfigSlot configSlot) {
+            var selectedVariant = Objects.requireNonNullElse(
+                    StorageUtil.findStoredResource(
+                            ContainerItemContext.ofPlayerCursor(player, this).find(FluidStorage.ITEM),
+                            null),
+                    FluidVariant.blank());
+            attachment.setFilter(configSlot.configIdx, selectedVariant);
+        } else {
+            super.clicked(slotIndex, button, actionType, player);
+        }
     }
 }

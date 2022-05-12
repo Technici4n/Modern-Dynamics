@@ -68,6 +68,10 @@ public abstract class AbstractAttachedIo extends AttachedAttachment {
         this.redstoneMode = mode;
     }
 
+    public int getFilterSize() {
+        return getTier().filterSize;
+    }
+
     protected abstract void resetCachedFilter();
 
     @Override

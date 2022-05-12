@@ -30,7 +30,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
+// TODO: need to find a clean way to sync changes done by other players
 public class AttachedIoMenu<A extends AbstractAttachedIo> extends AbstractContainerMenu {
     public final PipeBlockEntity pipe;
     public final Direction side;
@@ -54,6 +56,16 @@ public class AttachedIoMenu<A extends AbstractAttachedIo> extends AbstractContai
         for (i = 0; i < 9; ++i) {
             this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 181));
         }
+    }
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public void broadcastChanges() {
+        super.broadcastChanges();
     }
 
     @Override
