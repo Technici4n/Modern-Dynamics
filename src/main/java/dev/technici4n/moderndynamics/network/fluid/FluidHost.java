@@ -26,17 +26,23 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.attached.AbstractAttachedIo;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkManager;
+import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.TickHelper;
 import dev.technici4n.moderndynamics.network.shared.TransferLimits;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import dev.technici4n.moderndynamics.util.TransferUtil;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.FilteringStorage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -53,10 +59,14 @@ public class FluidHost extends NodeHost {
     private final TransferLimits insertLimit = new TransferLimits(); // inserted INTO the neighbor inventories
     private final TransferLimits extractLimit = new TransferLimits(); // extracted FROM the neighbor inventories
     // Caps
-    // private final Storage<FluidVariant>[] caps = new Storage[6];
+    private final Storage<FluidVariant>[] caps = new Storage[6];
 
     public FluidHost(PipeBlockEntity pipe) {
         super(pipe);
+
+        for (int i = 0; i < 6; ++i) {
+            caps[i] = new NetworkFluidStorage(i);
+        }
     }
 
     @Override
@@ -67,7 +77,11 @@ public class FluidHost extends NodeHost {
     @Override
     @Nullable
     public Object getApiInstance(BlockApiLookup<?, Direction> lookup, Direction side) {
-        return null;
+        if (lookup == FluidStorage.SIDED && (pipe.connectionBlacklist & (1 << side.get3DDataValue())) == 0) {
+            return caps[side.get3DDataValue()];
+        } else {
+            return null;
+        }
     }
 
     public long getAmount() {
@@ -101,15 +115,34 @@ public class FluidHost extends NodeHost {
         if (attachment instanceof AbstractAttachedIo) {
             return false;
         }
-        // TODO: should check the entire networks somehow, not just the two hosts!
         return super.canConnectTo(connectionDirection, adjacentHost) && FluidCache.areCompatible(((FluidHost) adjacentHost).variant, variant);
     }
 
-    void addFluidStorages(List<Storage<FluidVariant>> out) {
-        gatherCapabilities(out);
+    @Override
+    public void onConnectedTo(NodeHost other) {
+        if (other instanceof FluidHost fh && !fh.variant.isBlank()) {
+            variant = fh.variant;
+            pipe.setChanged();
+        }
     }
 
-    public void gatherCapabilities(@Nullable List<Storage<FluidVariant>> out) {
+    void addFluidStorages(List<Storage<FluidVariant>> out) {
+        gatherCapabilities(out, externalStorage -> {
+            // Make sure that network ticking logic doesn't extract from external storages without a servo
+            if (getAttachment(Direction.from3DDataValue(externalStorage.directionId)) instanceof FluidAttachedIo io) {
+                if (io.getType() == IoAttachmentType.SERVO) {
+                    return externalStorage; // servo: nothing to change
+                }
+            }
+            // in all other cases: make the storage insert-only.
+            return FilteringStorage.insertOnlyOf(externalStorage);
+        });
+    }
+
+    public void gatherCapabilities(@Nullable List<Storage<FluidVariant>> out,
+            @Nullable Function<ExternalFluidStorage, Storage<FluidVariant>> transformer) {
+        if (transformer == null)
+            transformer = s -> s;
         int oldConnections = inventoryConnections;
 
         for (int i = 0; i < 6; ++i) {
@@ -119,7 +152,7 @@ public class FluidHost extends NodeHost {
 
                 if (adjacentCap != null) {
                     if (out != null) {
-                        out.add(new ExternalFluidStorage(adjacentCap, i));
+                        out.add(transformer.apply(new ExternalFluidStorage(adjacentCap, i)));
                     }
                 } else {
                     // Remove the direction from the bitmask
@@ -139,7 +172,7 @@ public class FluidHost extends NodeHost {
 
         // Compute new connections (excluding existing adjacent pipe connections, and the blacklist)
         inventoryConnections = (1 << 6) - 1 - (pipeConnections | pipe.connectionBlacklist);
-        gatherCapabilities(null);
+        gatherCapabilities(null, null);
 
         // Update render
         if (oldConnections != inventoryConnections) {
@@ -209,11 +242,23 @@ public class FluidHost extends NodeHost {
             if (!io.matchesFilter(variant)) {
                 return 0;
             }
-            if (io.getType() == IoAttachmentType.SERVO) {
+            if (io.getType() == IoAttachmentType.RETRIEVER)
+                return 0;
+            else if (io.getType() == IoAttachmentType.SERVO) {
                 return Constants.Fluids.BASE_IO << io.getTier().speedupFactor;
             }
         }
-        return 0;
+        return Constants.Fluids.BASE_IO;
+    }
+
+    private SingleSlotStorage<FluidVariant> getInternalNetworkStorage() {
+        NetworkNode<FluidHost, FluidCache> node = findNode();
+
+        if (node != null && node.getHost() == FluidHost.this) {
+            return node.getNetworkCache().getOrCreateStorage();
+        } else {
+            return TransferUtil.EMPTY_SLOT;
+        }
     }
 
     private class ExternalFluidStorage implements Storage<FluidVariant> {
@@ -300,6 +345,75 @@ public class FluidHost extends NodeHost {
             public StorageView<FluidVariant> getUnderlyingView() {
                 return view.getUnderlyingView();
             }
+        }
+    }
+
+    private class NetworkFluidStorage implements SingleSlotStorage<FluidVariant> {
+        private final int directionId;
+
+        private NetworkFluidStorage(int directionId) {
+            this.directionId = directionId;
+        }
+
+        @Override
+        public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
+            StoragePreconditions.notBlankNotNegative(resource, maxAmount);
+
+            updateRateLimits();
+            // extractLimit because the network is receiving from an adjacent inventory,
+            // as if it was extracting from it
+            maxAmount = Math.min(maxAmount,
+                    getOutsideToNetworkLimit(Direction.from3DDataValue(directionId), resource) - extractLimit.used[directionId]);
+            if (maxAmount <= 0)
+                return 0;
+
+            long transferred = getInternalNetworkStorage().insert(resource, maxAmount, transaction);
+            extractLimit.use(directionId, transferred, transaction);
+
+            return transferred;
+        }
+
+        @Override
+        public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
+            StoragePreconditions.notBlankNotNegative(resource, maxAmount);
+
+            updateRateLimits();
+            // insertLimit because the network is being extracted from an adjacent inventory,
+            // as if it was inserting into it
+            maxAmount = Math.min(maxAmount,
+                    getNetworkToOutsideLimit(Direction.from3DDataValue(directionId), resource) - insertLimit.used[directionId]);
+            if (maxAmount <= 0)
+                return 0;
+
+            long transferred = getInternalNetworkStorage().extract(resource, maxAmount, transaction);
+            insertLimit.use(directionId, transferred, transaction);
+
+            return transferred;
+        }
+
+        @Override
+        public boolean isResourceBlank() {
+            return getInternalNetworkStorage().isResourceBlank();
+        }
+
+        @Override
+        public FluidVariant getResource() {
+            return getInternalNetworkStorage().getResource();
+        }
+
+        @Override
+        public long getAmount() {
+            return getInternalNetworkStorage().getAmount();
+        }
+
+        @Override
+        public long getCapacity() {
+            return getInternalNetworkStorage().getCapacity();
+        }
+
+        @Override
+        public StorageView<FluidVariant> getUnderlyingView() {
+            return getInternalNetworkStorage().getUnderlyingView();
         }
     }
 }

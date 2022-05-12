@@ -26,19 +26,28 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantStorage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.ResourceAmount;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import net.minecraft.server.level.ServerLevel;
 
 public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
-    private SingleVariantStorage<FluidVariant> fluidStorage = null;
+    private FluidCacheStorage fluidStorage = null;
 
     protected FluidCache(ServerLevel level, List<NetworkNode<FluidHost, FluidCache>> networkNodes) {
         super(level, networkNodes);
+    }
+
+    public FluidCacheStorage getOrCreateStorage() {
+        combine();
+        return fluidStorage;
     }
 
     @Override
@@ -58,24 +67,14 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
             }
         }
 
-        fluidStorage = new SingleVariantStorage<>() {
-            @Override
-            protected FluidVariant getBlankVariant() {
-                return FluidVariant.blank();
-            }
-
-            @Override
-            protected long getCapacity(FluidVariant variant) {
-                return nodes.size() * Constants.Fluids.CAPACITY;
-            }
-        };
+        fluidStorage = new FluidCacheStorage();
         fluidStorage.variant = fv;
         fluidStorage.amount = amount;
     }
 
     @Override
     protected void doSeparate() {
-        if (Transaction.isOpen()) {
+        if (Transaction.getLifecycle() == Transaction.Lifecycle.OPEN || Transaction.getLifecycle() == Transaction.Lifecycle.CLOSING) {
             throw new IllegalStateException("Can't separate a network when a transaction is open!");
         }
 
@@ -110,15 +109,21 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
             }
         }
 
+        boolean changedVariant = false;
+
         try (var tx = Transaction.openOuter()) {
             // Find fluid to extract
             if (fluidStorage.isResourceBlank()) {
+                var newVariant = FluidVariant.blank();
                 for (var storage : storages) {
                     var toExtract = StorageUtil.findExtractableResource(storage, tx);
-
                     if (toExtract != null) {
-                        fluidStorage.variant = toExtract;
+                        newVariant = toExtract;
                     }
+                }
+                if (!newVariant.isBlank() && canChangeVariant()) {
+                    fluidStorage.variant = newVariant;
+                    changedVariant = true;
                 }
             }
             if (!fluidStorage.isResourceBlank()) {
@@ -128,20 +133,41 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
                 // Insert
                 fluidStorage.amount -= transferForTargets(Storage::insert, storages, fluidStorage.variant, fluidStorage.amount, tx);
 
-                if (fluidStorage.amount == 0) {
+                if (fluidStorage.amount == 0 && canChangeVariant()) {
                     fluidStorage.variant = FluidVariant.blank();
+                    changedVariant = true;
                 }
             }
 
             tx.commit();
         }
 
+        // Always separate after a change of variant to ensure that the nodes properly update their stored fluid.
+        if (changedVariant) {
+            separate();
+        }
+
         // For the MVP, we separate again and then sync each fluid value.
         // TODO: smarter fluid syncing logic
+        // When this is removed, make sure to update the fluid variant in all the connected nodes.
         separate();
         for (var node : nodes) {
             node.getHost().getPipe().sync();
         }
+    }
+
+    /**
+     * We only allow changing the fluid in the network if all hosts are ticking.
+     * This guarantees that we have made all the connections that we wanted to before,
+     * since changing the fluid of the network will change how pipes can connect to each other.
+     */
+    private boolean canChangeVariant() {
+        for (var node : nodes) {
+            if (!node.getHost().isTicking()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -151,14 +177,14 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
             Transaction tx) {
         int intMaxAmount = Ints.saturatedCast(maxAmount);
         // Build target list
-        List<EnergyTarget> sortableTargets = new ArrayList<>(targets.size());
+        List<FluidTarget> sortableTargets = new ArrayList<>(targets.size());
         for (var target : targets) {
-            sortableTargets.add(new EnergyTarget(target));
+            sortableTargets.add(new FluidTarget(target));
         }
         // Shuffle for better transfer on average
         Collections.shuffle(sortableTargets);
         // Simulate the transfer for every target
-        for (EnergyTarget target : sortableTargets) {
+        for (FluidTarget target : sortableTargets) {
             try (var simulation = tx.openNested()) {
                 target.simulationResult = operation.transfer(target.target, variant, intMaxAmount, simulation);
             }
@@ -168,7 +194,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         // Actually perform the transfer
         long transferredAmount = 0;
         for (int i = 0; i < sortableTargets.size(); ++i) {
-            EnergyTarget target = sortableTargets.get(i);
+            FluidTarget target = sortableTargets.get(i);
             int remainingTargets = sortableTargets.size() - i;
             long remainingAmount = maxAmount - transferredAmount;
             int targetMaxAmount = Ints.saturatedCast(remainingAmount / remainingTargets);
@@ -182,11 +208,11 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         long transfer(Storage<FluidVariant> storage, FluidVariant resource, long maxTransfer, TransactionContext transaction);
     }
 
-    private static class EnergyTarget {
+    private static class FluidTarget {
         final Storage<FluidVariant> target;
         long simulationResult;
 
-        EnergyTarget(Storage<FluidVariant> target) {
+        FluidTarget(Storage<FluidVariant> target) {
             this.target = target;
         }
     }
@@ -205,5 +231,91 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
 
     static boolean areCompatible(FluidVariant v1, FluidVariant v2) {
         return v1.isBlank() || v2.isBlank() || v1.equals(v2);
+    }
+
+    public class FluidCacheStorage extends SnapshotParticipant<ResourceAmount<FluidVariant>> implements SingleSlotStorage<FluidVariant> {
+        private FluidVariant variant;
+        private long amount;
+
+        @Override
+        public long insert(FluidVariant insertedVariant, long maxAmount, TransactionContext transaction) {
+            StoragePreconditions.notBlankNotNegative(insertedVariant, maxAmount);
+
+            if (insertedVariant.equals(variant) || (variant.isBlank() && canChangeVariant())) {
+                long insertedAmount = Math.min(maxAmount, getCapacity() - amount);
+                if (insertedAmount > 0) {
+                    updateSnapshots(transaction);
+                    if (variant.isBlank()) {
+                        variant = insertedVariant;
+                        amount = insertedAmount;
+                    } else {
+                        amount += insertedAmount;
+                    }
+                    return insertedAmount;
+                }
+            }
+
+            return 0;
+        }
+
+        @Override
+        public long extract(FluidVariant extractedVariant, long maxAmount, TransactionContext transaction) {
+            StoragePreconditions.notBlankNotNegative(extractedVariant, maxAmount);
+
+            if (extractedVariant.equals(variant)) {
+                long extractedAmount = Math.min(maxAmount, amount);
+                if (extractedAmount > 0) {
+                    updateSnapshots(transaction);
+                    amount -= extractedAmount;
+                    if (amount == 0 && canChangeVariant()) {
+                        variant = FluidVariant.blank();
+                    }
+                    return extractedAmount;
+                }
+            }
+
+            return 0;
+        }
+
+        @Override
+        public boolean isResourceBlank() {
+            return variant.isBlank();
+        }
+
+        @Override
+        public FluidVariant getResource() {
+            return variant;
+        }
+
+        @Override
+        public long getAmount() {
+            return amount;
+        }
+
+        @Override
+        public long getCapacity() {
+            return nodes.size() * Constants.Fluids.CAPACITY;
+        }
+
+        @Override
+        protected ResourceAmount<FluidVariant> createSnapshot() {
+            return new ResourceAmount<>(variant, amount);
+        }
+
+        @Override
+        protected void readSnapshot(ResourceAmount<FluidVariant> snapshot) {
+            variant = snapshot.resource();
+            amount = snapshot.amount();
+        }
+
+        @Override
+        protected void onFinalCommit() {
+            var oldVariant = nodes.get(0).getHost().getVariant();
+
+            if (!Objects.equals(oldVariant, variant)) {
+                // Make sure we updated the variant stored in each node!
+                separate();
+            }
+        }
     }
 }

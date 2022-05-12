@@ -228,8 +228,8 @@ public class ItemHost extends NodeHost {
                 ItemHost adjacentItemHost = null;
                 NetworkNode<ItemHost, ItemCache> ownNode = findNode();
                 for (var connection : ownNode.getConnections()) {
-                    if (connection.direction == adjPipeDirection) {
-                        adjacentItemHost = connection.target.getHost();
+                    if (connection.direction() == adjPipeDirection) {
+                        adjacentItemHost = connection.target().getHost();
                     }
                 }
 

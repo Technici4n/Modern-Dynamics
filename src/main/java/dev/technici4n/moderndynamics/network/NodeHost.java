@@ -88,7 +88,7 @@ public abstract class NodeHost {
     public abstract boolean acceptsAttachment(AttachmentItem attachment, ItemStack stack);
 
     @SuppressWarnings("ConstantConditions")
-    public boolean isTicking() {
+    public final boolean isTicking() {
         return ((ServerLevel) pipe.getLevel()).isPositionEntityTicking(pipe.getBlockPos());
     }
 
@@ -105,6 +105,9 @@ public abstract class NodeHost {
     public final void setConnections(EnumSet<Direction> connections) {
         pipeConnections = SerializationHelper.directionsToMask(connections);
         pipe.sync();
+    }
+
+    public void onConnectedTo(NodeHost other) {
     }
 
     @SuppressWarnings("rawtypes")

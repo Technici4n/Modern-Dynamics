@@ -76,18 +76,18 @@ public class ItemPathCache {
 
             for (var connection : currentNode.getConnections()) {
                 long edgeWeight = 1;
-                if (currentNode.getHost().getAttachment(connection.direction) instanceof AttachedInhibitor) {
+                if (currentNode.getHost().getAttachment(connection.direction()) instanceof AttachedInhibitor) {
                     edgeWeight += 1000;
                 }
-                if (connection.target.getHost().getAttachment(connection.direction.getOpposite()) instanceof AttachedInhibitor) {
+                if (connection.target().getHost().getAttachment(connection.direction().getOpposite()) instanceof AttachedInhibitor) {
                     edgeWeight += 1000;
                 }
                 long newDistance = currentDistance + edgeWeight;
-                if (distance.getOrDefault(connection.target, Long.MAX_VALUE) > newDistance) {
-                    distance.put(connection.target, newDistance);
-                    pq.add(new PqNode(connection.target, newDistance));
-                    prevDirection.put(connection.target, connection.direction);
-                    prevNode.put(connection.target, currentNode);
+                if (distance.getOrDefault(connection.target(), Long.MAX_VALUE) > newDistance) {
+                    distance.put(connection.target(), newDistance);
+                    pq.add(new PqNode(connection.target(), newDistance));
+                    prevDirection.put(connection.target(), connection.direction());
+                    prevNode.put(connection.target(), currentNode);
                 }
             }
         }

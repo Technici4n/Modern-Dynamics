@@ -136,8 +136,8 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
         }
 
         for (NetworkNode.Connection<H, C> connection : node.getConnections()) {
-            NetworkNode<H, C> target = connection.target;
-            target.removeConnection(connection.direction.getOpposite(), node);
+            NetworkNode<H, C> target = connection.target();
+            target.removeConnection(connection.direction().getOpposite(), node);
             target.updateHostConnections();
             pendingUpdates.add(target);
         }
@@ -189,7 +189,7 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
 
             // Visit neighbors
             for (NetworkNode.Connection<H, C> connection : u.getConnections()) {
-                assignNetworkDfs(connection.target, network);
+                assignNetworkDfs(connection.target(), network);
             }
         }
     }

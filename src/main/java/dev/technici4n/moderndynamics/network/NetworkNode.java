@@ -47,20 +47,21 @@ public class NetworkNode<H extends NodeHost, C extends NetworkCache<H, C>> {
 
     void addConnection(Direction direction, NetworkNode<H, C> target) {
         for (Connection<H, C> connection : connections) {
-            if (connection.direction == direction) {
+            if (connection.direction() == direction) {
                 throw new IllegalStateException("Connection already exists.");
             }
         }
 
         connections.add(new Connection<>(direction, target));
+        host.onConnectedTo(target.getHost());
     }
 
     void removeConnection(Direction direction, NetworkNode<H, C> target) {
         for (Iterator<Connection<H, C>> it = connections.iterator(); it.hasNext();) {
             Connection<H, C> connection = it.next();
 
-            if (connection.direction == direction) {
-                if (connection.target != target) {
+            if (connection.direction() == direction) {
+                if (connection.target() != target) {
                     throw new IllegalStateException("Target mismatch!");
                 }
 
@@ -72,6 +73,9 @@ public class NetworkNode<H extends NodeHost, C extends NetworkCache<H, C>> {
         throw new IllegalStateException("Connection does not exist.");
     }
 
+    /**
+     * Notify the host of changes to the connections.
+     */
     void updateHostConnections() {
         EnumSet<Direction> connections = EnumSet.noneOf(Direction.class);
 
@@ -82,13 +86,6 @@ public class NetworkNode<H extends NodeHost, C extends NetworkCache<H, C>> {
         host.setConnections(connections);
     }
 
-    public static class Connection<H extends NodeHost, C extends NetworkCache<H, C>> {
-        public final Direction direction;
-        public final NetworkNode<H, C> target;
-
-        public Connection(Direction direction, NetworkNode<H, C> target) {
-            this.direction = direction;
-            this.target = target;
-        }
+    public record Connection<H extends NodeHost, C extends NetworkCache<H, C>> (Direction direction, NetworkNode<H, C> target) {
     }
 }

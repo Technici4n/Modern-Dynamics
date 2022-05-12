@@ -214,7 +214,7 @@ public class EnergyHost extends NodeHost {
 
             if (node != null && node.getHost() == EnergyHost.this) {
                 updateRateLimits();
-                // extractedEnergy because the network is receiving from an adjacent inventory,
+                // extractLimit because the network is receiving from an adjacent inventory,
                 // as if it was extracting from it
                 maxAmount = Math.min(maxAmount, tier.getMaxConnectionTransfer() - extractLimit.used[directionId]);
                 if (maxAmount <= 0)
@@ -236,7 +236,7 @@ public class EnergyHost extends NodeHost {
 
             if (node != null && node.getHost() == EnergyHost.this) {
                 updateRateLimits();
-                // insertedEnergy because the network is being extracted from an adjacent inventory,
+                // insertLimit because the network is being extracted from an adjacent inventory,
                 // as if it was inserting into it
                 maxAmount = Math.min(maxAmount, tier.getMaxConnectionTransfer() - insertLimit.used[directionId]);
                 if (maxAmount <= 0)
