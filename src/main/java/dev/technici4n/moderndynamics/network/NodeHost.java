@@ -110,6 +110,9 @@ public abstract class NodeHost {
     public void onConnectedTo(NodeHost other) {
     }
 
+    public void onConnectionRejectedTo(Direction direction, NodeHost other) {
+    }
+
     @SuppressWarnings("rawtypes")
     public abstract NetworkManager getManager();
 

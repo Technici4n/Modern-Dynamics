@@ -96,16 +96,21 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
             @Nullable
             NetworkNode<H, C> adjacentNode = worldNodes.get(adjacentPos.asLong());
 
-            if (adjacentNode != null && host.canConnectTo(direction, adjacentNode.getHost())
-                    && adjacentNode.getHost().canConnectTo(direction.getOpposite(), host)) {
-                if (adjacentNode.network != null) {
-                    // The network of the adjacent node may be null during loading.
-                    adjacentNode.network.cache.separate();
-                }
+            if (adjacentNode != null) {
+                if (host.canConnectTo(direction, adjacentNode.getHost())
+                        && adjacentNode.getHost().canConnectTo(direction.getOpposite(), host)) {
+                    if (adjacentNode.network != null) {
+                        // The network of the adjacent node may be null during loading.
+                        adjacentNode.network.cache.separate();
+                    }
 
-                newNode.addConnection(direction, adjacentNode);
-                adjacentNode.addConnection(direction.getOpposite(), newNode);
-                adjacentNode.updateHostConnections();
+                    newNode.addConnection(direction, adjacentNode);
+                    adjacentNode.addConnection(direction.getOpposite(), newNode);
+                    adjacentNode.updateHostConnections();
+                } else {
+                    newNode.getHost().onConnectionRejectedTo(direction, adjacentNode.getHost());
+                    adjacentNode.getHost().onConnectionRejectedTo(direction.getOpposite(), newNode.getHost());
+                }
             }
         }
 
@@ -133,6 +138,7 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
         if (node.network != null) {
             // The network might be null, for example if the node gets instantly removed.
             node.network.cache.separate();
+            networks.remove(node.network);
         }
 
         for (NetworkNode.Connection<H, C> connection : node.getConnections()) {

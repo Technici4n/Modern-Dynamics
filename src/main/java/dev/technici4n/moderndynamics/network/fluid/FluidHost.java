@@ -93,10 +93,13 @@ public class FluidHost extends NodeHost {
     }
 
     public void setContents(FluidVariant variant, long nodeFluid) {
-        this.variant = variant;
-        this.amount = nodeFluid;
+        if (!variant.equals(this.variant) || nodeFluid != this.amount) {
+            this.variant = variant;
+            this.amount = nodeFluid;
 
-        pipe.setChanged();
+            pipe.setChanged();
+            pipe.sync(false);
+        }
     }
 
     @Override
@@ -115,13 +118,31 @@ public class FluidHost extends NodeHost {
         if (attachment instanceof AbstractAttachedIo) {
             return false;
         }
-        return super.canConnectTo(connectionDirection, adjacentHost) && FluidCache.areCompatible(((FluidHost) adjacentHost).variant, variant);
+        return super.canConnectTo(connectionDirection, adjacentHost) && hasCompatibleFluid(adjacentHost);
+    }
+
+    private boolean hasCompatibleFluid(NodeHost other) {
+        return FluidCache.areCompatible(((FluidHost) other).variant, variant);
     }
 
     @Override
     public void onConnectedTo(NodeHost other) {
         if (other instanceof FluidHost fh && !fh.variant.isBlank()) {
             variant = fh.variant;
+            pipe.setChanged();
+        }
+    }
+
+    @Override
+    public void onConnectionRejectedTo(Direction direction, NodeHost other) {
+        if (getAttachment(direction) instanceof AbstractAttachedIo
+                || other.getAttachment(direction.getOpposite()) instanceof AbstractAttachedIo) {
+            // rejected because of attachment: nothing to do
+            return;
+        }
+        if (!hasCompatibleFluid(other)) {
+            // rejected because of incompatible fluid: blacklist this side!
+            pipe.connectionBlacklist |= 1 << direction.get3DDataValue();
             pipe.setChanged();
         }
     }

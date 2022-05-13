@@ -151,9 +151,6 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         // TODO: smarter fluid syncing logic
         // When this is removed, make sure to update the fluid variant in all the connected nodes.
         separate();
-        for (var node : nodes) {
-            node.getHost().getPipe().sync();
-        }
     }
 
     /**
