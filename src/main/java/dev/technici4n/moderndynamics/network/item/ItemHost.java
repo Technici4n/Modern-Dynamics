@@ -377,6 +377,8 @@ public class ItemHost extends NodeHost {
 
         if (oldConnections != inventoryConnections) {
             pipe.sync();
+            NetworkNode<ItemHost, ItemCache> node = findNode();
+            node.getNetworkCache().pathCache.invalidate();
         }
     }
 

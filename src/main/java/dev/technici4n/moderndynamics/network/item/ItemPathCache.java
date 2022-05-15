@@ -39,6 +39,10 @@ public class ItemPathCache {
         return cache.computeIfAbsent(new SidedNode(startingPoint, startingSide), ItemPathCache::computePaths);
     }
 
+    public void invalidate() {
+        cache.clear();
+    }
+
     private static List<ItemPath> computePaths(SidedNode startingPoint) {
         // First, gather all targets, sorted by priority.
         PriorityQueue<PqNode> pq = new PriorityQueue<>(Comparator.comparingLong(PqNode::distance));
