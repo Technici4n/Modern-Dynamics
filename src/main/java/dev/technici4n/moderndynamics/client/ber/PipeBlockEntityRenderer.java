@@ -64,7 +64,7 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
                             to.y() * ratio + from.y() * (1 - ratio),
                             to.z() * ratio + from.z() * (1 - ratio));
                     matrices.scale(0.6f, 0.6f, 0.6f);
-                    matrices.translate(0, -0.2f, 0);
+                    matrices.translate(0, -0.1f, 0);
 
                     Minecraft.getInstance().getItemRenderer().renderStatic(item.variant().toStack(), ItemTransforms.TransformType.GROUND, light,
                             overlay, matrices, vertexConsumers, 0);

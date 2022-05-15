@@ -1,14 +1,25 @@
-# Modern Dynamics (MD) [Very WIP]
-Modern item, fluid and energy transport for Fabric, inspired by Thermal Dynamics.
+# Modern Dynamics (MD)
+Modern item and fluid transport for Fabric, inspired by Thermal Dynamics.
 
-## Why did you make yet another pipe mod?
-* I believe a lot of people are interested in a Thermal Dynamics-like pipe mod.
-* I have written instantenous pipes for Modern Industrialization, and I want to try doing non-instantaneous pipes now.
+## Status: In development, testing appreciated!
+We appreciate people testing out Modern Dynamics, however please expect it to contain bugs and rough edges.
+If you want to help, download a build [from GitHub](https://github.com/Technici4n/Modern-Dynamics/releases) and test it out in your world.
+If you find any bug or missing feature, please open **one issue per feature/bug** on GitHub,
+but **check first that no such issue exists**.
+Discussion on [the AE2 discord](https://discord.gg/Zd6t9ka7ne).
+
+### Why did you make yet another pipe mod?
+* We believe a lot of people are interested in a Thermal Dynamics-like pipe mod.
+* I (Technici4n) have written instantaneous pipes for Modern Industrialization, and I want to try doing non-instantaneous pipes now.
 It's a lot more complex, which makes it fun. It will also be a good test for Fabric's Transfer API.
 
-I want the code of MD to be extremely clear, so that anyone with a bit of modding experience can understand how it works in details.
+### Why are you copying Thermal Dynamics?
+* Reusing TD's concepts allows us to focus on getting the core logic working for now,
+but once the mod is working we will revisit some design decisions to further improve the mod.
+* Reusing TD's textures (modified) is allowed by TD's license. All code is original.
 
-Port to Forge? Maybe when the Fabric version is working.
+### Port to Forge?
+Probably not since Thermal Dynamics should be released for Forge eventually.
 
 ## License
 
