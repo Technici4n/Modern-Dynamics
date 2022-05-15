@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
+import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import java.util.function.Predicate;
@@ -26,6 +27,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 public class ItemPath {
     /**
@@ -58,14 +60,18 @@ public class ItemPath {
                 0);
     }
 
+    @Nullable
+    AttachedAttachment getEndAttachment(ServerLevel level) {
+        var lastNode = ItemHost.MANAGER.findNode(level, targetPos.relative(path[path.length - 1].getOpposite()));
+        var host = lastNode.getHost();
+        return host.getAttachment(path[path.length - 1]);
+    }
+
     /**
      * Return the predicate for the attachment at the very end of the pipe.
      */
     Predicate<ItemVariant> getEndFilter(ServerLevel level) {
-        var lastNode = ItemHost.MANAGER.findNode(level, targetPos.relative(path[path.length - 1].getOpposite()));
-        var host = lastNode.getHost();
-        var attachment = host.getAttachment(path[path.length - 1]);
-        return attachment instanceof ItemAttachedIo io ? io::matchesItemFilter : v -> true;
+        return getEndAttachment(level) instanceof ItemAttachedIo io ? io::matchesItemFilter : v -> true;
     }
 
     public ItemPath reverse() {

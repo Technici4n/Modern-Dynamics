@@ -28,5 +28,6 @@ public class DataGenerators implements DataGeneratorEntrypoint {
 
         fabricDataGenerator.addProvider(ItemModelsProvider::new);
         fabricDataGenerator.addProvider(PipeModelsProvider::new);
+        fabricDataGenerator.addProvider(RecipesProvider::new);
     }
 }

@@ -25,7 +25,7 @@ import net.minecraft.world.item.ItemStack;
 
 public final class MdItemGroup {
     private static final CreativeModeTab INSTANCE = FabricItemGroupBuilder.create(MdId.of(MdId.MOD_ID))
-            .icon(() -> new ItemStack(MdItems.BASIC_ITEM_PIPE))
+            .icon(() -> new ItemStack(MdItems.ITEM_PIPE))
             .build();
 
     public static CreativeModeTab getInstance() {

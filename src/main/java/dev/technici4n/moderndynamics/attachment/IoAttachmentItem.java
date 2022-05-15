@@ -67,7 +67,7 @@ public class IoAttachmentItem extends AttachmentItem {
     public Set<Setting> getSupportedSettings() {
         var result = EnumSet.noneOf(Setting.class);
         result.add(Setting.FILTER_INVERSION);
-        if (tier.compareTo(AttachmentTier.IMPROVED) >= 0) {
+        if (tier.compareTo(AttachmentTier.GOLD) >= 0) {
             result.add(Setting.FILTER_DAMAGE);
             result.add(Setting.FILTER_NBT);
             result.add(Setting.FILTER_MOD);
@@ -76,19 +76,19 @@ public class IoAttachmentItem extends AttachmentItem {
         switch (type) {
         case FILTER -> {
             result.add(Setting.OVERSENDING_MODE);
-            if (tier.compareTo(AttachmentTier.IMPROVED) >= 0) {
+            if (tier.compareTo(AttachmentTier.GOLD) >= 0) {
                 result.add(Setting.MAX_ITEMS_IN_INVENTORY);
             }
         }
         case SERVO -> {
             result.add(Setting.MAX_ITEMS_EXTRACTED);
-            if (tier.compareTo(AttachmentTier.IMPROVED) >= 0) {
+            if (tier.compareTo(AttachmentTier.GOLD) >= 0) {
                 result.add(Setting.ROUTING_MODE);
             }
         }
         case RETRIEVER -> {
             result.add(Setting.MAX_ITEMS_EXTRACTED);
-            if (tier.compareTo(AttachmentTier.IMPROVED) >= 0) {
+            if (tier.compareTo(AttachmentTier.GOLD) >= 0) {
                 result.add(Setting.MAX_ITEMS_IN_INVENTORY);
                 result.add(Setting.ROUTING_MODE);
             }

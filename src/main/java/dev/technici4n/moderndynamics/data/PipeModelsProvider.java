@@ -21,7 +21,6 @@ package dev.technici4n.moderndynamics.data;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import dev.technici4n.moderndynamics.attachment.MdAttachments;
 import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
@@ -29,6 +28,7 @@ import dev.technici4n.moderndynamics.util.MdId;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.HashCache;
@@ -49,37 +49,35 @@ public class PipeModelsProvider implements DataProvider {
     }
 
     private void registerPipeModels(HashCache cache) throws IOException {
-        registerPipeModel(cache, MdBlocks.BASIC_ITEM_PIPE, "base/item/basic", "connector/tin", true);
-        registerPipeModel(cache, MdBlocks.BASIC_ITEM_PIPE_OPAQUE, "base/item/basic_opaque", "connector/tin", false);
-        registerPipeModel(cache, MdBlocks.FAST_ITEM_PIPE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.FAST_ITEM_PIPE_OPAQUE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.CONDUCTIVE_ITEM_PIPE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.CONDUCTIVE_ITEM_PIPE_OPAQUE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE, "lead", "connection_lead");
+        registerPipeModel(cache, MdBlocks.ITEM_PIPE, "base/item/basic", "connector/iron", true);
+        registerPipeModel(cache, MdBlocks.FLUID_PIPE, "base/fluid/basic", "connector/copper", true);
 
-        registerPipeModel(cache, MdBlocks.BASIC_FLUID_PIPE, "base/fluid/basic", "connector/copper", true);
-        registerPipeModel(cache, MdBlocks.BASIC_FLUID_PIPE_OPAQUE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.FAST_FLUID_PIPE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.FAST_FLUID_PIPE_OPAQUE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.CONDUCTIVE_FLUID_PIPE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.CONDUCTIVE_FLUID_PIPE_OPAQUE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE, "lead", "connection_lead");
-
-        registerPipeModel(cache, MdBlocks.BASIC_ENERGY_PIPE, "base/energy/lead", "connector/lead");
-        registerPipeModel(cache, MdBlocks.IMPROVED_ENERGY_PIPE, "base/energy/invar", "connector/invar");
-        registerPipeModel(cache, MdBlocks.ADVANCED_ENERGY_PIPE, "base/energy/electrum", "connector/electrum");
-
-        registerPipeModel(cache, MdBlocks.EMPTY_REINFORCED_ENERGY_PIPE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.EMPTY_SIGNALUM_ENERGY_PIPE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.EMPTY_RESONANT_ENERGY_PIPE, "lead", "connection_lead");
-        registerPipeModel(cache, MdBlocks.EMPTY_SUPERCONDUCTING_PIPE, "lead", "connection_lead");
-    }
-
-    // TODO: remove
-    private void registerPipeModel(HashCache cache, PipeBlock pipe, String texture, String connectionTexture) throws IOException {
-        registerPipeModel(cache, pipe, texture, connectionTexture, false);
+        /*
+         * registerPipeModel(cache, MdBlocks.BASIC_ITEM_PIPE_OPAQUE, "base/item/basic_opaque", "connector/tin", false);
+         * registerPipeModel(cache, MdBlocks.FAST_ITEM_PIPE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.FAST_ITEM_PIPE_OPAQUE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.CONDUCTIVE_ITEM_PIPE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.CONDUCTIVE_ITEM_PIPE_OPAQUE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE, "lead", "connection_lead");
+         * 
+         * registerPipeModel(cache, MdBlocks.BASIC_FLUID_PIPE_OPAQUE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.FAST_FLUID_PIPE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.FAST_FLUID_PIPE_OPAQUE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.CONDUCTIVE_FLUID_PIPE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.CONDUCTIVE_FLUID_PIPE_OPAQUE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE, "lead", "connection_lead");
+         * 
+         * registerPipeModel(cache, MdBlocks.BASIC_ENERGY_PIPE, "base/energy/lead", "connector/lead");
+         * registerPipeModel(cache, MdBlocks.IMPROVED_ENERGY_PIPE, "base/energy/invar", "connector/invar");
+         * registerPipeModel(cache, MdBlocks.ADVANCED_ENERGY_PIPE, "base/energy/electrum", "connector/electrum");
+         * 
+         * registerPipeModel(cache, MdBlocks.EMPTY_REINFORCED_ENERGY_PIPE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.EMPTY_SIGNALUM_ENERGY_PIPE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.EMPTY_RESONANT_ENERGY_PIPE, "lead", "connection_lead");
+         * registerPipeModel(cache, MdBlocks.EMPTY_SUPERCONDUCTING_PIPE, "lead", "connection_lead");
+         */
     }
 
     private void registerPipeModel(HashCache cache, PipeBlock pipe, String texture, String connectionTexture, boolean transparent)
@@ -115,27 +113,10 @@ public class PipeModelsProvider implements DataProvider {
     }
 
     private void registerAttachments(HashCache cache) throws IOException {
-        registerAttachment(cache, MdAttachments.BASIC_FILTER, "attachment/filter_0");
-        registerAttachment(cache, MdAttachments.IMPROVED_FILTER, "attachment/filter_1");
-        registerAttachment(cache, MdAttachments.ADVANCED_FILTER, "attachment/filter_2");
-
-        registerAttachment(cache, MdAttachments.BASIC_SERVO, "attachment/servo_base_0_0");
-        registerAttachment(cache, MdAttachments.IMPROVED_SERVO, "attachment/servo_base_0_1");
-        registerAttachment(cache, MdAttachments.ADVANCED_SERVO, "attachment/servo_base_0_2");
-
-        registerAttachment(cache, MdAttachments.BASIC_RETRIEVER, "attachment/retriever_base_0_0");
-        registerAttachment(cache, MdAttachments.IMPROVED_RETRIEVER, "attachment/retriever_base_0_1");
-        registerAttachment(cache, MdAttachments.ADVANCED_RETRIEVER, "attachment/retriever_base_0_2");
-
-        registerAttachment(cache, MdAttachments.BASIC_SERVO_STUFFED, "attachment/servo_base_1_0");
-        registerAttachment(cache, MdAttachments.IMPROVED_SERVO_STUFFED, "attachment/servo_base_1_1");
-        registerAttachment(cache, MdAttachments.ADVANCED_SERVO_STUFFED, "attachment/servo_base_1_2");
-
-        registerAttachment(cache, MdAttachments.BASIC_RETRIEVER_STUFFED, "attachment/retriever_base_1_0");
-        registerAttachment(cache, MdAttachments.IMPROVED_RETRIEVER_STUFFED, "attachment/retriever_base_1_1");
-        registerAttachment(cache, MdAttachments.ADVANCED_RETRIEVER_STUFFED, "attachment/retriever_base_1_2");
-
-        registerAttachment(cache, MdAttachments.INHIBITOR, "attachment/inhibitor");
+        // Register each model.
+        for (var attachment : RenderedAttachment.getAllAttachments()) {
+            registerAttachment(cache, attachment, "attachment/" + attachment.id.toLowerCase(Locale.ROOT));
+        }
 
         // Now register the base model json.
         var obj = new JsonObject();

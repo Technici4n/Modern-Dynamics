@@ -34,6 +34,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -95,6 +97,18 @@ public class ItemAttachedIo extends AbstractAttachedIo {
         }
         this.maxItemsInInventory = configData.getInt("maxItemsInInventory");
         this.maxItemsInInventory = Mth.clamp(this.maxItemsInInventory, 0, getMaxItemsExtractedMaximum());
+
+        this.stuffedItems.clear();
+        var stuffedTag = configData.getList("stuffed", CompoundTag.TAG_COMPOUND);
+        for (int i = 0; i < stuffedTag.size(); i++) {
+            var compound = stuffedTag.getCompound(i);
+            var variant = ItemVariant.fromNbt(compound);
+            var amount = compound.getLong("#a");
+
+            if (!variant.isBlank() && amount > 0) {
+                this.stuffedItems.put(variant, amount);
+            }
+        }
     }
 
     @Override
@@ -126,6 +140,16 @@ public class ItemAttachedIo extends AbstractAttachedIo {
             configData.putInt("maxItemsInInventory", this.maxItemsInInventory);
         } else {
             configData.remove("maxItemsInInventory");
+        }
+
+        var stuffedTag = new ListTag();
+        for (var entry : stuffedItems.entrySet()) {
+            var compound = entry.getKey().toNbt();
+            compound.putLong("#a", entry.getValue());
+            stuffedTag.add(compound);
+        }
+        if (!stuffedTag.isEmpty()) {
+            configData.put("stuffed", stuffedTag);
         }
 
         return configData;
@@ -262,9 +286,9 @@ public class ItemAttachedIo extends AbstractAttachedIo {
 
     public int getMaxItemsExtractedMaximum() {
         return switch (getTier()) {
-        case BASIC -> 8;
-        case IMPROVED -> 24;
-        case ADVANCED -> 64;
+        case IRON -> 8;
+        case GOLD -> 24;
+        case DIAMOND -> 64;
         };
     }
 
@@ -283,5 +307,31 @@ public class ItemAttachedIo extends AbstractAttachedIo {
     @Override
     protected void resetCachedFilter() {
         this.cachedFilter = null;
+    }
+
+    public long moveStuffedToStorage(Storage<ItemVariant> targetStorage, long maxAmount) {
+        long totalMoved = 0;
+
+        try (var tx = Transaction.openOuter()) {
+            for (var it = stuffedItems.entrySet().iterator(); it.hasNext() && totalMoved < maxAmount;) {
+                var entry = it.next();
+                long stuffedAmount = entry.getValue();
+                long inserted = targetStorage.insert(entry.getKey(), Math.min(stuffedAmount, maxAmount - totalMoved), tx);
+
+                if (inserted > 0) {
+                    totalMoved -= inserted;
+
+                    if (inserted < stuffedAmount) {
+                        entry.setValue(stuffedAmount - inserted);
+                    } else {
+                        it.remove();
+                    }
+                }
+            }
+
+            tx.commit();
+        }
+
+        return totalMoved;
     }
 }

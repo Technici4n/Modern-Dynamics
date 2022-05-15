@@ -70,24 +70,26 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
     protected void addToggleButtons(List<CycleSettingButton<?>> toggleButtons) {
         super.addToggleButtons(toggleButtons);
 
-        if (menu.isSettingSupported(Setting.FILTER_DAMAGE)) {
-            toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_DAMAGE, menu.getFilterDamage(), menu::setFilterDamage));
-        }
-        if (menu.isSettingSupported(Setting.FILTER_NBT)) {
-            toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_NBT, menu.getFilterNbt(), menu::setFilterNbt));
-        }
-        if (menu.isSettingSupported(Setting.FILTER_SIMILAR)) {
-            toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_SIMILAR, menu.getFilterSimilar(), menu::setFilterSimilar));
-        }
-        if (menu.isSettingSupported(Setting.FILTER_MOD)) {
-            toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_MOD, menu.getFilterMod(), menu::setFilterMod));
-        }
-        if (menu.isSettingSupported(Setting.ROUTING_MODE)) {
-            toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.ROUTING_MODE, menu.getRoutingMode(), menu::setRoutingMode));
-        }
-        if (menu.isSettingSupported(Setting.OVERSENDING_MODE)) {
-            toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.OVERSENDING_MODE, menu.getOversendingMode(), menu::setOversendingMode));
-        }
+        /*
+         * if (menu.isSettingSupported(Setting.FILTER_DAMAGE)) {
+         * toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_DAMAGE, menu.getFilterDamage(), menu::setFilterDamage));
+         * }
+         * if (menu.isSettingSupported(Setting.FILTER_NBT)) {
+         * toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_NBT, menu.getFilterNbt(), menu::setFilterNbt));
+         * }
+         * if (menu.isSettingSupported(Setting.FILTER_SIMILAR)) {
+         * toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_SIMILAR, menu.getFilterSimilar(), menu::setFilterSimilar));
+         * }
+         * if (menu.isSettingSupported(Setting.FILTER_MOD)) {
+         * toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_MOD, menu.getFilterMod(), menu::setFilterMod));
+         * }
+         * if (menu.isSettingSupported(Setting.ROUTING_MODE)) {
+         * toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.ROUTING_MODE, menu.getRoutingMode(), menu::setRoutingMode));
+         * }
+         * if (menu.isSettingSupported(Setting.OVERSENDING_MODE)) {
+         * toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.OVERSENDING_MODE, menu.getOversendingMode(), menu::setOversendingMode));
+         * }
+         */
     }
 
     private void adjustMaxItemsInInventory(int i) {

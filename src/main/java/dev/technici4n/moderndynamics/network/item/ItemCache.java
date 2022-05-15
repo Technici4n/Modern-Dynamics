@@ -19,6 +19,7 @@
 package dev.technici4n.moderndynamics.network.item;
 
 import com.google.common.base.Preconditions;
+import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkCache;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import java.util.List;
@@ -68,6 +69,10 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
             for (var path : paths) {
                 // Check possible filter at the endpoint.
                 if (!path.getEndFilter(level).test(variant)) {
+                    continue;
+                }
+                // Don't schedule more items if the output is already stuffed.
+                if (path.getEndAttachment(level) instanceof ItemAttachedIo io && io.isStuffed()) {
                     continue;
                 }
 

@@ -36,35 +36,38 @@ import team.reborn.energy.api.EnergyStorage;
 
 public final class MdBlockEntities {
 
-    public static final BlockEntityType<PipeBlockEntity> BASIC_ITEM_PIPE = createItemPipe(MdBlocks.BASIC_ITEM_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> BASIC_ITEM_PIPE_OPAQUE = createItemPipe(MdBlocks.BASIC_ITEM_PIPE_OPAQUE);
-    public static final BlockEntityType<PipeBlockEntity> FAST_ITEM_PIPE = register(NyiPipeBlockEntity::new, MdBlocks.FAST_ITEM_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> FAST_ITEM_PIPE_OPAQUE = register(NyiPipeBlockEntity::new, MdBlocks.FAST_ITEM_PIPE_OPAQUE);
-    public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_ITEM_PIPE = register(NyiPipeBlockEntity::new, MdBlocks.CONDUCTIVE_ITEM_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_ITEM_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
-            MdBlocks.CONDUCTIVE_ITEM_PIPE_OPAQUE);
-    public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FAST_ITEM_PIPE = register(NyiPipeBlockEntity::new,
-            MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
-            MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE);
-    public static final BlockEntityType<PipeBlockEntity> BASIC_FLUID_PIPE = register(FluidPipeBlockEntity::new, MdBlocks.BASIC_FLUID_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> BASIC_FLUID_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
-            MdBlocks.BASIC_FLUID_PIPE_OPAQUE);
-    public static final BlockEntityType<PipeBlockEntity> FAST_FLUID_PIPE = register(NyiPipeBlockEntity::new, MdBlocks.FAST_FLUID_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> FAST_FLUID_PIPE_OPAQUE = register(NyiPipeBlockEntity::new, MdBlocks.FAST_FLUID_PIPE_OPAQUE);
-    public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FLUID_PIPE = register(NyiPipeBlockEntity::new, MdBlocks.CONDUCTIVE_FLUID_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FLUID_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
-            MdBlocks.CONDUCTIVE_FLUID_PIPE_OPAQUE);
-    public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FAST_FLUID_PIPE = register(NyiPipeBlockEntity::new,
-            MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
-            MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE);
-
-    public static final BlockEntityType<PipeBlockEntity> BASIC_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.BASIC, MdBlocks.BASIC_ENERGY_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> IMPROVED_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.IMPROVED,
-            MdBlocks.IMPROVED_ENERGY_PIPE);
-    public static final BlockEntityType<PipeBlockEntity> ADVANCED_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.ADVANCED,
-            MdBlocks.ADVANCED_ENERGY_PIPE);
+    public static final BlockEntityType<PipeBlockEntity> ITEM_PIPE = createItemPipe(MdBlocks.ITEM_PIPE);
+    public static final BlockEntityType<PipeBlockEntity> FLUID_PIPE = register(FluidPipeBlockEntity::new, MdBlocks.FLUID_PIPE);
+    /*
+     * public static final BlockEntityType<PipeBlockEntity> BASIC_ITEM_PIPE_OPAQUE = createItemPipe(MdBlocks.BASIC_ITEM_PIPE_OPAQUE);
+     * public static final BlockEntityType<PipeBlockEntity> FAST_ITEM_PIPE = register(NyiPipeBlockEntity::new, MdBlocks.FAST_ITEM_PIPE);
+     * public static final BlockEntityType<PipeBlockEntity> FAST_ITEM_PIPE_OPAQUE = register(NyiPipeBlockEntity::new, MdBlocks.FAST_ITEM_PIPE_OPAQUE);
+     * public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_ITEM_PIPE = register(NyiPipeBlockEntity::new, MdBlocks.CONDUCTIVE_ITEM_PIPE);
+     * public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_ITEM_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
+     * MdBlocks.CONDUCTIVE_ITEM_PIPE_OPAQUE);
+     * public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FAST_ITEM_PIPE = register(NyiPipeBlockEntity::new,
+     * MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE);
+     * public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
+     * MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE);
+     * public static final BlockEntityType<PipeBlockEntity> BASIC_FLUID_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
+     * MdBlocks.BASIC_FLUID_PIPE_OPAQUE);
+     * public static final BlockEntityType<PipeBlockEntity> FAST_FLUID_PIPE = register(NyiPipeBlockEntity::new, MdBlocks.FAST_FLUID_PIPE);
+     * public static final BlockEntityType<PipeBlockEntity> FAST_FLUID_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
+     * MdBlocks.FAST_FLUID_PIPE_OPAQUE);
+     * public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FLUID_PIPE = register(NyiPipeBlockEntity::new, MdBlocks.CONDUCTIVE_FLUID_PIPE);
+     * public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FLUID_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
+     * MdBlocks.CONDUCTIVE_FLUID_PIPE_OPAQUE);
+     * public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FAST_FLUID_PIPE = register(NyiPipeBlockEntity::new,
+     * MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE);
+     * public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
+     * MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE);
+     * 
+     * public static final BlockEntityType<PipeBlockEntity> BASIC_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.BASIC, MdBlocks.BASIC_ENERGY_PIPE);
+     * public static final BlockEntityType<PipeBlockEntity> IMPROVED_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.IMPROVED,
+     * MdBlocks.IMPROVED_ENERGY_PIPE);
+     * public static final BlockEntityType<PipeBlockEntity> ADVANCED_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.ADVANCED,
+     * MdBlocks.ADVANCED_ENERGY_PIPE);
+     */
 
     public static void init() {
         // init static

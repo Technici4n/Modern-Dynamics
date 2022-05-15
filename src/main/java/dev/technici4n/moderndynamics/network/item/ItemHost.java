@@ -123,47 +123,70 @@ public class ItemHost extends NodeHost {
                     continue;
                 lastOperationTick[side.get3DDataValue()] = currentTick;
                 if (itemAttachedIo.getType() == IoAttachmentType.SERVO) {
-                    var adjStorage = getAdjacentStorage(side, false);
-                    if (adjStorage == null)
-                        continue;
-
-                    StorageUtil.move(
-                            adjStorage,
-                            buildNetworkInjectStorage(side),
-                            itemAttachedIo::matchesItemFilter,
-                            itemAttachedIo.getTier().transferCount,
-                            null);
+                    if (itemAttachedIo.isStuffed()) {
+                        // Move from stuffed items to network
+                        if (itemAttachedIo.moveStuffedToStorage(buildNetworkInjectStorage(side), itemAttachedIo.getTier().transferCount) > 0) {
+                            pipe.setChanged();
+                            if (!itemAttachedIo.isStuffed()) {
+                                pipe.sync();
+                            }
+                        }
+                    } else {
+                        var adjStorage = getAdjacentStorage(side, false);
+                        if (adjStorage == null)
+                            continue;
+                        StorageUtil.move(
+                                adjStorage,
+                                buildNetworkInjectStorage(side),
+                                itemAttachedIo::matchesItemFilter,
+                                itemAttachedIo.getTier().transferCount,
+                                null);
+                    }
                 } else if (itemAttachedIo.getType() == IoAttachmentType.RETRIEVER) {
-                    var insertTarget = SimulatedInsertionTargets.getTarget(pipe.getLevel(), pipe.getBlockPos().relative(side), side.getOpposite());
-                    if (!insertTarget.hasStorage())
-                        continue;
+                    if (itemAttachedIo.isStuffed()) {
+                        // Move from stuffed items to target
+                        var adjStorage = getAdjacentStorage(side, false);
+                        if (adjStorage == null)
+                            continue;
+                        if (itemAttachedIo.moveStuffedToStorage(adjStorage, itemAttachedIo.getTier().transferCount) > 0) {
+                            pipe.setChanged();
+                            if (!itemAttachedIo.isStuffed()) {
+                                pipe.sync();
+                            }
+                        }
+                    } else {
+                        var insertTarget = SimulatedInsertionTargets.getTarget(pipe.getLevel(), pipe.getBlockPos().relative(side),
+                                side.getOpposite());
+                        if (!insertTarget.hasStorage())
+                            continue;
 
-                    NetworkNode<ItemHost, ItemCache> thisNode = findNode();
-                    var cache = thisNode.getNetworkCache();
-                    var paths = cache.pathCache;
-                    long toTransfer = itemAttachedIo.getTier().transferCount;
+                        NetworkNode<ItemHost, ItemCache> thisNode = findNode();
+                        var cache = thisNode.getNetworkCache();
+                        var paths = cache.pathCache;
+                        long toTransfer = itemAttachedIo.getTier().transferCount;
 
-                    for (var path : paths.getPaths(thisNode, side.getOpposite())) {
-                        var extractTarget = ItemStorage.SIDED.find(pipe.getLevel(), path.targetPos, path.path[path.path.length - 1]);
-                        if (extractTarget != null) {
-                            // Make sure to check the filter at the endpoint.
-                            var endpointFilter = path.getEndFilter(cache.level);
+                        for (var path : paths.getPaths(thisNode, side.getOpposite())) {
+                            var extractTarget = ItemStorage.SIDED.find(pipe.getLevel(), path.targetPos, path.path[path.path.length - 1]);
+                            if (extractTarget != null) {
+                                // Make sure to check the filter at the endpoint.
+                                var endpointFilter = path.getEndFilter(cache.level);
 
-                            var insertStorage = (InsertStorage) (variant, maxAmount, tx) -> {
-                                return insertTarget.insert(variant, maxAmount, tx, (v, a) -> {
-                                    var reversedPath = path.reverse();
-                                    var travelingItem = reversedPath.makeTravelingItem(v, a);
-                                    reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
-                                });
-                            };
-                            toTransfer -= StorageUtil.move(
-                                    extractTarget,
-                                    insertStorage,
-                                    v -> itemAttachedIo.matchesItemFilter(v) && endpointFilter.test(v),
-                                    toTransfer,
-                                    null);
-                            if (toTransfer == 0)
-                                break;
+                                var insertStorage = (InsertStorage) (variant, maxAmount, tx) -> {
+                                    return insertTarget.insert(variant, maxAmount, tx, (v, a) -> {
+                                        var reversedPath = path.reverse();
+                                        var travelingItem = reversedPath.makeTravelingItem(v, a);
+                                        reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
+                                    });
+                                };
+                                toTransfer -= StorageUtil.move(
+                                        extractTarget,
+                                        insertStorage,
+                                        v -> itemAttachedIo.matchesItemFilter(v) && endpointFilter.test(v),
+                                        toTransfer,
+                                        null);
+                                if (toTransfer == 0)
+                                    break;
+                            }
                         }
                     }
                 }
@@ -237,6 +260,7 @@ public class ItemHost extends NodeHost {
                     // All good: move to adjacent pipe
                     adjacentItemHost.travelingItems.add(travelingItem);
                     adjacentItemHost.pipe.setChanged();
+                    adjacentItemHost.pipe.sync(false);
                 } else {
                     // Cancel the travel and handle the overflow
                     finishTravel(travelingItem, 0);
