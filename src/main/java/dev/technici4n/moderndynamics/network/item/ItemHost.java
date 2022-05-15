@@ -89,12 +89,13 @@ public class ItemHost extends NodeHost {
     }
 
     private Storage<ItemVariant> buildNetworkInjectStorage(Direction side) {
+        double speedupFactor = getAttachment(side) instanceof ItemAttachedIo io ? io.getTier().itemSpeedupFactor : 1;
         return (InsertStorage) (resource, maxAmount, transaction) -> {
             NetworkNode<ItemHost, ItemCache> node = findNode();
             if (node != null) {
                 // The node can be null if the pipe was just placed, and not initialized yet.
                 return node.getNetworkCache().insert(side.getOpposite(), node, FailedInsertStrategy.SEND_BACK_TO_SOURCE, resource, maxAmount,
-                        transaction);
+                        transaction, speedupFactor);
             } else {
                 return 0;
             }
@@ -174,7 +175,7 @@ public class ItemHost extends NodeHost {
                                 var insertStorage = (InsertStorage) (variant, maxAmount, tx) -> {
                                     return insertTarget.insert(variant, maxAmount, tx, (v, a) -> {
                                         var reversedPath = path.reverse();
-                                        var travelingItem = reversedPath.makeTravelingItem(v, a);
+                                        var travelingItem = reversedPath.makeTravelingItem(v, a, itemAttachedIo.getTier().itemSpeedupFactor);
                                         reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
                                     });
                                 };
@@ -194,10 +195,6 @@ public class ItemHost extends NodeHost {
         }
     }
 
-    public double getSpeed() {
-        return 0.05; // WARNING: must always be < 1.
-    }
-
     public void tickMovingItems() {
         if (travelingItems.size() == 0) {
             return;
@@ -206,13 +203,11 @@ public class ItemHost extends NodeHost {
         // List of items that moved out of this pipe.
         List<TravelingItem> movedOut = new ArrayList<>();
 
-        var speed = getSpeed();
-
         for (var iterator = travelingItems.iterator(); iterator.hasNext();) {
             var travelingItem = iterator.next();
             // Calculate in which path segment the item is now, and in which segment it is after moving it
             int currentIndex = (int) travelingItem.traveledDistance;
-            travelingItem.traveledDistance += speed;
+            travelingItem.traveledDistance += travelingItem.getSpeed();
             int newIndex = (int) travelingItem.traveledDistance;
 
             if (newIndex != currentIndex) {
@@ -300,6 +295,7 @@ public class ItemHost extends NodeHost {
                                 item.path.startingPos,
                                 revertedPath),
                         FailedInsertStrategy.DROP,
+                        item.speedMultiplier,
                         item.getPathLength() - 1 - Math.floor(item.traveledDistance)));
             } else {
                 DropHelper.dropStack(pipe, item.variant, item.amount - inserted);
@@ -412,6 +408,7 @@ public class ItemHost extends NodeHost {
                 compound.putDouble("d", travelingItem.traveledDistance - currentBlock);
                 compound.putByte("in", (byte) travelingItem.path.path[currentBlock].get3DDataValue());
                 compound.putByte("out", (byte) travelingItem.path.path[currentBlock + 1].get3DDataValue());
+                compound.putDouble("s", travelingItem.getSpeed());
                 list.add(compound);
             }
             tag.put("travelingItems", list);
@@ -431,7 +428,8 @@ public class ItemHost extends NodeHost {
                     compound.getLong("a"),
                     compound.getDouble("d"),
                     Direction.from3DDataValue(compound.getByte("in")),
-                    Direction.from3DDataValue(compound.getByte("out"))));
+                    Direction.from3DDataValue(compound.getByte("out")),
+                    compound.getDouble("s")));
         }
     }
 

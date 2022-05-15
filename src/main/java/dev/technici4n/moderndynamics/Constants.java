@@ -26,4 +26,8 @@ public class Constants {
         public static final long BASE_IO = FluidConstants.BUCKET / 20;
         public static final long CAPACITY = FluidConstants.BUCKET;
     }
+
+    public static class Items {
+        public static final double SPEED_IN_PIPES = 0.02;
+    }
 }

@@ -21,5 +21,5 @@ package dev.technici4n.moderndynamics.network.item;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.Direction;
 
-public record ClientTravelingItem(ItemVariant variant, long amount, double traveledDistance, Direction in, Direction out) {
+public record ClientTravelingItem(ItemVariant variant, long amount, double traveledDistance, Direction in, Direction out, double speed) {
 }

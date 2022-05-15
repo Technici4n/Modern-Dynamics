@@ -48,7 +48,7 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
                     Vec3 from, to;
                     double ratio;
 
-                    var distance = item.traveledDistance() + tickDelta * itemHost.getSpeed();
+                    var distance = item.traveledDistance() + tickDelta * item.speed();
                     if (distance <= 0.5) {
                         from = findFaceMiddle(item.in().getOpposite());
                         to = CENTER;

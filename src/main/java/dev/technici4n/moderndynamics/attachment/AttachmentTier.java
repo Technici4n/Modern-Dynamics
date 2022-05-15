@@ -21,22 +21,24 @@ package dev.technici4n.moderndynamics.attachment;
 import net.minecraft.world.item.Rarity;
 
 public enum AttachmentTier {
-    IRON(3, 4, 40, 2, Rarity.COMMON),
-    GOLD(9, 16, 20, 4, Rarity.UNCOMMON),
-    DIAMOND(15, 64, 10, 10, Rarity.RARE),
+    IRON(3, 4, 40, 1, 2, Rarity.COMMON),
+    GOLD(9, 16, 20, 2, 4, Rarity.UNCOMMON),
+    DIAMOND(15, 64, 10, 4, 10, Rarity.RARE),
     ;
 
     public final int filterSize;
     public final int transferCount;
     public final int transferFrequency;
-    public final int speedupFactor;
+    public final int itemSpeedupFactor;
+    public final int fluidSpeedupFactor;
     public final Rarity rarity;
 
-    AttachmentTier(int filterSize, int transferCount, int transferFrequency, int speedupFactor, Rarity rarity) {
+    AttachmentTier(int filterSize, int transferCount, int transferFrequency, int itemSpeedupFactor, int fluidSpeedupFactor, Rarity rarity) {
         this.filterSize = filterSize;
         this.transferCount = transferCount;
         this.transferFrequency = transferFrequency;
-        this.speedupFactor = speedupFactor;
+        this.itemSpeedupFactor = itemSpeedupFactor;
+        this.fluidSpeedupFactor = fluidSpeedupFactor;
         this.rarity = rarity;
     }
 

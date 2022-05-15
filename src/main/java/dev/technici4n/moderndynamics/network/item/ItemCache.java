@@ -53,7 +53,7 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
     }
 
     protected long insert(Direction initialDirection, NetworkNode<ItemHost, ItemCache> startingPoint, FailedInsertStrategy strategy,
-            ItemVariant variant, long maxAmount, TransactionContext transaction) {
+            ItemVariant variant, long maxAmount, TransactionContext transaction, double speedMultiplier) {
         StoragePreconditions.notBlankNotNegative(variant, maxAmount);
         Preconditions.checkArgument(startingPoint.getNetworkCache() == this, "Tried to insert into another network!");
 
@@ -79,7 +79,7 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
                 var simulatedTarget = path.getInsertionTarget(startingPoint.getHost().getPipe().getLevel());
 
                 totalInserted += simulatedTarget.insert(variant, maxAmount - totalInserted, transaction, (v, amount) -> {
-                    var travelingItem = path.makeTravelingItem(v, amount);
+                    var travelingItem = path.makeTravelingItem(v, amount, speedMultiplier);
                     startingPoint.getHost().addTravelingItem(travelingItem);
                 });
                 if (totalInserted == maxAmount) {

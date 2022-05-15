@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
+import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.nbt.CompoundTag;
@@ -27,18 +28,32 @@ public class TravelingItem {
     public final long amount;
     public final ItemPath path;
     public final FailedInsertStrategy strategy;
+    public final double speedMultiplier;
     public double traveledDistance;
 
-    public TravelingItem(ItemVariant variant, long amount, ItemPath path, FailedInsertStrategy strategy, double traveledDistance) {
+    public TravelingItem(ItemVariant variant, long amount, ItemPath path, FailedInsertStrategy strategy, double speedMultiplier,
+            double traveledDistance) {
+        if (speedMultiplier < 0.5) {
+            // Upgrade path from before the speed multiplier was added.
+            speedMultiplier = 0.5;
+        }
         this.variant = variant;
         this.amount = amount;
         this.path = path;
         this.strategy = strategy;
+        this.speedMultiplier = speedMultiplier;
         this.traveledDistance = traveledDistance;
     }
 
     public int getPathLength() {
         return path.path.length;
+    }
+
+    /**
+     * Remember: this must never reach 1 !
+     */
+    public double getSpeed() {
+        return speedMultiplier * Constants.Items.SPEED_IN_PIPES;
     }
 
     public CompoundTag toNbt() {
@@ -48,6 +63,7 @@ public class TravelingItem {
         nbt.put("start", SerializationHelper.posToNbt(path.startingPos));
         nbt.put("end", SerializationHelper.posToNbt(path.targetPos));
         nbt.putString("path", SerializationHelper.encodePath(path.path));
+        nbt.putDouble("speedMultiplier", speedMultiplier);
         nbt.putString("strategy", strategy.getSerializedName());
         nbt.putDouble("d", traveledDistance);
         return nbt;
@@ -62,6 +78,7 @@ public class TravelingItem {
                         SerializationHelper.posFromNbt(nbt.getCompound("end")),
                         SerializationHelper.decodePath(nbt.getString("path"))),
                 FailedInsertStrategy.bySerializedName(nbt.getString("strategy")),
+                nbt.getDouble("speedMultiplier"),
                 nbt.getDouble("d"));
     }
 }

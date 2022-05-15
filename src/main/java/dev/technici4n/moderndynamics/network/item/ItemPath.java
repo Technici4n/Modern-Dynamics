@@ -51,12 +51,13 @@ public class ItemPath {
         return SimulatedInsertionTargets.getTarget(world, targetPos, path[path.length - 1].getOpposite());
     }
 
-    public TravelingItem makeTravelingItem(ItemVariant variant, long amount) {
+    public TravelingItem makeTravelingItem(ItemVariant variant, long amount, double speedMultiplier) {
         return new TravelingItem(
                 variant,
                 amount,
                 this,
                 FailedInsertStrategy.SEND_BACK_TO_SOURCE,
+                speedMultiplier,
                 0);
     }
 
