@@ -343,7 +343,9 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
                             for (var host : getHosts()) {
                                 var attachment = host.removeAttachment(side);
                                 if (attachment != null) {
-                                    DropHelper.dropStacks(this, attachment.getDrops());
+                                    if (!player.isCreative()) {
+                                        DropHelper.dropStacks(this, attachment.getDrops());
+                                    }
                                     level.blockUpdated(worldPosition, getBlockState().getBlock());
                                     refreshHosts();
                                     scheduleHostUpdates();

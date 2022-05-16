@@ -21,9 +21,10 @@ package dev.technici4n.moderndynamics.util;
 import dev.technici4n.moderndynamics.init.MdTags;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.minecraft.world.Containers;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 /**
@@ -45,10 +46,17 @@ public class WrenchHelper {
             }
 
             var pos = hitResult.getBlockPos();
-            if (world.getBlockState(pos).getBlock() instanceof PipeBlock block) {
+            var state = world.getBlockState(pos);
+            if (state.getBlock() instanceof PipeBlock) {
+                var entity = world.getBlockEntity(pos);
                 world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
-                Containers.dropItemStack(world, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(block.asItem()));
-                // TODO: play a cool sound
+                if (!player.isCreative()) {
+                    Block.dropResources(state, world, pos, entity);
+                }
+                // Play a cool sound
+                var group = state.getSoundType();
+                world.playSound(player, pos, group.getBreakSound(), SoundSource.BLOCKS, (group.getVolume() + 1.0F) / 2.0F,
+                        group.getPitch() * 0.8F);
                 return InteractionResult.sidedSuccess(world.isClientSide);
             }
 

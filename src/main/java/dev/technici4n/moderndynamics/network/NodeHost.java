@@ -21,9 +21,9 @@ package dev.technici4n.moderndynamics.network;
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.EnumSet;
+import java.util.List;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -249,11 +249,15 @@ public abstract class NodeHost {
     }
 
     public void onRemoved() {
+    }
+
+    public void addDrops(List<ItemStack> drops) {
         for (Direction side : Direction.values()) {
             var attachment = removeAttachment(side);
             if (attachment != null) {
-                DropHelper.dropStacks(pipe, attachment.getDrops());
+                drops.addAll(attachment.getDrops());
             }
         }
+
     }
 }

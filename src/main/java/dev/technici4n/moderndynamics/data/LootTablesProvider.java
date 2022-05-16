@@ -18,17 +18,19 @@
  */
 package dev.technici4n.moderndynamics.data;
 
-import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
+import dev.technici4n.moderndynamics.init.MdBlocks;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
 
-public class DataGenerators implements DataGeneratorEntrypoint {
+public class LootTablesProvider extends FabricBlockLootTableProvider {
+    protected LootTablesProvider(FabricDataGenerator dataGenerator) {
+        super(dataGenerator);
+    }
+
     @Override
-    public void onInitializeDataGenerator(FabricDataGenerator fabricDataGenerator) {
-        fabricDataGenerator.addProvider(ItemModelsProvider::new);
-        fabricDataGenerator.addProvider(PipeModelsProvider::new);
-
-        fabricDataGenerator.addProvider(ItemTagsProvider::new);
-        fabricDataGenerator.addProvider(LootTablesProvider::new);
-        fabricDataGenerator.addProvider(RecipesProvider::new);
+    protected void generateBlockLootTables() {
+        for (var block : MdBlocks.ALL_PIPES) {
+            dropSelf(block);
+        }
     }
 }
