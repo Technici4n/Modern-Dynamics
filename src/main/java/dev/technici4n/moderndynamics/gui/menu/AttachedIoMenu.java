@@ -92,6 +92,7 @@ public class AttachedIoMenu<A extends AbstractAttachedIo> extends AbstractContai
             MdPackets.sendSetFilterMode(containerId, value);
         }
         attachment.setFilterInversion(value);
+        pipe.setChanged();
     }
 
     public RedstoneMode getRedstoneMode() {
@@ -103,6 +104,7 @@ public class AttachedIoMenu<A extends AbstractAttachedIo> extends AbstractContai
             MdPackets.sendSetRedstoneMode(containerId, redstoneMode);
         }
         attachment.setRedstoneMode(redstoneMode);
+        pipe.setChanged();
     }
 
     public boolean isSettingSupported(Setting setting) {

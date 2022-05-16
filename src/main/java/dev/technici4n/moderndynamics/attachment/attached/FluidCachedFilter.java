@@ -41,10 +41,6 @@ public class FluidCachedFilter {
     }
 
     public boolean matches(FluidVariant variant) {
-        if (listedVariants.isEmpty()) {
-            return true; // empty filter always matches
-        }
-
         return (filterInversion == FilterInversionMode.WHITELIST) == listedVariants.contains(variant);
     }
 }

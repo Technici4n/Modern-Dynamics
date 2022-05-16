@@ -42,7 +42,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.util.Mth;
-import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -53,20 +52,20 @@ public class ItemAttachedIo extends AbstractAttachedIo {
 
     private final NonNullList<ItemVariant> filters;
 
-    private FilterDamageMode filterDamage = FilterDamageMode.RESPECT_DAMAGE;
-    private FilterNbtMode filterNbt = FilterNbtMode.RESPECT_NBT;
-    private FilterModMode filterMod = FilterModMode.IGNORE_MOD;
-    private FilterSimilarMode filterSimilar = FilterSimilarMode.IGNORE_SIMILAR;
-    private RoutingMode routingMode = RoutingMode.CLOSEST;
-    private OversendingMode oversendingMode = OversendingMode.PREVENT_OVERSENDING;
+    private FilterDamageMode filterDamage;
+    private FilterNbtMode filterNbt;
+    private FilterModMode filterMod;
+    private FilterSimilarMode filterSimilar;
+    private RoutingMode routingMode;
+    private OversendingMode oversendingMode;
     /**
      * Maximum number of items ín the target inventory. Across all slots.
      */
-    private int maxItemsInInventory = 0;
+    private int maxItemsInInventory;
     /**
      * Maximum amount of items extracted per operation.
      */
-    private int maxItemsExtracted = Container.LARGE_MAX_STACK_SIZE;
+    private int maxItemsExtracted;
     // Is lazily initialized when it is needed and reset to null if any of the config changes
     @Nullable
     private ItemCachedFilter cachedFilter;
@@ -83,12 +82,12 @@ public class ItemAttachedIo extends AbstractAttachedIo {
             }
         }
 
-        this.filterDamage = readEnum(FilterDamageMode.values(), configData, "filterDamage");
-        this.filterNbt = readEnum(FilterNbtMode.values(), configData, "filterNbt");
-        this.filterMod = readEnum(FilterModMode.values(), configData, "filterMod");
-        this.filterSimilar = readEnum(FilterSimilarMode.values(), configData, "filterSimilar");
-        this.routingMode = readEnum(RoutingMode.values(), configData, "routingMode");
-        this.oversendingMode = readEnum(OversendingMode.values(), configData, "oversendingMode");
+        this.filterDamage = readEnum(FilterDamageMode.values(), configData, "filterDamage", FilterDamageMode.RESPECT_DAMAGE);
+        this.filterNbt = readEnum(FilterNbtMode.values(), configData, "filterNbt", FilterNbtMode.RESPECT_NBT);
+        this.filterMod = readEnum(FilterModMode.values(), configData, "filterMod", FilterModMode.IGNORE_MOD);
+        this.filterSimilar = readEnum(FilterSimilarMode.values(), configData, "filterSimilar", FilterSimilarMode.IGNORE_SIMILAR);
+        this.routingMode = readEnum(RoutingMode.values(), configData, "routingMode", RoutingMode.CLOSEST);
+        this.oversendingMode = readEnum(OversendingMode.values(), configData, "oversendingMode", OversendingMode.PREVENT_OVERSENDING);
         if (configData.contains("maxItemsExtracted", Tag.TAG_INT)) {
             this.maxItemsExtracted = Mth.clamp(configData.getInt("maxItemsExtracted"),
                     1, getMaxItemsExtractedMaximum());

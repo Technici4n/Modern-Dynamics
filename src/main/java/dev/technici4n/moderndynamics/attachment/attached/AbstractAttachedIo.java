@@ -29,14 +29,14 @@ import java.util.Set;
 import net.minecraft.nbt.CompoundTag;
 
 public abstract class AbstractAttachedIo extends AttachedAttachment {
-    private FilterInversionMode filterInversion = FilterInversionMode.WHITELIST;
-    private RedstoneMode redstoneMode = RedstoneMode.IGNORED;
+    private FilterInversionMode filterInversion;
+    private RedstoneMode redstoneMode;
 
     public AbstractAttachedIo(AttachmentItem item, CompoundTag configData) {
         super(item, configData);
 
-        this.filterInversion = readEnum(FilterInversionMode.values(), configData, "filterInversion");
-        this.redstoneMode = readEnum(RedstoneMode.values(), configData, "redstoneMode");
+        this.filterInversion = readEnum(FilterInversionMode.values(), configData, "filterInversion", FilterInversionMode.BLACKLIST);
+        this.redstoneMode = readEnum(RedstoneMode.values(), configData, "redstoneMode", RedstoneMode.IGNORED);
     }
 
     @Override
@@ -91,21 +91,16 @@ public abstract class AbstractAttachedIo extends AttachedAttachment {
         return getItem().getSupportedSettings();
     }
 
-    protected static <T extends Enum<T>> T readEnum(T[] enumValues, CompoundTag tag, String key) {
+    protected static <T extends Enum<T>> T readEnum(T[] enumValues, CompoundTag tag, String key, T defaultValue) {
         var idx = tag.getByte(key);
-        if (idx > 0 && idx < enumValues.length) {
-            return enumValues[idx];
+        if (!tag.contains(key) || idx < 0 || idx >= enumValues.length) {
+            return defaultValue;
         } else {
-            // TODO LOG
-            return enumValues[0];
+            return enumValues[idx];
         }
     }
 
     protected static <T extends Enum<T>> void writeEnum(T enumValue, CompoundTag tag, String key) {
-        if (enumValue.ordinal() == 0) {
-            tag.remove(key);
-        } else {
-            tag.putByte(key, (byte) enumValue.ordinal());
-        }
+        tag.putByte(key, (byte) enumValue.ordinal());
     }
 }
