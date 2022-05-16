@@ -24,8 +24,10 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 /**
  * Exponential window interpolation of the traveled distance predicted on the client and received from the server,
  * to reduce visible jitter.
+ * Also keeps track of a client tick counter.
  */
 public class ClientTravelingItemSmoothing {
+
     public static void onUnpausedTick() {
         // Cleanup items that are not used anymore
         for (var it = INFOS.values().iterator(); it.hasNext();) {
@@ -35,6 +37,8 @@ public class ClientTravelingItemSmoothing {
                 it.remove();
             }
         }
+
+        clientTick++;
     }
 
     public static void onReceiveItem(ClientTravelingItem item) {
@@ -63,7 +67,12 @@ public class ClientTravelingItemSmoothing {
         return offset;
     }
 
+    public static long getClientTick() {
+        return clientTick;
+    }
+
     private static final Int2ObjectMap<SmoothingInfo> INFOS = new Int2ObjectOpenHashMap<>();
+    private static long clientTick = 0;
 
     private static class SmoothingInfo {
         double lastTraveledDistance;
