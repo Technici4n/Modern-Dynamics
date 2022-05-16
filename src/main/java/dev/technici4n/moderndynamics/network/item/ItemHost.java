@@ -25,6 +25,8 @@ import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.TickHelper;
+import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItem;
+import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItemSmoothing;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
@@ -41,6 +43,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -404,10 +407,12 @@ public class ItemHost extends NodeHost {
             ListTag list = new ListTag();
             for (var travelingItem : travelingItems) {
                 CompoundTag compound = new CompoundTag();
+                compound.putInt("id", travelingItem.id);
                 compound.put("v", travelingItem.variant.toNbt());
                 compound.putLong("a", travelingItem.amount);
+                compound.putDouble("td", travelingItem.getPathLength() - 1);
+                compound.putDouble("d", travelingItem.traveledDistance);
                 int currentBlock = (int) Math.floor(travelingItem.traveledDistance);
-                compound.putDouble("d", travelingItem.traveledDistance - currentBlock);
                 compound.putByte("in", (byte) travelingItem.path.path[currentBlock].get3DDataValue());
                 compound.putByte("out", (byte) travelingItem.path.path[currentBlock + 1].get3DDataValue());
                 compound.putDouble("s", travelingItem.getSpeed());
@@ -425,13 +430,41 @@ public class ItemHost extends NodeHost {
         ListTag list = tag.getList("travelingItems", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); ++i) {
             CompoundTag compound = list.getCompound(i);
-            clientTravelingItems.add(new ClientTravelingItem(
+            var newItem = new ClientTravelingItem(
+                    compound.getInt("id"),
                     ItemVariant.fromNbt(compound.getCompound("v")),
                     compound.getLong("a"),
+                    compound.getDouble("td"),
                     compound.getDouble("d"),
                     Direction.from3DDataValue(compound.getByte("in")),
                     Direction.from3DDataValue(compound.getByte("out")),
-                    compound.getDouble("s")));
+                    compound.getDouble("s"));
+            clientTravelingItems.add(newItem);
+            ClientTravelingItemSmoothing.onReceiveItem(newItem);
+        }
+    }
+
+    @Override
+    public void clientTick() {
+        for (var it = clientTravelingItems.iterator(); it.hasNext();) {
+            ClientTravelingItem travelingItem = it.next();
+            travelingItem.traveledDistance += travelingItem.speed();
+
+            if (Mth.frac(travelingItem.traveledDistance) < travelingItem.speed()) {
+                // Goes out of this pipe!
+                it.remove();
+                if (travelingItem.traveledDistance < travelingItem.totalPathDistance) {
+                    // Add to next pipe
+                    if (getLevel().getBlockEntity(getPos().relative(travelingItem.out)) instanceof PipeBlockEntity otherPipe) {
+                        for (var host : otherPipe.getHosts()) {
+                            if (host instanceof ItemHost otherItemHost) {
+                                otherItemHost.clientTravelingItems.add(travelingItem);
+                                travelingItem.in = travelingItem.out; // ensure item appears from the correct side
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

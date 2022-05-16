@@ -20,10 +20,14 @@ package dev.technici4n.moderndynamics.network.item;
 
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.nbt.CompoundTag;
 
 public class TravelingItem {
+    private static final AtomicInteger NEXT_ID = new AtomicInteger();
+
+    public final int id = NEXT_ID.getAndIncrement();
     public final ItemVariant variant;
     public final long amount;
     public final ItemPath path;

@@ -22,6 +22,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.network.fluid.FluidHost;
 import dev.technici4n.moderndynamics.network.item.ItemHost;
+import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItemSmoothing;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -29,6 +30,7 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEntity> {
@@ -48,7 +50,7 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
                     Vec3 from, to;
                     double ratio;
 
-                    var distance = item.traveledDistance() + tickDelta * item.speed();
+                    var distance = Mth.frac(item.traveledDistance()) + ClientTravelingItemSmoothing.getAndUpdateDistanceDelta(item);
                     if (distance <= 0.5) {
                         from = findFaceMiddle(item.in().getOpposite());
                         to = CENTER;

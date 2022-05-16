@@ -448,4 +448,10 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         Preconditions.checkState(isClientSide());
         return clientSideConnections;
     }
+
+    public void clientTick() {
+        for (var host : getHosts()) {
+            host.clientTick();
+        }
+    }
 }

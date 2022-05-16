@@ -25,11 +25,13 @@ import dev.technici4n.moderndynamics.gui.screen.ItemAttachedIoScreen;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.model.MdModelLoader;
+import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItemSmoothing;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -58,6 +60,11 @@ public final class ModernDynamicsClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER::handleS2C);
 
         WorldRenderEvents.BLOCK_OUTLINE.register(this::renderPipeAttachmentOutline);
+        ClientTickEvents.START_CLIENT_TICK.register(mc -> {
+            if (!mc.isPaused()) {
+                ClientTravelingItemSmoothing.onUnpausedTick();
+            }
+        });
     }
 
     /**

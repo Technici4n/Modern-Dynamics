@@ -25,6 +25,7 @@ import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.EnumSet;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
@@ -33,6 +34,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,6 +57,14 @@ public abstract class NodeHost {
 
     protected NodeHost(PipeBlockEntity pipe) {
         this.pipe = pipe;
+    }
+
+    public Level getLevel() {
+        return pipe.getLevel();
+    }
+
+    public BlockPos getPos() {
+        return pipe.getBlockPos();
     }
 
     @Nullable
@@ -233,6 +243,9 @@ public abstract class NodeHost {
 
     @MustBeInvokedByOverriders
     public void readClientNbt(CompoundTag tag) {
+    }
+
+    public void clientTick() {
     }
 
     public void onRemoved() {
