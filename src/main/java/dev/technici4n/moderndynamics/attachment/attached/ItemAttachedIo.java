@@ -182,7 +182,7 @@ public class ItemAttachedIo extends AbstractAttachedIo {
     @Override
     public AttachmentModelData getModelData() {
         if (isStuffed()) {
-            return AttachmentModelData.from(getItem().attachment.getStuffed());
+            return AttachmentModelData.from(getItem().attachment.getStuffed(), getItem());
         }
         return super.getModelData();
     }

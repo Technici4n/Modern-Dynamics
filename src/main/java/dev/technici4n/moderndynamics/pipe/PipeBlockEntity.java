@@ -46,6 +46,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -438,6 +439,12 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         }
 
         return null;
+    }
+
+    public ItemStack overridePickBlock(HitResult hitResult) {
+        Vec3 posInBlock = hitResult.getLocation().subtract(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ());
+        Direction side = hitTestAttachments(posInBlock);
+        return side != null ? new ItemStack(clientModelData.attachments()[side.get3DDataValue()].getItem()) : ItemStack.EMPTY;
     }
 
     public void onRemoved() {

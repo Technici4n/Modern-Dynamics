@@ -68,7 +68,7 @@ public class AttachedAttachment {
     }
 
     public AttachmentModelData getModelData() {
-        return AttachmentModelData.from(getItem().attachment);
+        return AttachmentModelData.from(getItem().attachment, getItem());
     }
 
     public boolean allowsItemConnection() {

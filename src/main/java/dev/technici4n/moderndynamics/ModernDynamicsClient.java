@@ -36,10 +36,13 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.event.client.player.ClientPickBlockGatherCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.BlockHitResult;
 
 public final class ModernDynamicsClient implements ClientModInitializer {
     @Override
@@ -64,6 +67,14 @@ public final class ModernDynamicsClient implements ClientModInitializer {
             if (!mc.isPaused()) {
                 ClientTravelingItemSmoothing.onUnpausedTick();
             }
+        });
+        ClientPickBlockGatherCallback.EVENT.register((player, hitResult) -> {
+            if (hitResult instanceof BlockHitResult bir) {
+                if (player.getLevel().getBlockEntity(bir.getBlockPos()) instanceof PipeBlockEntity pipe) {
+                    return pipe.overridePickBlock(hitResult);
+                }
+            }
+            return ItemStack.EMPTY;
         });
     }
 

@@ -19,35 +19,49 @@
 package dev.technici4n.moderndynamics.model;
 
 import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.Nullable;
 
 public final class AttachmentModelData {
     private final String modelId;
+    /**
+     * Also available to make "block picking" work on the client.
+     */
+    private final Item item;
 
-    private AttachmentModelData(String modelId) {
+    private AttachmentModelData(String modelId, Item item) {
         this.modelId = modelId;
+        this.item = item;
     }
 
     public String getModelId() {
         return modelId;
     }
 
+    public Item getItem() {
+        return item;
+    }
+
     public CompoundTag write(CompoundTag tag) {
         tag.putString("model", modelId);
+        tag.putString("item", Registry.ITEM.getKey(item).toString());
         return tag;
     }
 
     @Nullable
     public static AttachmentModelData from(CompoundTag tag) {
         var modelId = tag.getString("model");
+        var item = Registry.ITEM.get(new ResourceLocation(tag.getString("item")));
         if (!modelId.isEmpty()) {
-            return new AttachmentModelData(modelId);
+            return new AttachmentModelData(modelId, item);
         }
         return null;
     }
 
-    public static AttachmentModelData from(RenderedAttachment rendered) {
-        return new AttachmentModelData(rendered.id);
+    public static AttachmentModelData from(RenderedAttachment rendered, Item item) {
+        return new AttachmentModelData(rendered.id, item);
     }
 }
