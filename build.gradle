@@ -2,13 +2,17 @@ plugins {
     id 'fabric-loom' version '0.12-SNAPSHOT'
     id 'maven-publish'
     id 'com.diffplug.spotless' version '5.14.0'
+    id 'com.matthewprenger.cursegradle' version '1.4.0'
+    id "com.modrinth.minotaur" version "1.2.1"
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
 archivesBaseName = project.archives_base_name
-version = project.mod_version
+version = System.getenv("MOD_VERSION")
+        ? System.getenv("MOD_VERSION")
+        : "local"
 group = project.maven_group
 
 repositories {
@@ -204,4 +208,61 @@ final class JsonOrderStep {
 
         private final int formatVersion = 1;
     }
+}
+
+def releaseChannel = "release"
+def changelog = "Please visit our github repository for a changelog: https://github.com/Technici4n/Modern-Dynamics/releases."
+if (version.toLowerCase().contains("alpha")) {
+    releaseChannel = "alpha"
+    changelog = "THIS IS AN ALPHA RELEASE, MAKE A BACKUP BEFORE INSTALLING AND FREQUENTLY WHILE PLAYING, AND PLEASE REPORT ANY ISSUE YOU MAY FIND ON OUR ISSUE TRACKER.\n\n" + changelog
+} else if (version.toLowerCase().contains("beta")) {
+    releaseChannel = "beta"
+    changelog = "This is a beta release. It is expected to be mostly stable, but in any case please report any issue you may find.\n\n" + changelog
+}
+
+// Publishing
+if (System.getenv("CURSEFORGE_API_KEY") && !version.endsWith("-SNAPSHOT")) {
+    curseforge {
+        apiKey = System.getenv().get("CURSEFORGE_API_KEY")
+        project {
+            id = project.curseforge_project
+            releaseType = releaseChannel
+            changelogType = "markdown"
+            delegate.changelog = changelog
+
+            addGameVersion "1.18.2"
+            addGameVersion "Fabric"
+            addGameVersion "Java 17"
+
+            relations {
+                requiredDependency "fabric-api"
+            }
+            mainArtifact(remapJar.archiveFile) {
+                displayName = "Modern Dynamics v${version}"
+            }
+        }
+        options {
+            forgeGradleIntegration = false
+        }
+        afterEvaluate {
+            tasks.getByName("curseforge${project.curseforge_project}").dependsOn remapJar
+        }
+    }
+}
+
+import com.modrinth.minotaur.TaskModrinthUpload
+
+task publishModrinth (type: TaskModrinthUpload){
+    onlyIf {
+        System.getenv("MODRINTH_API_KEY") && !version.endsWith("-SNAPSHOT")
+    }
+    token = System.getenv("MODRINTH_API_KEY")
+    projectId = project.modrinth_project
+    versionNumber = version
+    versionName = "Modern Dynamics v${version}"
+    delegate.changelog = changelog
+    versionType = releaseChannel.toUpperCase()
+    uploadFile = remapJar.archiveFile
+    addGameVersion "1.18.2"
+    addLoader "fabric"
 }
