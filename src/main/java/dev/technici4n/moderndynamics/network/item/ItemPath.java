@@ -21,6 +21,7 @@ package dev.technici4n.moderndynamics.network.item;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkNode;
+import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.function.Predicate;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.BlockPos;
@@ -72,7 +73,16 @@ public class ItemPath {
      * Return the predicate for the attachment at the very end of the pipe.
      */
     Predicate<ItemVariant> getEndFilter(ServerLevel level) {
-        return getEndAttachment(level) instanceof ItemAttachedIo io ? io::matchesItemFilter : v -> true;
+        var endPipe = targetPos.relative(path[path.length - 1].getOpposite());
+        if (level.getBlockEntity(endPipe) instanceof PipeBlockEntity pipe) {
+            if (pipe.getAttachment(path[path.length - 1]) instanceof ItemAttachedIo io) {
+                if (!io.isEnabledViaRedstone(pipe)) {
+                    return v -> false;
+                }
+                return io::matchesItemFilter;
+            }
+        }
+        return v -> true;
     }
 
     public ItemPath reverse() {

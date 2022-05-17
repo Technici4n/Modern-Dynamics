@@ -30,7 +30,7 @@ import net.minecraft.world.MenuProvider;
 import org.jetbrains.annotations.Nullable;
 
 // TODO: also allow nbt filtering
-public class FluidAttachedIo extends AbstractAttachedIo {
+public class FluidAttachedIo extends AttachedIo {
     private final NonNullList<FluidVariant> filters;
     @Nullable
     private FluidCachedFilter cachedFilter = null;

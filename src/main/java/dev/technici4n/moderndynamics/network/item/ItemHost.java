@@ -122,7 +122,7 @@ public class ItemHost extends NodeHost {
         long currentTick = TickHelper.getTickCounter();
         for (var side : Direction.values()) {
             var attachment = getAttachment(side);
-            if (attachment instanceof ItemAttachedIo itemAttachedIo) {
+            if (attachment instanceof ItemAttachedIo itemAttachedIo && itemAttachedIo.isEnabledViaRedstone(pipe)) {
                 if (currentTick - lastOperationTick[side.get3DDataValue()] < itemAttachedIo.getTier().transferFrequency)
                     continue;
                 lastOperationTick[side.get3DDataValue()] = currentTick;
@@ -234,7 +234,8 @@ public class ItemHost extends NodeHost {
                 }
                 long inserted = 0;
                 // Check filter.
-                if (!checkAttachments || !(getAttachment(side) instanceof ItemAttachedIo io) || io.matchesItemFilter(travelingItem.variant)) {
+                if (!checkAttachments || !(getAttachment(side) instanceof ItemAttachedIo io) ||
+                        io.matchesItemFilter(travelingItem.variant) && io.isEnabledViaRedstone(pipe)) {
                     try (var transaction = Transaction.openOuter()) {
                         inserted = storage.insert(travelingItem.variant, travelingItem.amount, transaction);
                         transaction.commit();

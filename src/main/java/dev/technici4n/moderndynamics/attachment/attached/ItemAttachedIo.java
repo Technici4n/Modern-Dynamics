@@ -46,7 +46,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-public class ItemAttachedIo extends AbstractAttachedIo {
+public class ItemAttachedIo extends AttachedIo {
 
     private final Map<ItemVariant, Long> stuffedItems = new LinkedHashMap<>(); // TODO: read/write nbt
 
@@ -318,7 +318,7 @@ public class ItemAttachedIo extends AbstractAttachedIo {
                 long inserted = targetStorage.insert(entry.getKey(), Math.min(stuffedAmount, maxAmount - totalMoved), tx);
 
                 if (inserted > 0) {
-                    totalMoved -= inserted;
+                    totalMoved += inserted;
 
                     if (inserted < stuffedAmount) {
                         entry.setValue(stuffedAmount - inserted);

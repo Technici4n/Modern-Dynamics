@@ -19,7 +19,7 @@
 package dev.technici4n.moderndynamics.gui.menu;
 
 import dev.technici4n.moderndynamics.attachment.Setting;
-import dev.technici4n.moderndynamics.attachment.attached.AbstractAttachedIo;
+import dev.technici4n.moderndynamics.attachment.attached.AttachedIo;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.gui.MdPackets;
@@ -33,7 +33,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 // TODO: need to find a clean way to sync changes done by other players
-public class AttachedIoMenu<A extends AbstractAttachedIo> extends AbstractContainerMenu {
+public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu {
     public final PipeBlockEntity pipe;
     public final Direction side;
     public final A attachment;
@@ -123,15 +123,6 @@ public class AttachedIoMenu<A extends AbstractAttachedIo> extends AbstractContai
     }
 
     public boolean isEnabledViaRedstone() {
-        if (getRedstoneMode() == RedstoneMode.IGNORED) {
-            return true;
-        }
-
-        var signal = pipe.getLevel().hasNeighborSignal(pipe.getBlockPos());
-        if (signal) {
-            return getRedstoneMode() == RedstoneMode.REQUIRES_HIGH;
-        } else {
-            return getRedstoneMode() == RedstoneMode.REQUIRES_LOW;
-        }
+        return attachment.isEnabledViaRedstone(pipe);
     }
 }

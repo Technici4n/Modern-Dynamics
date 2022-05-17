@@ -25,14 +25,15 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
+import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.Set;
 import net.minecraft.nbt.CompoundTag;
 
-public abstract class AbstractAttachedIo extends AttachedAttachment {
+public abstract class AttachedIo extends AttachedAttachment {
     private FilterInversionMode filterInversion;
     private RedstoneMode redstoneMode;
 
-    public AbstractAttachedIo(AttachmentItem item, CompoundTag configData) {
+    public AttachedIo(AttachmentItem item, CompoundTag configData) {
         super(item, configData);
 
         this.filterInversion = readEnum(FilterInversionMode.values(), configData, "filterInversion", FilterInversionMode.BLACKLIST);
@@ -102,5 +103,19 @@ public abstract class AbstractAttachedIo extends AttachedAttachment {
 
     protected static <T extends Enum<T>> void writeEnum(T enumValue, CompoundTag tag, String key) {
         tag.putByte(key, (byte) enumValue.ordinal());
+    }
+
+    // TODO: be smart and cache this
+    public boolean isEnabledViaRedstone(PipeBlockEntity pipe) {
+        if (getRedstoneMode() == RedstoneMode.IGNORED) {
+            return true;
+        }
+
+        var signal = pipe.getLevel().hasNeighborSignal(pipe.getBlockPos());
+        if (signal) {
+            return getRedstoneMode() == RedstoneMode.REQUIRES_HIGH;
+        } else {
+            return getRedstoneMode() == RedstoneMode.REQUIRES_LOW;
+        }
     }
 }

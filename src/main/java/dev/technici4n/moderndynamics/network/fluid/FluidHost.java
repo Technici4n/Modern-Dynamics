@@ -23,7 +23,7 @@ import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
-import dev.technici4n.moderndynamics.attachment.attached.AbstractAttachedIo;
+import dev.technici4n.moderndynamics.attachment.attached.AttachedIo;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
@@ -115,7 +115,7 @@ public class FluidHost extends NodeHost {
     @Override
     public boolean canConnectTo(Direction connectionDirection, NodeHost adjacentHost) {
         var attachment = getAttachment(connectionDirection);
-        if (attachment instanceof AbstractAttachedIo) {
+        if (attachment instanceof AttachedIo) {
             return false;
         }
         return super.canConnectTo(connectionDirection, adjacentHost) && hasCompatibleFluid(adjacentHost);
@@ -135,8 +135,8 @@ public class FluidHost extends NodeHost {
 
     @Override
     public void onConnectionRejectedTo(Direction direction, NodeHost other) {
-        if (getAttachment(direction) instanceof AbstractAttachedIo
-                || other.getAttachment(direction.getOpposite()) instanceof AbstractAttachedIo) {
+        if (getAttachment(direction) instanceof AttachedIo
+                || other.getAttachment(direction.getOpposite()) instanceof AttachedIo) {
             // rejected because of attachment: nothing to do
             return;
         }
