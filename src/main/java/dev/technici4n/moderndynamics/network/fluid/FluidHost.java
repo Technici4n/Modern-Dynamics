@@ -246,7 +246,7 @@ public class FluidHost extends NodeHost {
 
     private long getNetworkToOutsideLimit(Direction side, FluidVariant variant) {
         if (getAttachment(side) instanceof FluidAttachedIo io) {
-            if (!io.matchesFilter(variant)) {
+            if (!io.matchesFilter(variant) || !io.isEnabledViaRedstone(pipe)) {
                 return 0;
             }
             if (io.getType() == IoAttachmentType.SERVO)
@@ -260,7 +260,7 @@ public class FluidHost extends NodeHost {
 
     private long getOutsideToNetworkLimit(Direction side, FluidVariant variant) {
         if (getAttachment(side) instanceof FluidAttachedIo io) {
-            if (!io.matchesFilter(variant)) {
+            if (!io.matchesFilter(variant) || !io.isEnabledViaRedstone(pipe)) {
                 return 0;
             }
             if (io.getType() == IoAttachmentType.RETRIEVER)

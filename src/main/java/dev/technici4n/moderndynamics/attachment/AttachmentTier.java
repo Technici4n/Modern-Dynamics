@@ -21,9 +21,9 @@ package dev.technici4n.moderndynamics.attachment;
 import net.minecraft.world.item.Rarity;
 
 public enum AttachmentTier {
-    IRON(3, 4, 40, 1, 2, Rarity.COMMON),
-    GOLD(9, 16, 20, 2, 4, Rarity.UNCOMMON),
-    DIAMOND(15, 64, 10, 4, 10, Rarity.RARE),
+    IRON(3, 4, 40, 1, 1, Rarity.COMMON),
+    GOLD(9, 16, 20, 2, 2, Rarity.UNCOMMON),
+    DIAMOND(15, 64, 10, 4, 4, Rarity.RARE),
     ;
 
     public final int filterSize;

@@ -23,7 +23,7 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 // All the things that should be moved to a config "one day"
 public class Constants {
     public static class Fluids {
-        public static final long BASE_IO = FluidConstants.BUCKET / 20;
+        public static final long BASE_IO = FluidConstants.BUCKET / 50;
         public static final long CAPACITY = FluidConstants.BUCKET;
     }
 
