@@ -33,11 +33,11 @@ jobs:
           asset_content_type: application/zip
       - name: Upload to Curseforge
         env:
-          MI_VERSION: ${{ github.event.release.tag_name }}
+          MOD_VERSION: ${{ github.event.release.tag_name }}
           CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
         run: ./gradlew curseforge552758
       - name: Upload to Modrinth
         env:
-          MI_VERSION: ${{ github.event.release.tag_name }}
+          MOD_VERSION: ${{ github.event.release.tag_name }}
           MODRINTH_API_KEY: ${{ secrets.MODRINTH_API_KEY }}
         run: ./gradlew publishModrinth
