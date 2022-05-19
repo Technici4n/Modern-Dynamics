@@ -16,15 +16,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.util;
+package dev.technici4n.moderndynamics.client;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.player.Player;
+import dev.technici4n.moderndynamics.MdProxy;
+import net.minecraft.client.gui.screens.Screen;
 
-/**
- * A packet handler that works both client-side and server-side.
- */
-@FunctionalInterface
-public interface UnsidedPacketHandler {
-    Runnable handlePacket(Player player, FriendlyByteBuf buf);
+public class ClientProxy extends MdProxy {
+    @Override
+    public boolean isShiftDown() {
+        return Screen.hasShiftDown();
+    }
 }

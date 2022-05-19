@@ -19,7 +19,6 @@
 package dev.technici4n.moderndynamics;
 
 import com.google.common.base.Preconditions;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -90,7 +89,7 @@ public abstract class MdBlockEntity extends BlockEntity {
 
     public final void remesh() {
         Preconditions.checkNotNull(level);
-        if (!(level instanceof ClientLevel))
+        if (!level.isClientSide())
             throw new IllegalStateException("Cannot call remesh() on the server!");
 
         level.sendBlockUpdated(worldPosition, null, null, 0);

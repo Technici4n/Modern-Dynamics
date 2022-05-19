@@ -21,7 +21,7 @@
       "dev.technici4n.moderndynamics.ModernDynamics"
     ],
     "client": [
-      "dev.technici4n.moderndynamics.ModernDynamicsClient"
+      "dev.technici4n.moderndynamics.client.ModernDynamicsClient"
     ],
     "fabric-datagen": [
       "dev.technici4n.moderndynamics.data.DataGenerators"

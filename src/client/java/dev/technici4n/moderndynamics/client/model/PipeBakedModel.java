@@ -16,9 +16,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.model;
+package dev.technici4n.moderndynamics.client.model;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
+import dev.technici4n.moderndynamics.model.PipeModelData;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;

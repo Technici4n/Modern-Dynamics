@@ -16,9 +16,23 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.gui.screen;
+package dev.technici4n.moderndynamics;
 
-import net.minecraft.network.chat.Component;
+import net.fabricmc.loader.api.FabricLoader;
 
-record CycleSetting<T> (T value, Component tooltip, int spriteX, int spriteY) {
+public class MdProxy {
+    public static final MdProxy INSTANCE = switch (FabricLoader.getInstance().getEnvironmentType()) {
+    case SERVER -> new MdProxy();
+    case CLIENT -> {
+        try {
+            yield (MdProxy) Class.forName("dev.technici4n.moderndynamics.client.ClientProxy").getConstructor().newInstance();
+        } catch (Exception exception) {
+            throw new RuntimeException("Failed to instantiate Modern Dynamics client proxy.", exception);
+        }
+    }
+    };
+
+    public boolean isShiftDown() {
+        return false;
+    }
 }

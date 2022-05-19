@@ -16,19 +16,20 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics;
+package dev.technici4n.moderndynamics.client;
 
 import dev.technici4n.moderndynamics.client.ber.PipeBlockEntityRenderer;
+import dev.technici4n.moderndynamics.client.model.MdModelLoader;
+import dev.technici4n.moderndynamics.client.screen.FluidAttachedIoScreen;
+import dev.technici4n.moderndynamics.client.screen.ItemAttachedIoScreen;
 import dev.technici4n.moderndynamics.gui.MdPackets;
-import dev.technici4n.moderndynamics.gui.screen.FluidAttachedIoScreen;
-import dev.technici4n.moderndynamics.gui.screen.ItemAttachedIoScreen;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdMenus;
-import dev.technici4n.moderndynamics.model.MdModelLoader;
 import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItemSmoothing;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes;
+import dev.technici4n.moderndynamics.util.UnsidedPacketHandler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -41,6 +42,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 
@@ -60,9 +62,9 @@ public final class ModernDynamicsClient implements ClientModInitializer {
         MenuScreens.register(MdMenus.ITEM_IO, ItemAttachedIoScreen::new);
         MenuScreens.register(MdMenus.FLUID_IO, FluidAttachedIoScreen::new);
 
-        ClientPlayNetworking.registerGlobalReceiver(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER::handleS2C);
+        registerPacketHandler(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER);
 
-        WorldRenderEvents.BLOCK_OUTLINE.register(this::renderPipeAttachmentOutline);
+        WorldRenderEvents.BLOCK_OUTLINE.register(ModernDynamicsClient::renderPipeAttachmentOutline);
         ClientTickEvents.START_CLIENT_TICK.register(mc -> {
             if (!mc.isPaused()) {
                 ClientTravelingItemSmoothing.onUnpausedTick();
@@ -78,10 +80,15 @@ public final class ModernDynamicsClient implements ClientModInitializer {
         });
     }
 
+    private static void registerPacketHandler(ResourceLocation channelId, UnsidedPacketHandler unsidedPacketHandler) {
+        ClientPlayNetworking.registerGlobalReceiver(channelId,
+                (mc, handler, buf, responseSender) -> unsidedPacketHandler.handlePacket(mc.player, buf));
+    }
+
     /**
      * Highlights only the pipe attachment when it's under the mouse cursor to indicate it has special interactions.
      */
-    private boolean renderPipeAttachmentOutline(WorldRenderContext worldRenderContext,
+    private static boolean renderPipeAttachmentOutline(WorldRenderContext worldRenderContext,
             WorldRenderContext.BlockOutlineContext blockOutlineContext) {
 
         if (blockOutlineContext.blockState().getBlock() instanceof PipeBlock) {
@@ -113,6 +120,5 @@ public final class ModernDynamicsClient implements ClientModInitializer {
         }
 
         return true;
-
     }
 }

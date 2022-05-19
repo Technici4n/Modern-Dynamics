@@ -84,6 +84,15 @@ sourceSets {
 loom {
     accessWidenerPath = file("src/main/resources/moderndynamics.accesswidener")
 
+    splitEnvironmentSourceSets()
+
+    mods {
+        moderndynamics {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+        }
+    }
+
     runs {
         datagenClient {
             client()
@@ -93,7 +102,6 @@ loom {
 
             ideConfigGenerated = true
             runDir "build/datagen"
-            source sourceSets.main
         }
         // Use to run the tests
         gametest {
