@@ -71,6 +71,7 @@ public class ModernDynamics implements ModInitializer {
     }
 
     private static void registerPacketHandler(ResourceLocation channelId, UnsidedPacketHandler unsidedPacketHandler) {
-        ServerPlayNetworking.registerGlobalReceiver(channelId, (ms, player, handler, buf, responseSender) -> unsidedPacketHandler.handlePacket(player, buf));
+        ServerPlayNetworking.registerGlobalReceiver(channelId,
+                (ms, player, handler, buf, responseSender) -> unsidedPacketHandler.handlePacket(player, buf));
     }
 }

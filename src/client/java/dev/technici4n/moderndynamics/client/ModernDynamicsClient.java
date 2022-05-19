@@ -19,12 +19,12 @@
 package dev.technici4n.moderndynamics.client;
 
 import dev.technici4n.moderndynamics.client.ber.PipeBlockEntityRenderer;
+import dev.technici4n.moderndynamics.client.model.MdModelLoader;
+import dev.technici4n.moderndynamics.client.screen.FluidAttachedIoScreen;
+import dev.technici4n.moderndynamics.client.screen.ItemAttachedIoScreen;
 import dev.technici4n.moderndynamics.gui.MdPackets;
-import dev.technici4n.moderndynamics.client.gui.screen.FluidAttachedIoScreen;
-import dev.technici4n.moderndynamics.client.gui.screen.ItemAttachedIoScreen;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdMenus;
-import dev.technici4n.moderndynamics.client.model.model.MdModelLoader;
 import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItemSmoothing;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
@@ -81,7 +81,8 @@ public final class ModernDynamicsClient implements ClientModInitializer {
     }
 
     private static void registerPacketHandler(ResourceLocation channelId, UnsidedPacketHandler unsidedPacketHandler) {
-        ClientPlayNetworking.registerGlobalReceiver(channelId, (mc, handler, buf, responseSender) -> unsidedPacketHandler.handlePacket(mc.player, buf));
+        ClientPlayNetworking.registerGlobalReceiver(channelId,
+                (mc, handler, buf, responseSender) -> unsidedPacketHandler.handlePacket(mc.player, buf));
     }
 
     /**
