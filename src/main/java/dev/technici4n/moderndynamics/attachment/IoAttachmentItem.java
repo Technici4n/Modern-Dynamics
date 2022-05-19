@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.attachment;
 
+import dev.technici4n.moderndynamics.MdProxy;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
@@ -27,7 +28,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -100,7 +100,7 @@ public class IoAttachmentItem extends AttachmentItem {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         if (level != null && level.isClientSide()) {
-            if (showExtraTooltipInfo()) {
+            if (MdProxy.INSTANCE.isShiftDown()) {
                 MutableComponent filters = null;
                 for (var setting : getSupportedSettings()) {
                     if (setting.isFilter()) {
@@ -121,9 +121,5 @@ public class IoAttachmentItem extends AttachmentItem {
                 tooltipComponents.add(new TranslatableComponent("gui.moderndynamics.tooltip.more_info", keyText).withStyle(ChatFormatting.GRAY));
             }
         }
-    }
-
-    private static boolean showExtraTooltipInfo() {
-        return Screen.hasShiftDown();
     }
 }

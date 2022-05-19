@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.model;
+package dev.technici4n.moderndynamics.client.model.model;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import java.util.List;
@@ -24,6 +24,8 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import dev.technici4n.moderndynamics.model.PipeModelData;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
