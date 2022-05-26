@@ -84,7 +84,7 @@ public abstract class AttachedIo extends AttachedAttachment {
 
     public void setUpgrade(int slot, ItemStack upgrade) {
         upgradeContainer.upgrades.set(slot, upgrade);
-        resetCachedFilter();
+        onUpgradesChanged();
     }
 
     public ItemStack removeUpgrade(int slot, int count) {
@@ -95,7 +95,7 @@ public abstract class AttachedIo extends AttachedAttachment {
         return upgradeContainer.mayPlaceUpgrade(slot, upgrade);
     }
 
-    public void setUpgradeChanged() {
+    public void onUpgradesChanged() {
         setChangedCallback.run();
         resetCachedFilter();
     }

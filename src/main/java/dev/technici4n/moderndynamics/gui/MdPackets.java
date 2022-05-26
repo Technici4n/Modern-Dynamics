@@ -31,7 +31,6 @@ import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import dev.technici4n.moderndynamics.util.MdId;
 import dev.technici4n.moderndynamics.util.UnsidedPacketHandler;
 import io.netty.buffer.Unpooled;
-import java.util.function.BiConsumer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.network.FriendlyByteBuf;
@@ -125,7 +124,7 @@ public class MdPackets {
         sendSetInt(syncId, SET_MAX_ITEMS_IN_INVENTORY, value);
     }
 
-    public static final ResourceLocation SET_MAX_ITEMS_EXTRACTED = MdId.of("set_max_items_in_inventory");
+    public static final ResourceLocation SET_MAX_ITEMS_EXTRACTED = MdId.of("set_max_items_extracted");
     public static final UnsidedPacketHandler SET_MAX_ITEMS_EXTRACTED_HANDLER = createSetIntHandler(ItemAttachedIoMenu::setMaxItemsExtracted);
 
     public static void sendSetMaxItemsExtracted(int syncId, int value) {
@@ -140,14 +139,14 @@ public class MdPackets {
     }
 
     private static <T extends Enum<T>, M extends AbstractContainerMenu> UnsidedPacketHandler createSetEnumHandler(Class<T> enumClass,
-            Class<M> menuClass, BiConsumer<M, T> setter) {
+            Class<M> menuClass, EnumSetter<T, M> setter) {
         return (player, buf) -> {
             int syncId = buf.readInt();
             var enumValue = buf.readEnum(enumClass);
             return () -> {
                 AbstractContainerMenu handler = player.containerMenu;
                 if (handler.containerId == syncId) {
-                    setter.accept(menuClass.cast(handler), enumValue);
+                    setter.setEnum(menuClass.cast(handler), enumValue, false);
                 }
             };
         };
@@ -160,17 +159,24 @@ public class MdPackets {
         ClientPlayNetworking.send(packetId, buffer);
     }
 
-    private static UnsidedPacketHandler createSetIntHandler(BiConsumer<ItemAttachedIoMenu, Integer> setter) {
+    private static UnsidedPacketHandler createSetIntHandler(IntSetter setter) {
         return (player, buf) -> {
             int syncId = buf.readInt();
             var value = buf.readInt();
             return () -> {
                 AbstractContainerMenu handler = player.containerMenu;
                 if (handler.containerId == syncId && handler instanceof ItemAttachedIoMenu attachmentMenu) {
-                    setter.accept(attachmentMenu, value);
+                    setter.setInt(attachmentMenu, value, false);
                 }
             };
         };
     }
 
+    private interface EnumSetter<T extends Enum<T>, M extends AbstractContainerMenu> {
+        void setEnum(M menu, T value, boolean sendPacket);
+    }
+
+    private interface IntSetter {
+        void setInt(ItemAttachedIoMenu menu, int value, boolean sendPacket);
+    }
 }

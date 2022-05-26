@@ -34,7 +34,7 @@ public class UpgradeTypeBuilder {
 
     private final String item;
     private final int slotLimit;
-    private boolean enableAdvancedFiltering = false;
+    private boolean enableAdvancedBehavior = false;
     private int addFilterSlots = 0;
     private int addItemCount = 0;
     private int addItemSpeed = 0;
@@ -59,7 +59,7 @@ public class UpgradeTypeBuilder {
     }
 
     public UpgradeTypeBuilder advancedFiltering() {
-        this.enableAdvancedFiltering = true;
+        this.enableAdvancedBehavior = true;
         return this;
     }
 

@@ -90,8 +90,7 @@ public class ItemAttachedIo extends AttachedIo {
         this.routingMode = readEnum(RoutingMode.values(), configData, "routingMode", RoutingMode.CLOSEST);
         this.oversendingMode = readEnum(OversendingMode.values(), configData, "oversendingMode", OversendingMode.PREVENT_OVERSENDING);
         if (configData.contains("maxItemsExtracted", Tag.TAG_INT)) {
-            this.maxItemsExtracted = Mth.clamp(configData.getInt("maxItemsExtracted"),
-                    1, getMaxItemsExtractedMaximum());
+            setMaxItemsExtracted(configData.getInt("maxItemsExtracted"));
         } else {
             this.maxItemsExtracted = getMaxItemsExtractedMaximum();
         }
@@ -155,6 +154,13 @@ public class ItemAttachedIo extends AttachedIo {
         return configData;
     }
 
+    @Override
+    public void onUpgradesChanged() {
+        super.onUpgradesChanged();
+
+        setMaxItemsExtracted(getMaxItemsExtracted()); // make sure the value stays under the max if the max changes
+    }
+
     public boolean matchesItemFilter(ItemVariant variant) {
         return getCachedFilter().matchesItem(variant);
     }
@@ -168,10 +174,6 @@ public class ItemAttachedIo extends AttachedIo {
             this.filters.set(idx, variant);
             resetCachedFilter();
         }
-    }
-
-    public int getItemsPerOperation() {
-        return upgradeContainer.getItemsPerOperation();
     }
 
     public double getItemSpeedupFactor() {
@@ -297,7 +299,7 @@ public class ItemAttachedIo extends AttachedIo {
     }
 
     public int getMaxItemsExtractedMaximum() {
-        return 64; // TODO
+        return upgradeContainer.getItemsPerOperation();
     }
 
     private ItemCachedFilter getCachedFilter() {

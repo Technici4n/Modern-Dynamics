@@ -129,7 +129,7 @@ public class ItemHost extends NodeHost {
                 if (itemAttachedIo.getType() == IoAttachmentType.EXTRACTOR) {
                     if (itemAttachedIo.isStuffed()) {
                         // Move from stuffed items to network
-                        if (itemAttachedIo.moveStuffedToStorage(buildNetworkInjectStorage(side), itemAttachedIo.getItemsPerOperation()) > 0) {
+                        if (itemAttachedIo.moveStuffedToStorage(buildNetworkInjectStorage(side), itemAttachedIo.getMaxItemsExtracted()) > 0) {
                             pipe.setChanged();
                             if (!itemAttachedIo.isStuffed()) {
                                 pipe.sync();
@@ -143,7 +143,7 @@ public class ItemHost extends NodeHost {
                                 adjStorage,
                                 buildNetworkInjectStorage(side),
                                 itemAttachedIo::matchesItemFilter,
-                                itemAttachedIo.getItemsPerOperation(),
+                                itemAttachedIo.getMaxItemsExtracted(),
                                 null);
                     }
                 } else if (itemAttachedIo.getType() == IoAttachmentType.ATTRACTOR) {
@@ -152,7 +152,7 @@ public class ItemHost extends NodeHost {
                         var adjStorage = getAdjacentStorage(side, false);
                         if (adjStorage == null)
                             continue;
-                        if (itemAttachedIo.moveStuffedToStorage(adjStorage, itemAttachedIo.getItemsPerOperation()) > 0) {
+                        if (itemAttachedIo.moveStuffedToStorage(adjStorage, itemAttachedIo.getMaxItemsExtracted()) > 0) {
                             pipe.setChanged();
                             if (!itemAttachedIo.isStuffed()) {
                                 pipe.sync();
@@ -167,7 +167,7 @@ public class ItemHost extends NodeHost {
                         NetworkNode<ItemHost, ItemCache> thisNode = findNode();
                         var cache = thisNode.getNetworkCache();
                         var paths = cache.pathCache;
-                        long toTransfer = itemAttachedIo.getItemsPerOperation();
+                        long toTransfer = itemAttachedIo.getMaxItemsExtracted();
 
                         for (var path : paths.getPaths(thisNode, side.getOpposite())) {
                             var extractTarget = ItemStorage.SIDED.find(pipe.getLevel(), path.targetPos, path.path[path.path.length - 1]);

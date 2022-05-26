@@ -21,7 +21,7 @@ package dev.technici4n.moderndynamics.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -31,10 +31,10 @@ import net.minecraft.client.renderer.Rect2i;
 public class RedstoneModeButton extends Button {
     private final RedstoneMode mode;
     private final Supplier<RedstoneMode> getter;
-    private final Consumer<RedstoneMode> setter;
+    private final BiConsumer<RedstoneMode, Boolean> setter;
     private Rect2i scissorRect;
 
-    public RedstoneModeButton(RedstoneMode mode, Supplier<RedstoneMode> getter, Consumer<RedstoneMode> setter) {
+    public RedstoneModeButton(RedstoneMode mode, Supplier<RedstoneMode> getter, BiConsumer<RedstoneMode, Boolean> setter) {
         super(0, 0, 16, 16, mode.getTranslation(), button -> {
         });
         this.mode = mode;
@@ -44,7 +44,7 @@ public class RedstoneModeButton extends Button {
 
     @Override
     public void onPress() {
-        this.setter.accept(this.mode);
+        this.setter.accept(this.mode, true);
     }
 
     public void setScissorRect(Rect2i scissorRect) {

@@ -26,7 +26,6 @@ import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
@@ -117,17 +116,6 @@ public class PipeModelsProvider implements DataProvider {
         for (var attachment : RenderedAttachment.getAllAttachments()) {
             registerAttachment(cache, attachment, "attachment/" + attachment.id.toLowerCase(Locale.ROOT));
         }
-
-        // Now register the base model json.
-        var obj = new JsonObject();
-        for (var attachment : RenderedAttachment.getAllAttachments()) {
-            Path modelPath = gen.getOutputFolder().resolve("assets/%s/models/attachment/%s.json".formatted(gen.getModId(), attachment.id));
-            if (!Files.exists(modelPath)) {
-                throw new RuntimeException("Missing attachment json file: " + modelPath);
-            }
-            obj.addProperty(attachment.id, MdId.of("attachment/%s".formatted(attachment.id)).toString());
-        }
-        DataProvider.save(GSON, cache, obj, gen.getOutputFolder().resolve("assets/%s/models/attachments.json".formatted(gen.getModId())));
     }
 
     /**
@@ -135,7 +123,7 @@ public class PipeModelsProvider implements DataProvider {
      */
     private void registerAttachment(HashCache cache, RenderedAttachment attachment, String texture) throws IOException {
         var obj = new JsonObject();
-        obj.addProperty("parent", MdId.of("base/pipe_inventory").toString());
+        obj.addProperty("parent", MdId.of("base/pipe_inventory_transparent").toString());
         var textures = new JsonObject();
         obj.add("textures", textures);
         textures.addProperty("0", MdId.of(texture).toString());

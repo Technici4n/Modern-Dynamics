@@ -70,7 +70,8 @@ public class RecipesProvider extends FabricRecipeProvider {
                 .define('m', Items.IRON_INGOT)
                 .define('r', Items.REDSTONE)
                 .define('p', Items.PAPER)
-                .unlockedBy("has_ender_eye", has(Items.ENDER_EYE));
+                .unlockedBy("has_ender_pearl", has(Items.ENDER_PEARL))
+                .save(exporter);
 
         ShapedRecipeBuilder.shaped(MdItems.EXTRACTOR, 1)
                 .pattern(" h ")

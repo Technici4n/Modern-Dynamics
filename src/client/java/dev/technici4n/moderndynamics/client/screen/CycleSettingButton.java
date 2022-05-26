@@ -29,7 +29,7 @@ import dev.technici4n.moderndynamics.attachment.settings.FilterSimilarMode;
 import dev.technici4n.moderndynamics.attachment.settings.OversendingMode;
 import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
@@ -40,7 +40,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 public class CycleSettingButton<T> extends Button {
     private final List<CycleSetting<T>> settings;
     private int currentSetting;
-    private final Consumer<T> onChange;
+    private final BiConsumer<T, Boolean> onChange;
 
     public static final List<CycleSetting<FilterInversionMode>> FILTER_INVERSION = ImmutableList.of(
             new CycleSetting<>(FilterInversionMode.WHITELIST, new TranslatableComponent("gui.moderndynamics.setting.filter_mode.whitelist"), 176, 0),
@@ -79,7 +79,7 @@ public class CycleSettingButton<T> extends Button {
             new CycleSetting<>(OversendingMode.ALLOW_OVERSENDING,
                     new TranslatableComponent("gui.moderndynamics.setting.oversending_mode.allow_oversending"), 80, 204));
 
-    public CycleSettingButton(List<CycleSetting<T>> settings, T initialSetting, Consumer<T> onChange) {
+    public CycleSettingButton(List<CycleSetting<T>> settings, T initialSetting, BiConsumer<T, Boolean> onChange) {
         super(0, 0, 20, 20, TextComponent.EMPTY, button -> {
         });
         this.settings = settings;
@@ -95,7 +95,7 @@ public class CycleSettingButton<T> extends Button {
     @Override
     public void onPress() {
         currentSetting = (currentSetting + 1) % settings.size();
-        onChange.accept(getCurrentSetting().value());
+        onChange.accept(getCurrentSetting().value(), true);
     }
 
     private CycleSetting<T> getCurrentSetting() {

@@ -83,8 +83,6 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
                     // Render multiple items depending on stack size
                     int renderCount = getRenderAmount(item.amount());
 
-                    Minecraft.getInstance().getItemRenderer().renderStatic(item.variant().toStack(), ItemTransforms.TransformType.GROUND, light,
-                            overlay, matrices, vertexConsumers, 0);
                     matrices.translate(0, 0, -(renderCount - 1) * 0.1 / 2);
 
                     for (int r = 0; r < renderCount; ++r) {

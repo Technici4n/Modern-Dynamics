@@ -64,7 +64,7 @@ class UpgradeContainer {
     }
 
     public int getItemsPerOperation() {
-        return Mth.clamp(8 + reduce(UpgradeType::getAddItemCount), 1, Integer.MAX_VALUE);
+        return Mth.clamp(4 + reduce(UpgradeType::getAddItemCount), 1, Integer.MAX_VALUE);
     }
 
     public double getItemSpeedupFactor() {

@@ -22,7 +22,7 @@ import net.minecraft.network.FriendlyByteBuf;
 
 public class UpgradeType {
     private int slotLimit = 1;
-    private boolean enableAdvancedFiltering = false;
+    private boolean enableAdvancedBehavior = false;
     private int addFilterSlots = 0;
     private int addItemCount = 0;
     private int addItemSpeed = 0;
@@ -38,7 +38,7 @@ public class UpgradeType {
 
     public void writePacket(FriendlyByteBuf buf) {
         buf.writeVarInt(getSlotLimit());
-        buf.writeBoolean(isEnableAdvancedFiltering());
+        buf.writeBoolean(isenableAdvancedBehavior());
         buf.writeVarInt(getAddFilterSlots());
         buf.writeVarInt(getAddItemCount());
         buf.writeVarInt(getAddItemSpeed());
@@ -50,7 +50,7 @@ public class UpgradeType {
     public static UpgradeType readPacket(FriendlyByteBuf buf) {
         var type = new UpgradeType();
         type.slotLimit = buf.readVarInt();
-        type.enableAdvancedFiltering = buf.readBoolean();
+        type.enableAdvancedBehavior = buf.readBoolean();
         type.addFilterSlots = buf.readVarInt();
         type.addItemCount = buf.readVarInt();
         type.addItemSpeed = buf.readVarInt();
@@ -64,8 +64,8 @@ public class UpgradeType {
         return slotLimit;
     }
 
-    public boolean isEnableAdvancedFiltering() {
-        return enableAdvancedFiltering;
+    public boolean isenableAdvancedBehavior() {
+        return enableAdvancedBehavior;
     }
 
     public int getAddFilterSlots() {

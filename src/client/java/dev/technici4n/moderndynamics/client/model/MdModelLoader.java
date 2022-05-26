@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
 public final class MdModelLoader {
     public static void init() {
         ModelLoadingRegistry.INSTANCE.registerVariantProvider(VariantProvider::new);
-        ModelLoadingRegistry.INSTANCE.registerResourceProvider(ResourceProvider::new);
+        ModelLoadingRegistry.INSTANCE.registerResourceProvider(rm -> new ResourceProvider());
 
         for (var pipe : MdBlocks.ALL_PIPES) {
             ALL_PIPES.add(pipe.id);
@@ -88,33 +88,19 @@ public final class MdModelLoader {
     }
 
     private static class ResourceProvider implements ModelResourceProvider {
-        private final ResourceManager resourceManager;
-
-        private ResourceProvider(ResourceManager resourceManager) {
-            this.resourceManager = resourceManager;
-        }
-
         @Override
-        public @Nullable UnbakedModel loadModelResource(ResourceLocation resourceId, ModelProviderContext context) throws ModelProviderException {
+        public @Nullable UnbakedModel loadModelResource(ResourceLocation resourceId, ModelProviderContext context) {
             if (!resourceId.getNamespace().equals(MdId.MOD_ID)) {
                 return null;
             }
 
             var path = resourceId.getPath();
             if (path.equals(AttachmentsUnbakedModel.ID.getPath())) {
-                // Try to load the json model for the attachments
-                try (var resource = this.resourceManager.getResource(MdId.of("models/attachments.json"))) {
-                    var obj = JsonParser.parseReader(new InputStreamReader(resource.getInputStream())).getAsJsonObject();
-                    var modelMap = new HashMap<String, ResourceLocation>();
-                    for (var attachmentId : RenderedAttachment.getAttachmentIds()) {
-                        modelMap.put(attachmentId, new ResourceLocation(GsonHelper.getAsString(obj, attachmentId)));
-                    }
-                    return new AttachmentsUnbakedModel(modelMap);
-                } catch (IOException exception) {
-                    throw new ModelProviderException("Failed to find attachment model json", exception);
-                } catch (RuntimeException runtimeException) {
-                    throw new ModelProviderException("Failed to load attachment model json", runtimeException);
+                var modelMap = new HashMap<String, ResourceLocation>();
+                for (var id : RenderedAttachment.getAttachmentIds()) {
+                    modelMap.put(id, MdId.of("attachment/" + id));
                 }
+                return new AttachmentsUnbakedModel(modelMap);
             }
 
             return null;

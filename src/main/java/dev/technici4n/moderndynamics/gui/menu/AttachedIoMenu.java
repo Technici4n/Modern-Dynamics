@@ -24,10 +24,14 @@ import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.gui.MdPackets;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import java.util.function.BiConsumer;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -61,6 +65,37 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
         for (int k = 0; k < AttachedIo.UPGRADE_SLOTS; ++k) {
             this.addSlot(new UpgradeSlot(attachment, k, UpgradePanel.FIRST_SLOT_LEFT, UpgradePanel.FIRST_SLOT_TOP + k * 18));
         }
+
+        syncEnum(FilterInversionMode.class, this::getFilterMode, this::setFilterMode);
+        syncEnum(RedstoneMode.class, this::getRedstoneMode, this::setRedstoneMode);
+    }
+
+    protected <T extends Enum<T>> void syncEnum(Class<T> enumClass, Supplier<T> getter, BiConsumer<T, Boolean> setter) {
+        addDataSlot(new DataSlot() {
+            @Override
+            public int get() {
+                return getter.get().ordinal();
+            }
+
+            @Override
+            public void set(int value) {
+                setter.accept(enumClass.getEnumConstants()[value], false);
+            }
+        });
+    }
+
+    protected void syncShort(IntSupplier getter, BiConsumer<Integer, Boolean> setter) {
+        addDataSlot(new DataSlot() {
+            @Override
+            public int get() {
+                return getter.getAsInt();
+            }
+
+            @Override
+            public void set(int value) {
+                setter.accept(value, false);
+            }
+        });
     }
 
     @Override
@@ -92,8 +127,8 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
         return attachment.getFilterInversion();
     }
 
-    public void setFilterMode(FilterInversionMode value) {
-        if (isClientSide()) {
+    public void setFilterMode(FilterInversionMode value, boolean sendPacket) {
+        if (isClientSide() && sendPacket) {
             MdPackets.sendSetFilterMode(containerId, value);
         }
         attachment.setFilterInversion(value);
@@ -104,8 +139,8 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
         return attachment.getRedstoneMode();
     }
 
-    public void setRedstoneMode(RedstoneMode redstoneMode) {
-        if (isClientSide()) {
+    public void setRedstoneMode(RedstoneMode redstoneMode, boolean sendPacket) {
+        if (isClientSide() && sendPacket) {
             MdPackets.sendSetRedstoneMode(containerId, redstoneMode);
         }
         attachment.setRedstoneMode(redstoneMode);

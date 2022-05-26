@@ -18,7 +18,6 @@
  */
 package dev.technici4n.moderndynamics.attachment;
 
-import dev.technici4n.moderndynamics.MdProxy;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
@@ -27,11 +26,8 @@ import dev.technici4n.moderndynamics.network.item.ItemHost;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
@@ -94,27 +90,29 @@ public class IoAttachmentItem extends AttachmentItem {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
-        if (level != null && level.isClientSide()) {
-            if (MdProxy.INSTANCE.isShiftDown()) {
-                MutableComponent filters = null;
-                for (var setting : getSupportedSettings()) {
-                    if (setting.isFilter()) {
-                        if (filters == null) {
-                            filters = setting.getTooltipName().copy();
-                        } else {
-                            filters.append(", ").append(setting.getTooltipName());
-                        }
-                    }
-                }
-                if (filters != null) {
-                    filters.withStyle(ChatFormatting.WHITE);
-                    tooltipComponents.add(new TranslatableComponent("gui.moderndynamics.tooltip.filters", filters).withStyle(ChatFormatting.GRAY));
-                }
-            } else {
-                var keyText = new TranslatableComponent("gui.moderndynamics.tooltip.more_info_key").withStyle(ChatFormatting.YELLOW,
-                        ChatFormatting.ITALIC);
-                tooltipComponents.add(new TranslatableComponent("gui.moderndynamics.tooltip.more_info", keyText).withStyle(ChatFormatting.GRAY));
-            }
-        }
+        /*
+         * if (level != null && level.isClientSide()) {
+         * if (MdProxy.INSTANCE.isShiftDown()) {
+         * MutableComponent filters = null;
+         * for (var setting : getSupportedSettings()) {
+         * if (setting.isFilter()) {
+         * if (filters == null) {
+         * filters = setting.getTooltipName().copy();
+         * } else {
+         * filters.append(", ").append(setting.getTooltipName());
+         * }
+         * }
+         * }
+         * if (filters != null) {
+         * filters.withStyle(ChatFormatting.WHITE);
+         * tooltipComponents.add(new TranslatableComponent("gui.moderndynamics.tooltip.filters", filters).withStyle(ChatFormatting.GRAY));
+         * }
+         * } else {
+         * var keyText = new TranslatableComponent("gui.moderndynamics.tooltip.more_info_key").withStyle(ChatFormatting.YELLOW,
+         * ChatFormatting.ITALIC);
+         * tooltipComponents.add(new TranslatableComponent("gui.moderndynamics.tooltip.more_info", keyText).withStyle(ChatFormatting.GRAY));
+         * }
+         * }
+         */
     }
 }

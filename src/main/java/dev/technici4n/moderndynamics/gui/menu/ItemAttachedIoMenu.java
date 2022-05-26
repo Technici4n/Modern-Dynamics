@@ -50,6 +50,9 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
                 row++;
             }
         }
+
+        syncShort(this::getMaxItemsExtracted, this::setMaxItemsExtracted);
+        syncShort(this::getMaxItemsInInventory, this::setMaxItemsInInventory);
     }
 
     @Override
@@ -65,75 +68,82 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
         return attachment.getFilterDamage();
     }
 
-    public void setFilterDamage(FilterDamageMode value) {
-        if (isClientSide()) {
+    public void setFilterDamage(FilterDamageMode value, boolean sendPacket) {
+        if (isClientSide() && sendPacket) {
             MdPackets.sendSetFilterDamage(containerId, value);
         }
         attachment.setFilterDamage(value);
+        pipe.setChanged();
     }
 
     public FilterNbtMode getFilterNbt() {
         return attachment.getFilterNbt();
     }
 
-    public void setFilterNbt(FilterNbtMode value) {
-        if (isClientSide()) {
+    public void setFilterNbt(FilterNbtMode value, boolean sendPacket) {
+        if (isClientSide() && sendPacket) {
             MdPackets.sendSetFilterNbt(containerId, value);
         }
         attachment.setFilterNbt(value);
+        pipe.setChanged();
     }
 
     public FilterModMode getFilterMod() {
         return attachment.getFilterMod();
     }
 
-    public void setFilterMod(FilterModMode value) {
-        if (isClientSide()) {
+    public void setFilterMod(FilterModMode value, boolean sendPacket) {
+        if (isClientSide() && sendPacket) {
             MdPackets.sendSetFilterMod(containerId, value);
         }
         attachment.setFilterMod(value);
+        pipe.setChanged();
     }
 
     public FilterSimilarMode getFilterSimilar() {
         return attachment.getFilterSimilar();
     }
 
-    public void setFilterSimilar(FilterSimilarMode value) {
-        if (isClientSide()) {
+    public void setFilterSimilar(FilterSimilarMode value, boolean sendPacket) {
+        if (isClientSide() && sendPacket) {
             MdPackets.sendSetFilterSimilar(containerId, value);
         }
         attachment.setFilterSimilar(value);
+        pipe.setChanged();
     }
 
     public RoutingMode getRoutingMode() {
         return attachment.getRoutingMode();
     }
 
-    public void setRoutingMode(RoutingMode routingMode) {
-        if (isClientSide()) {
+    public void setRoutingMode(RoutingMode routingMode, boolean sendPacket) {
+        if (isClientSide() && sendPacket) {
             MdPackets.sendSetRoutingMode(containerId, routingMode);
         }
         attachment.setRoutingMode(routingMode);
+        pipe.setChanged();
     }
 
     public OversendingMode getOversendingMode() {
         return attachment.getOversendingMode();
     }
 
-    public void setOversendingMode(OversendingMode oversendingMode) {
-        if (isClientSide()) {
+    public void setOversendingMode(OversendingMode oversendingMode, boolean sendPacket) {
+        if (isClientSide() && sendPacket) {
             MdPackets.sendSetOversendingMode(containerId, oversendingMode);
         }
         attachment.setOversendingMode(oversendingMode);
+        pipe.setChanged();
     }
 
     public int getMaxItemsInInventory() {
         return attachment.getMaxItemsInInventory();
     }
 
-    public void setMaxItemsInInventory(int value) {
+    public void setMaxItemsInInventory(int value, boolean sendPacket) {
         attachment.setMaxItemsInInventory(value);
-        if (isClientSide()) {
+        pipe.setChanged();
+        if (isClientSide() && sendPacket) {
             MdPackets.sendSetMaxItemsInInventory(containerId, getMaxItemsInInventory());
         }
     }
@@ -142,9 +152,10 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
         return attachment.getMaxItemsExtracted();
     }
 
-    public void setMaxItemsExtracted(int value) {
+    public void setMaxItemsExtracted(int value, boolean sendPacket) {
         attachment.setMaxItemsExtracted(value);
-        if (isClientSide()) {
+        pipe.setChanged();
+        if (isClientSide() && sendPacket) {
             MdPackets.sendSetMaxItemsExtracted(containerId, getMaxItemsExtracted());
         }
     }

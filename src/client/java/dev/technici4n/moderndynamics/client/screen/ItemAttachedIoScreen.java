@@ -96,14 +96,14 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
         if (hasShiftDown()) {
             i *= 16;
         }
-        menu.setMaxItemsInInventory(menu.getMaxItemsInInventory() + i);
+        menu.setMaxItemsInInventory(menu.getMaxItemsInInventory() + i, true);
     }
 
     private void adjustMaxItemsExtracted(int i) {
         if (hasShiftDown()) {
             i *= 16;
         }
-        menu.setMaxItemsExtracted(menu.getMaxItemsExtracted() + i);
+        menu.setMaxItemsExtracted(menu.getMaxItemsExtracted() + i, true);
     }
 
     @Override

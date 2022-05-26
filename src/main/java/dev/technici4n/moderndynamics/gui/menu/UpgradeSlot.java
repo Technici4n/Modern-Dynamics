@@ -53,7 +53,7 @@ public class UpgradeSlot extends Slot {
 
     @Override
     public void setChanged() {
-        io.setUpgradeChanged();
+        io.onUpgradesChanged();
     }
 
     @Override
