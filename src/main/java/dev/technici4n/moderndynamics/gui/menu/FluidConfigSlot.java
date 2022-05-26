@@ -20,23 +20,11 @@ package dev.technici4n.moderndynamics.gui.menu;
 
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-public class FluidConfigSlot extends Slot {
-    public final int configIdx;
-    private final FluidAttachedIo attachment;
-
+public class FluidConfigSlot extends ConfigSlot<FluidAttachedIo> {
     public FluidConfigSlot(int x, int y, FluidAttachedIo attachment, int configIdx) {
-        super(new SimpleContainer(1), 0, x, y);
-        this.configIdx = configIdx;
-        this.attachment = attachment;
-    }
-
-    @Override
-    public boolean mayPlace(ItemStack stack) {
-        return false;
+        super(x, y, attachment, configIdx);
     }
 
     @Override
@@ -44,11 +32,7 @@ public class FluidConfigSlot extends Slot {
         return ItemStack.EMPTY;
     }
 
-    public FluidAttachedIo getAttachment() {
-        return attachment;
-    }
-
     public FluidVariant getFilter() {
-        return attachment.getFilter(configIdx);
+        return getAttachment().getFilter(getConfigIdx());
     }
 }

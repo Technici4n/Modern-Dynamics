@@ -56,6 +56,11 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
         for (i = 0; i < 9; ++i) {
             this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 181));
         }
+
+        // Upgrade slots
+        for (int k = 0; k < AttachedIo.UPGRADE_SLOTS; ++k) {
+            this.addSlot(new UpgradeSlot(attachment, k, UpgradePanel.FIRST_SLOT_LEFT, UpgradePanel.FIRST_SLOT_TOP + k * 18));
+        }
     }
 
     @Override

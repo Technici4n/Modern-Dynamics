@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.gui.menu;
 
+import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
@@ -42,8 +43,8 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
         // Config slots
         var row = 0;
         var col = 0;
-        for (int i = 0; i < attachment.getFilterSize(); i++) {
-            this.addSlot(new ConfigSlot(44 + col * 18, 20 + row * 18, attachment, i));
+        for (int i = 0; i < Constants.Upgrades.MAX_FILTER; i++) {
+            this.addSlot(new ItemConfigSlot(44 + col * 18, 20 + row * 18, attachment, i));
             if (++col >= 5) {
                 col = 0;
                 row++;
@@ -53,8 +54,8 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
 
     @Override
     public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
-        if (slotIndex >= 0 && getSlot(slotIndex) instanceof ConfigSlot configSlot) {
-            attachment.setFilter(configSlot.configIdx, ItemVariant.of(getCarried()));
+        if (slotIndex >= 0 && getSlot(slotIndex) instanceof ItemConfigSlot configSlot && configSlot.isEnabled()) {
+            attachment.setFilter(configSlot.getConfigIdx(), ItemVariant.of(getCarried()));
         } else {
             super.clicked(slotIndex, button, actionType, player);
         }

@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.gui.menu;
 
+import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
@@ -39,7 +40,7 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
         // Config slots
         var row = 0;
         var col = 0;
-        for (int i = 0; i < attachment.getFilterSize(); i++) {
+        for (int i = 0; i < Constants.Upgrades.MAX_FILTER; i++) {
             this.addSlot(new FluidConfigSlot(44 + col * 18, 20 + row * 18, attachment, i));
             if (++col >= 5) {
                 col = 0;
@@ -50,13 +51,13 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
 
     @Override
     public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
-        if (slotIndex >= 0 && getSlot(slotIndex) instanceof FluidConfigSlot configSlot) {
+        if (slotIndex >= 0 && getSlot(slotIndex) instanceof FluidConfigSlot configSlot && configSlot.isEnabled()) {
             var selectedVariant = Objects.requireNonNullElse(
                     StorageUtil.findStoredResource(
                             ContainerItemContext.ofPlayerCursor(player, this).find(FluidStorage.ITEM),
                             null),
                     FluidVariant.blank());
-            attachment.setFilter(configSlot.configIdx, selectedVariant);
+            attachment.setFilter(configSlot.getConfigIdx(), selectedVariant);
         } else {
             super.clicked(slotIndex, button, actionType, player);
         }

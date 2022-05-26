@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.client;
 
+import dev.technici4n.moderndynamics.client.attachment.SetAttachmentUpgradesPacket;
 import dev.technici4n.moderndynamics.client.ber.PipeBlockEntityRenderer;
 import dev.technici4n.moderndynamics.client.model.MdModelLoader;
 import dev.technici4n.moderndynamics.client.screen.FluidAttachedIoScreen;
@@ -63,6 +64,7 @@ public final class ModernDynamicsClient implements ClientModInitializer {
         MenuScreens.register(MdMenus.FLUID_IO, FluidAttachedIoScreen::new);
 
         registerPacketHandler(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER);
+        ClientPlayNetworking.registerGlobalReceiver(MdPackets.SET_ATTACHMENT_UPGRADES, SetAttachmentUpgradesPacket.HANDLER);
 
         WorldRenderEvents.BLOCK_OUTLINE.register(ModernDynamicsClient::renderPipeAttachmentOutline);
         ClientTickEvents.START_CLIENT_TICK.register(mc -> {

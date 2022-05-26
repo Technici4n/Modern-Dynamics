@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.attachment.attached;
 
+import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
@@ -70,10 +71,10 @@ public class ItemAttachedIo extends AttachedIo {
     @Nullable
     private ItemCachedFilter cachedFilter;
 
-    public ItemAttachedIo(IoAttachmentItem item, CompoundTag configData) {
-        super(item, configData);
+    public ItemAttachedIo(IoAttachmentItem item, CompoundTag configData, Runnable setChangedCallback) {
+        super(item, configData, setChangedCallback);
 
-        this.filters = NonNullList.withSize(item.getTier().filterSize, ItemVariant.blank());
+        this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, ItemVariant.blank());
         var filterTags = configData.getList("filters", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < this.filters.size(); i++) {
             var filterTag = filterTags.getCompound(i);
@@ -167,6 +168,18 @@ public class ItemAttachedIo extends AttachedIo {
             this.filters.set(idx, variant);
             resetCachedFilter();
         }
+    }
+
+    public int getItemsPerOperation() {
+        return upgradeContainer.getItemsPerOperation();
+    }
+
+    public double getItemSpeedupFactor() {
+        return upgradeContainer.getItemSpeedupFactor();
+    }
+
+    public int getItemOperationTickDelay() {
+        return upgradeContainer.getItemOperationTickDelay();
     }
 
     @Override
@@ -284,17 +297,13 @@ public class ItemAttachedIo extends AttachedIo {
     }
 
     public int getMaxItemsExtractedMaximum() {
-        return switch (getTier()) {
-        case IRON -> 8;
-        case GOLD -> 24;
-        case DIAMOND -> 64;
-        };
+        return 64; // TODO
     }
 
     private ItemCachedFilter getCachedFilter() {
         if (this.cachedFilter == null) {
             this.cachedFilter = new ItemCachedFilter(
-                    this.filters,
+                    this.filters.subList(0, getFilterSize()),
                     getFilterInversion(),
                     this.filterDamage,
                     this.filterNbt,

@@ -19,6 +19,7 @@
 package dev.technici4n.moderndynamics;
 
 import dev.technici4n.moderndynamics.attachment.MdAttachments;
+import dev.technici4n.moderndynamics.attachment.upgrade.AttachmentUpgradesLoader;
 import dev.technici4n.moderndynamics.gui.MdPackets;
 import dev.technici4n.moderndynamics.init.MdBlockEntities;
 import dev.technici4n.moderndynamics.init.MdBlocks;
@@ -54,6 +55,7 @@ public class ModernDynamics implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(server -> TickHelper.onEndTick());
         ServerTickEvents.END_SERVER_TICK.register(server -> NetworkManager.onEndTick());
         WrenchHelper.registerEvents();
+        AttachmentUpgradesLoader.setup();
 
         registerPacketHandler(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER);
         registerPacketHandler(MdPackets.SET_FILTER_MODE, MdPackets.SET_FILTER_MODE_HANDLER);

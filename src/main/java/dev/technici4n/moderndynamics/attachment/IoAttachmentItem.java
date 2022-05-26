@@ -47,10 +47,6 @@ public class IoAttachmentItem extends AttachmentItem {
         this.type = type;
     }
 
-    public AttachmentTier getTier() {
-        return tier;
-    }
-
     public IoAttachmentType getType() {
         return type;
     }
@@ -58,9 +54,9 @@ public class IoAttachmentItem extends AttachmentItem {
     @Override
     public AttachedAttachment createAttached(NodeHost host, CompoundTag configTag) {
         if (host instanceof ItemHost) {
-            return new ItemAttachedIo(this, configTag);
+            return new ItemAttachedIo(this, configTag, host.getPipe()::setChanged);
         } else {
-            return new FluidAttachedIo(this, configTag);
+            return new FluidAttachedIo(this, configTag, host.getPipe()::setChanged);
         }
     }
 

@@ -16,20 +16,18 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.data;
+package dev.technici4n.moderndynamics.gui.menu;
 
-import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
+import net.minecraft.world.item.ItemStack;
 
-public class DataGenerators implements DataGeneratorEntrypoint {
+public class ItemConfigSlot extends ConfigSlot<ItemAttachedIo> {
+    public ItemConfigSlot(int x, int y, ItemAttachedIo attachment, int configIdx) {
+        super(x, y, attachment, configIdx);
+    }
+
     @Override
-    public void onInitializeDataGenerator(FabricDataGenerator fabricDataGenerator) {
-        fabricDataGenerator.addProvider(ItemModelsProvider::new);
-        fabricDataGenerator.addProvider(PipeModelsProvider::new);
-
-        fabricDataGenerator.addProvider(AttachmentUpgradesProvider::new);
-        fabricDataGenerator.addProvider(ItemTagsProvider::new);
-        fabricDataGenerator.addProvider(LootTablesProvider::new);
-        fabricDataGenerator.addProvider(RecipesProvider::new);
+    public ItemStack getItem() {
+        return getAttachment().getFilter(getConfigIdx()).toStack();
     }
 }

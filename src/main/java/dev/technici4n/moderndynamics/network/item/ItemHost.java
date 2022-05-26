@@ -92,7 +92,7 @@ public class ItemHost extends NodeHost {
     }
 
     private Storage<ItemVariant> buildNetworkInjectStorage(Direction side) {
-        double speedupFactor = getAttachment(side) instanceof ItemAttachedIo io ? io.getTier().itemSpeedupFactor : 1;
+        double speedupFactor = getAttachment(side) instanceof ItemAttachedIo io ? io.getItemSpeedupFactor() : 1;
         return (InsertStorage) (resource, maxAmount, transaction) -> {
             NetworkNode<ItemHost, ItemCache> node = findNode();
             if (node != null) {
@@ -123,13 +123,13 @@ public class ItemHost extends NodeHost {
         for (var side : Direction.values()) {
             var attachment = getAttachment(side);
             if (attachment instanceof ItemAttachedIo itemAttachedIo && itemAttachedIo.isEnabledViaRedstone(pipe)) {
-                if (currentTick - lastOperationTick[side.get3DDataValue()] < itemAttachedIo.getTier().transferFrequency)
+                if (currentTick - lastOperationTick[side.get3DDataValue()] < itemAttachedIo.getItemOperationTickDelay())
                     continue;
                 lastOperationTick[side.get3DDataValue()] = currentTick;
                 if (itemAttachedIo.getType() == IoAttachmentType.SERVO) {
                     if (itemAttachedIo.isStuffed()) {
                         // Move from stuffed items to network
-                        if (itemAttachedIo.moveStuffedToStorage(buildNetworkInjectStorage(side), itemAttachedIo.getTier().transferCount) > 0) {
+                        if (itemAttachedIo.moveStuffedToStorage(buildNetworkInjectStorage(side), itemAttachedIo.getItemsPerOperation()) > 0) {
                             pipe.setChanged();
                             if (!itemAttachedIo.isStuffed()) {
                                 pipe.sync();
@@ -143,7 +143,7 @@ public class ItemHost extends NodeHost {
                                 adjStorage,
                                 buildNetworkInjectStorage(side),
                                 itemAttachedIo::matchesItemFilter,
-                                itemAttachedIo.getTier().transferCount,
+                                itemAttachedIo.getItemsPerOperation(),
                                 null);
                     }
                 } else if (itemAttachedIo.getType() == IoAttachmentType.RETRIEVER) {
@@ -152,7 +152,7 @@ public class ItemHost extends NodeHost {
                         var adjStorage = getAdjacentStorage(side, false);
                         if (adjStorage == null)
                             continue;
-                        if (itemAttachedIo.moveStuffedToStorage(adjStorage, itemAttachedIo.getTier().transferCount) > 0) {
+                        if (itemAttachedIo.moveStuffedToStorage(adjStorage, itemAttachedIo.getItemsPerOperation()) > 0) {
                             pipe.setChanged();
                             if (!itemAttachedIo.isStuffed()) {
                                 pipe.sync();
@@ -167,7 +167,7 @@ public class ItemHost extends NodeHost {
                         NetworkNode<ItemHost, ItemCache> thisNode = findNode();
                         var cache = thisNode.getNetworkCache();
                         var paths = cache.pathCache;
-                        long toTransfer = itemAttachedIo.getTier().transferCount;
+                        long toTransfer = itemAttachedIo.getItemsPerOperation();
 
                         for (var path : paths.getPaths(thisNode, side.getOpposite())) {
                             var extractTarget = ItemStorage.SIDED.find(pipe.getLevel(), path.targetPos, path.path[path.path.length - 1]);
@@ -178,7 +178,7 @@ public class ItemHost extends NodeHost {
                                 var insertStorage = (InsertStorage) (variant, maxAmount, tx) -> {
                                     return insertTarget.insert(variant, maxAmount, tx, (v, a) -> {
                                         var reversedPath = path.reverse();
-                                        var travelingItem = reversedPath.makeTravelingItem(v, a, itemAttachedIo.getTier().itemSpeedupFactor);
+                                        var travelingItem = reversedPath.makeTravelingItem(v, a, itemAttachedIo.getItemSpeedupFactor());
                                         reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
                                     });
                                 };

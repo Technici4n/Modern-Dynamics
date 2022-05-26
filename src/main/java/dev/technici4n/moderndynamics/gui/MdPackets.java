@@ -39,6 +39,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 public class MdPackets {
+    public static final ResourceLocation SET_ATTACHMENT_UPGRADES = MdId.of("set_attachment_upgrades");
+
     public static final ResourceLocation SET_ITEM_VARIANT = MdId.of("set_item_variant");
     public static final UnsidedPacketHandler SET_ITEM_VARIANT_HANDLER = (player, buf) -> {
         int syncId = buf.readInt();

@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.attachment.attached;
 
+import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
@@ -35,10 +36,10 @@ public class FluidAttachedIo extends AttachedIo {
     @Nullable
     private FluidCachedFilter cachedFilter = null;
 
-    public FluidAttachedIo(IoAttachmentItem item, CompoundTag configData) {
-        super(item, configData);
+    public FluidAttachedIo(IoAttachmentItem item, CompoundTag configData, Runnable setChangedCallback) {
+        super(item, configData, setChangedCallback);
 
-        this.filters = NonNullList.withSize(item.getTier().filterSize, FluidVariant.blank());
+        this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, FluidVariant.blank());
         var filterTags = configData.getList("filters", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < this.filters.size(); i++) {
             var filterTag = filterTags.getCompound(i);
@@ -83,9 +84,13 @@ public class FluidAttachedIo extends AttachedIo {
 
     public boolean matchesFilter(FluidVariant variant) {
         if (cachedFilter == null) {
-            cachedFilter = new FluidCachedFilter(filters, getFilterInversion());
+            cachedFilter = new FluidCachedFilter(filters.subList(0, getFilterSize()), getFilterInversion());
         }
         return cachedFilter.matches(variant);
+    }
+
+    public long getFluidMaxIo() {
+        return upgradeContainer.getFluidMaxIo();
     }
 
     @Override

@@ -252,7 +252,7 @@ public class FluidHost extends NodeHost {
             if (io.getType() == IoAttachmentType.SERVO)
                 return 0;
             if (io.getType() == IoAttachmentType.RETRIEVER) {
-                return Constants.Fluids.BASE_IO << io.getTier().fluidSpeedupFactor;
+                return io.getFluidMaxIo();
             }
         }
         return Constants.Fluids.BASE_IO;
@@ -266,7 +266,7 @@ public class FluidHost extends NodeHost {
             if (io.getType() == IoAttachmentType.RETRIEVER)
                 return 0;
             else if (io.getType() == IoAttachmentType.SERVO) {
-                return Constants.Fluids.BASE_IO << io.getTier().fluidSpeedupFactor;
+                return io.getFluidMaxIo();
             }
         }
         return Constants.Fluids.BASE_IO;

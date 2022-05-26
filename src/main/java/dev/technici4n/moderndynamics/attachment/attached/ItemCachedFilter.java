@@ -23,10 +23,10 @@ import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterNbtMode;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
@@ -47,10 +47,8 @@ public final class ItemCachedFilter {
      */
     @Nullable
     private Set<String> listedMods;
-    @Nullable
-    private Set<ItemVariant> fluidFilter;
 
-    public ItemCachedFilter(NonNullList<ItemVariant> filterConfig,
+    public ItemCachedFilter(List<ItemVariant> filterConfig,
             FilterInversionMode filterInversion,
             FilterDamageMode filterDamage,
             FilterNbtMode filterNbt,

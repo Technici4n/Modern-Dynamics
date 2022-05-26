@@ -25,6 +25,8 @@ import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.gui.menu.AttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.ConfigSlot;
 import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
+import dev.technici4n.moderndynamics.gui.menu.UpgradePanel;
+import dev.technici4n.moderndynamics.gui.menu.UpgradeSlot;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
 import java.util.List;
@@ -118,6 +120,28 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         addRenderableWidget(new RedstoneTabOpenCloseHandler());
     }
 
+    @Override
+    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+        this.renderBackground(poseStack);
+        super.render(poseStack, mouseX, mouseY, partialTick);
+    }
+
+    @Override
+    public void renderSlot(PoseStack poseStack, Slot slot) {
+        // Skip disabled slots
+        if (slot instanceof ConfigSlot<?>configSlot && !configSlot.isEnabled()) {
+            return;
+        }
+        if (slot instanceof FluidConfigSlot fluidConfigSlot) {
+            var variant = fluidConfigSlot.getFilter();
+            if (!variant.isBlank()) {
+                FluidAttachedIoScreen.drawFluidInGui(poseStack, fluidConfigSlot.getFilter(), slot.x, slot.y);
+            }
+        } else {
+            super.renderSlot(poseStack, slot);
+        }
+    }
+
     protected void addToggleButtons(List<CycleSettingButton<?>> toggleButtons) {
         if (menu.isSettingSupported(Setting.FILTER_INVERSION)) {
             toggleButtons.add(new CycleSettingButton<>(CycleSettingButton.FILTER_INVERSION, menu.getFilterMode(), menu::setFilterMode));
@@ -132,10 +156,28 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         RenderSystem.setShaderTexture(0, TEXTURE);
         blit(poseStack, leftPos, topPos, 0, 0, imageWidth, imageHeight);
 
+        // Upgrade panel background
+        blit(
+                poseStack,
+                leftPos + UpgradePanel.START_LEFT, topPos + UpgradePanel.START_TOP,
+                0, 0,
+                UpgradePanel.WIDTH, UpgradePanel.HEIGHT - 5);
+        // Render last 5 rows with a different offset to have a proper corner
+        blit(
+                poseStack,
+                leftPos + UpgradePanel.START_LEFT, topPos + UpgradePanel.START_TOP + UpgradePanel.HEIGHT - 5,
+                0, 199,
+                UpgradePanel.WIDTH, 5);
+
         // Draw each slot's background
         for (Slot slot : getMenu().slots) {
-            if (slot instanceof ConfigSlot || slot instanceof FluidConfigSlot) {
-                blit(poseStack, leftPos + slot.x - 1, topPos + slot.y - 1, 7, 122, 18, 18);
+            if (slot instanceof ConfigSlot || slot instanceof UpgradeSlot) {
+                if (slot instanceof ConfigSlot<?>cfg && !cfg.isEnabled()) {
+                    // Disabled slot
+                    blit(poseStack, leftPos + slot.x - 1, topPos + slot.y - 1, 216, 162, 18, 18);
+                } else {
+                    blit(poseStack, leftPos + slot.x - 1, topPos + slot.y - 1, 7, 122, 18, 18);
+                }
             }
         }
     }
@@ -294,7 +336,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
             return false;
         }
 
-        return !isInRedstoneTabRect(mouseX, mouseY);
+        return !UpgradePanel.isInside(mouseX - leftPos, mouseY - topPos) && !isInRedstoneTabRect(mouseX, mouseY);
     }
 
     private boolean isInRedstoneTabRect(double mouseX, double mouseY) {

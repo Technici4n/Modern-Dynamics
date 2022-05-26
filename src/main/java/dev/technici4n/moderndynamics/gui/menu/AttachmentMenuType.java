@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.gui.menu;
 
+import com.google.common.util.concurrent.Runnables;
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
@@ -51,7 +52,7 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
             }
             var tag = packetByteBuf.readNbt();
             // The cast is a bit ugly, but it just means that we trust the server to send the correct item.
-            var attachment = ((AttachmentFactory<A, AttachmentItem>) attachmentFactory).createAttachment(attachmentItem, tag);
+            var attachment = ((AttachmentFactory<A, AttachmentItem>) attachmentFactory).createAttachment(attachmentItem, tag, Runnables.doNothing());
 
             return world.getBlockEntity(pos, bet).map(blockEntity -> {
                 if (blockEntity instanceof PipeBlockEntity pipe) {
@@ -72,7 +73,7 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
     }
 
     public interface AttachmentFactory<A extends AttachedAttachment, I extends AttachmentItem> {
-        A createAttachment(I item, CompoundTag configData);
+        A createAttachment(I item, CompoundTag configData, Runnable setChangedCallback);
     }
 
     public interface MenuFactory<A extends AttachedAttachment, T extends AbstractContainerMenu> {

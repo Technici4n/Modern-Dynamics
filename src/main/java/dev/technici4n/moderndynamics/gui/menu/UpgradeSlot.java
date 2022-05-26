@@ -19,40 +19,55 @@
 package dev.technici4n.moderndynamics.gui.menu;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedIo;
+import dev.technici4n.moderndynamics.attachment.upgrade.UpgradeTypes;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-public class ConfigSlot<T extends AttachedIo> extends Slot {
-    private final T attachment;
-    private final int configIdx;
+public class UpgradeSlot extends Slot {
+    private final AttachedIo io;
+    private final int slot;
 
-    public ConfigSlot(int x, int y, T attachment, int configIdx) {
-        super(new SimpleContainer(1), 0, x, y);
-        this.attachment = attachment;
-        this.configIdx = configIdx;
+    public UpgradeSlot(AttachedIo io, int slot, int x, int y) {
+        super(new SimpleContainer(), -1, x, y);
+
+        this.io = io;
+        this.slot = slot;
+    }
+
+    @Override
+    public ItemStack getItem() {
+        return io.getUpgrade(slot);
+    }
+
+    @Override
+    public void set(ItemStack stack) {
+        io.setUpgrade(slot, stack);
+        setChanged();
+    }
+
+    @Override
+    public ItemStack remove(int amount) {
+        return io.removeUpgrade(slot, amount);
+    }
+
+    @Override
+    public void setChanged() {
+        io.setUpgradeChanged();
     }
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-        return false;
+        return io.mayPlaceUpgrade(slot, stack.getItem());
     }
 
-    // This just disables vanilla's hover rectangle.
     @Override
-    public boolean isActive() {
-        return isEnabled();
+    public int getMaxStackSize() {
+        return getMaxStackSize(getItem());
     }
 
-    public T getAttachment() {
-        return attachment;
-    }
-
-    public int getConfigIdx() {
-        return configIdx;
-    }
-
-    public boolean isEnabled() {
-        return configIdx < attachment.getFilterSize();
+    @Override
+    public int getMaxStackSize(ItemStack stack) {
+        return UpgradeTypes.getSlotLimit(stack.getItem());
     }
 }

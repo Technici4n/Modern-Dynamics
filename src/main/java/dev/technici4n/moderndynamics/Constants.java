@@ -30,4 +30,8 @@ public class Constants {
     public static class Items {
         public static final double SPEED_IN_PIPES = 0.02;
     }
+
+    public static class Upgrades {
+        public static final int MAX_FILTER = 15;
+    }
 }

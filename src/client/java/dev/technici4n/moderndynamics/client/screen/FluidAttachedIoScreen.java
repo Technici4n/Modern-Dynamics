@@ -36,7 +36,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.inventory.Slot;
 
 public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu> {
     public FluidAttachedIoScreen(FluidAttachedIoMenu abstractContainerMenu, Inventory inventory, Component component) {
@@ -56,18 +55,6 @@ public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu>
             }
         } else {
             renderTooltip(poseStack, mouseX, mouseY);
-        }
-    }
-
-    @Override
-    public void renderSlot(PoseStack poseStack, Slot slot) {
-        if (slot instanceof FluidConfigSlot fluidConfigSlot) {
-            var variant = fluidConfigSlot.getFilter();
-            if (!variant.isBlank()) {
-                drawFluidInGui(poseStack, fluidConfigSlot.getFilter(), slot.x, slot.y);
-            }
-        } else {
-            super.renderSlot(poseStack, slot);
         }
     }
 

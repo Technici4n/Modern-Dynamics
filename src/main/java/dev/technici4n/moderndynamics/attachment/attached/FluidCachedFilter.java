@@ -20,15 +20,15 @@ package dev.technici4n.moderndynamics.attachment.attached;
 
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.minecraft.core.NonNullList;
 
 public class FluidCachedFilter {
     private final Set<FluidVariant> listedVariants;
     private final FilterInversionMode filterInversion;
 
-    public FluidCachedFilter(NonNullList<FluidVariant> variants,
+    public FluidCachedFilter(List<FluidVariant> variants,
             FilterInversionMode filterInversion) {
         this.listedVariants = new HashSet<>();
         this.filterInversion = filterInversion;
