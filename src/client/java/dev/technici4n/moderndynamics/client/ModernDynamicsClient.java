@@ -84,7 +84,7 @@ public final class ModernDynamicsClient implements ClientModInitializer {
 
     private static void registerPacketHandler(ResourceLocation channelId, UnsidedPacketHandler unsidedPacketHandler) {
         ClientPlayNetworking.registerGlobalReceiver(channelId,
-                (mc, handler, buf, responseSender) -> unsidedPacketHandler.handlePacket(mc.player, buf));
+                (mc, handler, buf, responseSender) -> mc.execute(unsidedPacketHandler.handlePacket(mc.player, buf)));
     }
 
     /**
