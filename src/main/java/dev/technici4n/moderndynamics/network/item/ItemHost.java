@@ -126,7 +126,7 @@ public class ItemHost extends NodeHost {
                 if (currentTick - lastOperationTick[side.get3DDataValue()] < itemAttachedIo.getItemOperationTickDelay())
                     continue;
                 lastOperationTick[side.get3DDataValue()] = currentTick;
-                if (itemAttachedIo.getType() == IoAttachmentType.SERVO) {
+                if (itemAttachedIo.getType() == IoAttachmentType.EXTRACTOR) {
                     if (itemAttachedIo.isStuffed()) {
                         // Move from stuffed items to network
                         if (itemAttachedIo.moveStuffedToStorage(buildNetworkInjectStorage(side), itemAttachedIo.getItemsPerOperation()) > 0) {
@@ -146,7 +146,7 @@ public class ItemHost extends NodeHost {
                                 itemAttachedIo.getItemsPerOperation(),
                                 null);
                     }
-                } else if (itemAttachedIo.getType() == IoAttachmentType.RETRIEVER) {
+                } else if (itemAttachedIo.getType() == IoAttachmentType.ATTRACTOR) {
                     if (itemAttachedIo.isStuffed()) {
                         // Move from stuffed items to target
                         var adjStorage = getAdjacentStorage(side, false);

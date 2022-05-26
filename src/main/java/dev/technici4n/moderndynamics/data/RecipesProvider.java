@@ -24,9 +24,7 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ItemLike;
 
 public class RecipesProvider extends FabricRecipeProvider {
     public RecipesProvider(FabricDataGenerator dataGenerator) {
@@ -64,51 +62,36 @@ public class RecipesProvider extends FabricRecipeProvider {
                 .unlockedBy("has_iron", has(Items.IRON_INGOT))
                 .save(exporter);
 
-        servo(MdItems.IRON_SERVO, Items.IRON_INGOT).save(exporter);
-        servo(MdItems.GOLD_SERVO, Items.GOLD_INGOT).save(exporter);
-        servo(MdItems.DIAMOND_SERVO, Items.DIAMOND).save(exporter);
-
-        retriever(MdItems.IRON_RETRIEVER, Items.IRON_INGOT).save(exporter);
-        retriever(MdItems.GOLD_RETRIEVER, Items.GOLD_INGOT).save(exporter);
-        retriever(MdItems.DIAMOND_RETRIEVER, Items.DIAMOND).save(exporter);
-
-        filter(MdItems.IRON_FILTER, Items.IRON_INGOT).save(exporter);
-        filter(MdItems.GOLD_FILTER, Items.GOLD_INGOT).save(exporter);
-        filter(MdItems.DIAMOND_FILTER, Items.DIAMOND).save(exporter);
-    }
-
-    protected ShapedRecipeBuilder servo(Item servo, ItemLike material) {
-        return ShapedRecipeBuilder.shaped(servo, 4)
-                .pattern(" h ")
-                .pattern("mrm")
-                .pattern(" p ")
-                .define('h', Items.HOPPER)
-                .define('m', material)
-                .define('r', Items.REDSTONE)
-                .define('p', Items.PAPER)
-                .unlockedBy("has_hopper", has(Items.HOPPER));
-    }
-
-    protected ShapedRecipeBuilder retriever(Item retriever, ItemLike material) {
-        return ShapedRecipeBuilder.shaped(retriever, 4)
+        ShapedRecipeBuilder.shaped(MdItems.ATTRACTOR, 1)
                 .pattern(" e ")
                 .pattern("mrm")
                 .pattern(" p ")
                 .define('e', Items.ENDER_PEARL)
-                .define('m', material)
+                .define('m', Items.IRON_INGOT)
                 .define('r', Items.REDSTONE)
                 .define('p', Items.PAPER)
                 .unlockedBy("has_ender_eye", has(Items.ENDER_EYE));
-    }
 
-    protected ShapedRecipeBuilder filter(Item filter, ItemLike material) {
-        return ShapedRecipeBuilder.shaped(filter, 4)
-                .pattern(" p ")
+        ShapedRecipeBuilder.shaped(MdItems.EXTRACTOR, 1)
+                .pattern(" h ")
                 .pattern("mrm")
                 .pattern(" p ")
-                .define('m', material)
+                .define('h', Items.HOPPER)
+                .define('m', Items.IRON_INGOT)
                 .define('r', Items.REDSTONE)
                 .define('p', Items.PAPER)
-                .unlockedBy("has_redstone", has(Items.REDSTONE));
+                .unlockedBy("has_hopper", has(Items.HOPPER))
+                .save(exporter);
+
+        ShapedRecipeBuilder.shaped(MdItems.FILTER, 1)
+                .pattern(" l ")
+                .pattern("mrm")
+                .pattern(" p ")
+                .define('l', Items.LAPIS_LAZULI)
+                .define('m', Items.IRON_INGOT)
+                .define('r', Items.REDSTONE)
+                .define('p', Items.PAPER)
+                .unlockedBy("has_lapis", has(Items.LAPIS_LAZULI))
+                .save(exporter);
     }
 }

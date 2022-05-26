@@ -38,12 +38,10 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 public class IoAttachmentItem extends AttachmentItem {
-    private final AttachmentTier tier;
     private final IoAttachmentType type;
 
-    public IoAttachmentItem(RenderedAttachment attachment, AttachmentTier tier, IoAttachmentType type) {
-        super(attachment, tier.rarity);
-        this.tier = tier;
+    public IoAttachmentItem(RenderedAttachment attachment, IoAttachmentType type) {
+        super(attachment);
         this.type = type;
     }
 
@@ -60,10 +58,11 @@ public class IoAttachmentItem extends AttachmentItem {
         }
     }
 
+    // TODO: this needs to be changed since it depends on the installed upgrades
     public Set<Setting> getSupportedSettings() {
         var result = EnumSet.noneOf(Setting.class);
         result.add(Setting.FILTER_INVERSION);
-        if (tier.compareTo(AttachmentTier.GOLD) >= 0) {
+        if (false) {
             result.add(Setting.FILTER_DAMAGE);
             result.add(Setting.FILTER_NBT);
             result.add(Setting.FILTER_MOD);
@@ -72,19 +71,19 @@ public class IoAttachmentItem extends AttachmentItem {
         switch (type) {
         case FILTER -> {
             result.add(Setting.OVERSENDING_MODE);
-            if (tier.compareTo(AttachmentTier.GOLD) >= 0) {
+            if (false) {
                 result.add(Setting.MAX_ITEMS_IN_INVENTORY);
             }
         }
-        case SERVO -> {
+        case EXTRACTOR -> {
             result.add(Setting.MAX_ITEMS_EXTRACTED);
-            if (tier.compareTo(AttachmentTier.GOLD) >= 0) {
+            if (false) {
                 result.add(Setting.ROUTING_MODE);
             }
         }
-        case RETRIEVER -> {
+        case ATTRACTOR -> {
             result.add(Setting.MAX_ITEMS_EXTRACTED);
-            if (tier.compareTo(AttachmentTier.GOLD) >= 0) {
+            if (false) {
                 result.add(Setting.MAX_ITEMS_IN_INVENTORY);
                 result.add(Setting.ROUTING_MODE);
             }

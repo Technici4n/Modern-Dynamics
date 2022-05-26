@@ -18,9 +18,9 @@
  */
 package dev.technici4n.moderndynamics;
 
-import dev.technici4n.moderndynamics.attachment.MdAttachments;
 import dev.technici4n.moderndynamics.attachment.upgrade.AttachmentUpgradesLoader;
 import dev.technici4n.moderndynamics.gui.MdPackets;
+import dev.technici4n.moderndynamics.init.MdAttachments;
 import dev.technici4n.moderndynamics.init.MdBlockEntities;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdItems;

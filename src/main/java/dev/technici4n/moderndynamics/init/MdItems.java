@@ -19,11 +19,9 @@
 package dev.technici4n.moderndynamics.init;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
-import dev.technici4n.moderndynamics.attachment.AttachmentTier;
 import dev.technici4n.moderndynamics.attachment.InhibitorAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
-import dev.technici4n.moderndynamics.attachment.MdAttachments;
 import dev.technici4n.moderndynamics.debug.DebugToolItem;
 import dev.technici4n.moderndynamics.pipe.PipeItem;
 import dev.technici4n.moderndynamics.util.MdId;
@@ -58,23 +56,9 @@ public class MdItems {
      * public static final PipeItem EMPTY_SUPERCONDUCTING_PIPE = new PipeItem(MdBlocks.EMPTY_SUPERCONDUCTING_PIPE);
      */
 
-    public static final AttachmentItem IRON_SERVO = new IoAttachmentItem(MdAttachments.IRON_SERVO, AttachmentTier.IRON, IoAttachmentType.SERVO);
-    public static final AttachmentItem GOLD_SERVO = new IoAttachmentItem(MdAttachments.GOLD_SERVO, AttachmentTier.GOLD,
-            IoAttachmentType.SERVO);
-    public static final AttachmentItem DIAMOND_SERVO = new IoAttachmentItem(MdAttachments.DIAMOND_SERVO, AttachmentTier.DIAMOND,
-            IoAttachmentType.SERVO);
-    public static final AttachmentItem IRON_RETRIEVER = new IoAttachmentItem(MdAttachments.IRON_RETRIEVER, AttachmentTier.IRON,
-            IoAttachmentType.RETRIEVER);
-    // TODO: add funny "golden retriever" dog joke, advancement, ...
-    public static final AttachmentItem GOLD_RETRIEVER = new IoAttachmentItem(MdAttachments.GOLD_RETRIEVER, AttachmentTier.GOLD,
-            IoAttachmentType.RETRIEVER);
-    public static final AttachmentItem DIAMOND_RETRIEVER = new IoAttachmentItem(MdAttachments.DIAMOND_RETRIEVER, AttachmentTier.DIAMOND,
-            IoAttachmentType.RETRIEVER);
-    public static final AttachmentItem IRON_FILTER = new IoAttachmentItem(MdAttachments.IRON_FILTER, AttachmentTier.IRON, IoAttachmentType.FILTER);
-    public static final AttachmentItem GOLD_FILTER = new IoAttachmentItem(MdAttachments.GOLD_FILTER, AttachmentTier.GOLD,
-            IoAttachmentType.FILTER);
-    public static final AttachmentItem DIAMOND_FILTER = new IoAttachmentItem(MdAttachments.DIAMOND_FILTER, AttachmentTier.DIAMOND,
-            IoAttachmentType.FILTER);
+    public static final AttachmentItem ATTRACTOR = new IoAttachmentItem(MdAttachments.ATTRACTOR, IoAttachmentType.ATTRACTOR);
+    public static final AttachmentItem EXTRACTOR = new IoAttachmentItem(MdAttachments.EXTRACTOR, IoAttachmentType.EXTRACTOR);
+    public static final AttachmentItem FILTER = new IoAttachmentItem(MdAttachments.FILTER, IoAttachmentType.FILTER);
     public static final AttachmentItem INHIBITOR = new InhibitorAttachmentItem(MdAttachments.INHIBITOR);
 
     public static final Item WRENCH = new Item(new Item.Properties().tab(MdItemGroup.getInstance()));
@@ -108,8 +92,10 @@ public class MdItems {
              */
     };
 
-    public static final AttachmentItem[] ALL_ATTACHMENTS = new AttachmentItem[] { IRON_SERVO, GOLD_SERVO, DIAMOND_SERVO, IRON_RETRIEVER,
-            GOLD_RETRIEVER, DIAMOND_RETRIEVER, IRON_FILTER, GOLD_FILTER, DIAMOND_FILTER,
+    public static final AttachmentItem[] ALL_ATTACHMENTS = new AttachmentItem[] {
+            ATTRACTOR,
+            EXTRACTOR,
+            FILTER,
             INHIBITOR,
     };
 

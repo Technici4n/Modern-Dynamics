@@ -151,7 +151,7 @@ public class FluidHost extends NodeHost {
         gatherCapabilities(out, externalStorage -> {
             // Make sure that network ticking logic doesn't extract from external storages without a servo
             if (getAttachment(Direction.from3DDataValue(externalStorage.directionId)) instanceof FluidAttachedIo io) {
-                if (io.getType() == IoAttachmentType.SERVO) {
+                if (io.getType() == IoAttachmentType.EXTRACTOR) {
                     return externalStorage; // servo: nothing to change
                 }
             }
@@ -249,9 +249,9 @@ public class FluidHost extends NodeHost {
             if (!io.matchesFilter(variant) || !io.isEnabledViaRedstone(pipe)) {
                 return 0;
             }
-            if (io.getType() == IoAttachmentType.SERVO)
+            if (io.getType() == IoAttachmentType.EXTRACTOR)
                 return 0;
-            if (io.getType() == IoAttachmentType.RETRIEVER) {
+            if (io.getType() == IoAttachmentType.ATTRACTOR) {
                 return io.getFluidMaxIo();
             }
         }
@@ -263,9 +263,9 @@ public class FluidHost extends NodeHost {
             if (!io.matchesFilter(variant) || !io.isEnabledViaRedstone(pipe)) {
                 return 0;
             }
-            if (io.getType() == IoAttachmentType.RETRIEVER)
+            if (io.getType() == IoAttachmentType.ATTRACTOR)
                 return 0;
-            else if (io.getType() == IoAttachmentType.SERVO) {
+            else if (io.getType() == IoAttachmentType.EXTRACTOR) {
                 return io.getFluidMaxIo();
             }
         }

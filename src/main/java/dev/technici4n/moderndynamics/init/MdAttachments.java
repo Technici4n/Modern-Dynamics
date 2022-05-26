@@ -16,10 +16,19 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.attachment;
+package dev.technici4n.moderndynamics.init;
 
-public enum IoAttachmentType {
-    ATTRACTOR,
-    EXTRACTOR,
-    FILTER,
+import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
+
+public class MdAttachments {
+    public static final RenderedAttachment ATTRACTOR = new RenderedAttachment("attractor");
+    public static final RenderedAttachment ATTRACTOR_STUFFED = new RenderedAttachment("attractor_stuffed");
+    public static final RenderedAttachment EXTRACTOR = new RenderedAttachment("extractor");
+    public static final RenderedAttachment EXTRACTOR_STUFFED = new RenderedAttachment("extractor_stuffed");
+    public static final RenderedAttachment FILTER = new RenderedAttachment("filter");
+    public static final RenderedAttachment INHIBITOR = new RenderedAttachment("inhibitor");
+
+    public static void init() {
+        // init static
+    }
 }

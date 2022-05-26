@@ -23,13 +23,12 @@ import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.util.MdItemGroup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Rarity;
 
 public abstract class AttachmentItem extends Item {
     public final RenderedAttachment attachment;
 
-    public AttachmentItem(RenderedAttachment attachment, Rarity rarity) {
-        super(new Properties().tab(MdItemGroup.getInstance()).rarity(rarity));
+    public AttachmentItem(RenderedAttachment attachment) {
+        super(new Properties().tab(MdItemGroup.getInstance()));
         this.attachment = attachment;
     }
 

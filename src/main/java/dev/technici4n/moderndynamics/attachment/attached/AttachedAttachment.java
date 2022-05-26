@@ -73,7 +73,7 @@ public class AttachedAttachment {
 
     public boolean allowsItemConnection() {
         // Servos prevent connections using the transport item
-        return !(getItem() instanceof IoAttachmentItem ticking) || ticking.getType() != IoAttachmentType.SERVO;
+        return !(getItem() instanceof IoAttachmentItem ticking) || ticking.getType() != IoAttachmentType.EXTRACTOR;
     }
 
     /**
