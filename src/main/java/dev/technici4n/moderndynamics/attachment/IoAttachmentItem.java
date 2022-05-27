@@ -54,35 +54,28 @@ public class IoAttachmentItem extends AttachmentItem {
         }
     }
 
-    // TODO: this needs to be changed since it depends on the installed upgrades
     public Set<Setting> getSupportedSettings() {
         var result = EnumSet.noneOf(Setting.class);
         result.add(Setting.FILTER_INVERSION);
-        if (false) {
-            result.add(Setting.FILTER_DAMAGE);
-            result.add(Setting.FILTER_NBT);
-            result.add(Setting.FILTER_MOD);
-            result.add(Setting.FILTER_SIMILAR);
-        }
+        result.add(Setting.FILTER_DAMAGE);
+        result.add(Setting.FILTER_NBT);
+        result.add(Setting.FILTER_MOD);
+        result.add(Setting.FILTER_SIMILAR);
         switch (type) {
         case FILTER -> {
-            result.add(Setting.OVERSENDING_MODE);
-            if (false) {
-                result.add(Setting.MAX_ITEMS_IN_INVENTORY);
-            }
+            // TODO implement
+            // result.add(Setting.OVERSENDING_MODE);
+            // result.add(Setting.MAX_ITEMS_IN_INVENTORY);
         }
         case EXTRACTOR -> {
             result.add(Setting.MAX_ITEMS_EXTRACTED);
-            if (false) {
-                result.add(Setting.ROUTING_MODE);
-            }
+            result.add(Setting.ROUTING_MODE);
         }
         case ATTRACTOR -> {
             result.add(Setting.MAX_ITEMS_EXTRACTED);
-            if (false) {
-                result.add(Setting.MAX_ITEMS_IN_INVENTORY);
-                result.add(Setting.ROUTING_MODE);
-            }
+            // TODO implement
+            // result.add(Setting.MAX_ITEMS_IN_INVENTORY);
+            result.add(Setting.ROUTING_MODE);
         }
         }
         return result;

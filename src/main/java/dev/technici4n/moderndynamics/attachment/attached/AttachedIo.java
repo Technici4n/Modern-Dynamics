@@ -119,6 +119,10 @@ public abstract class AttachedIo extends AttachedAttachment {
         return getItem().getSupportedSettings();
     }
 
+    public boolean isAdvancedBehaviorAllowed() {
+        return upgradeContainer.isAdvancedBehaviorAllowed();
+    }
+
     protected static <T extends Enum<T>> T readEnum(T[] enumValues, CompoundTag tag, String key, T defaultValue) {
         var idx = tag.getByte(key);
         if (!tag.contains(key) || idx < 0 || idx >= enumValues.length) {

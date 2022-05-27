@@ -234,7 +234,7 @@ public class ItemAttachedIo extends AttachedIo {
     }
 
     public FilterNbtMode getFilterNbt() {
-        return filterNbt;
+        return isAdvancedBehaviorAllowed() ? filterNbt : FilterNbtMode.RESPECT_NBT;
     }
 
     public void setFilterNbt(FilterNbtMode filterNbt) {
@@ -275,7 +275,7 @@ public class ItemAttachedIo extends AttachedIo {
     }
 
     public OversendingMode getOversendingMode() {
-        return oversendingMode;
+        return isAdvancedBehaviorAllowed() ? oversendingMode : OversendingMode.PREVENT_OVERSENDING;
     }
 
     public void setOversendingMode(OversendingMode mode) {
@@ -308,7 +308,7 @@ public class ItemAttachedIo extends AttachedIo {
                     this.filters.subList(0, getFilterSize()),
                     getFilterInversion(),
                     this.filterDamage,
-                    this.filterNbt,
+                    getFilterNbt(),
                     this.filterMod);
         }
         return this.cachedFilter;

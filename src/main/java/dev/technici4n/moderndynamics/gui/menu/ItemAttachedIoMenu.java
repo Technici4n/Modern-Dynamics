@@ -53,6 +53,8 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
 
         syncShort(this::getMaxItemsExtracted, this::setMaxItemsExtracted);
         syncShort(this::getMaxItemsInInventory, this::setMaxItemsInInventory);
+
+        syncEnum(RoutingMode.class, this::getRoutingMode, this::setRoutingMode);
     }
 
     @Override

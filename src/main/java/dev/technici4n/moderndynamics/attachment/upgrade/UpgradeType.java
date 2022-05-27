@@ -38,7 +38,7 @@ public class UpgradeType {
 
     public void writePacket(FriendlyByteBuf buf) {
         buf.writeVarInt(getSlotLimit());
-        buf.writeBoolean(isenableAdvancedBehavior());
+        buf.writeBoolean(isEnableAdvancedBehavior());
         buf.writeVarInt(getAddFilterSlots());
         buf.writeVarInt(getAddItemCount());
         buf.writeVarInt(getAddItemSpeed());
@@ -64,7 +64,7 @@ public class UpgradeType {
         return slotLimit;
     }
 
-    public boolean isenableAdvancedBehavior() {
+    public boolean isEnableAdvancedBehavior() {
         return enableAdvancedBehavior;
     }
 

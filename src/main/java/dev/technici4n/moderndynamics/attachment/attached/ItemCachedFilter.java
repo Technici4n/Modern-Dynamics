@@ -22,19 +22,23 @@ import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterNbtMode;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Nullable;
 
 public final class ItemCachedFilter {
-    private final Set<ItemVariant> listedItems;
+    private final Set<ItemVariant> listedVariants;
+    private final Set<Item> listedItems;
     private final FilterInversionMode filterInversion;
     private final FilterDamageMode filterDamage;
     private final FilterNbtMode filterNbt;
@@ -59,10 +63,12 @@ public final class ItemCachedFilter {
         this.filterMod = filterMod;
 
         // Dedupe and drop blanks
-        this.listedItems = new HashSet<>(filterConfig.size());
+        this.listedVariants = new HashSet<>(filterConfig.size());
+        this.listedItems = Collections.newSetFromMap(new IdentityHashMap<>());
         for (var variant : filterConfig) {
             if (!variant.isBlank()) {
-                this.listedItems.add(variant);
+                this.listedVariants.add(variant);
+                this.listedItems.add(variant.getItem());
             }
         }
     }
@@ -77,16 +83,13 @@ public final class ItemCachedFilter {
                 itemIsListed = true;
             }
         } else {
-            // When damage and NBT is respected, it's exact matching only
-            if (filterDamage == FilterDamageMode.RESPECT_DAMAGE
-                    && filterNbt == FilterNbtMode.RESPECT_NBT) {
-                itemIsListed = listedItems.contains(variant);
+            if (filterNbt == FilterNbtMode.RESPECT_NBT) {
+                itemIsListed = listedVariants.contains(variant);
             } else {
-                // Otherwise we have to fuzzy match
-                for (var listedItem : listedItems) {
-
-                }
+                itemIsListed = listedItems.contains(variant.getItem());
             }
+
+            // Possibly handle matching damage too
         }
 
         // The "ore dictionary" search could treat an otherwise unlisted item as listed based on its tags
@@ -104,7 +107,7 @@ public final class ItemCachedFilter {
     private Set<String> getListedMods() {
         if (listedMods == null) {
             listedMods = new HashSet<>();
-            for (var variant : listedItems) {
+            for (var variant : listedVariants) {
                 listedMods.add(getModId(variant));
             }
         }

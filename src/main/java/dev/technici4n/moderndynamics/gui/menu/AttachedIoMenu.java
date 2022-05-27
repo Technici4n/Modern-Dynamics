@@ -165,4 +165,8 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
     public boolean isEnabledViaRedstone() {
         return attachment.isEnabledViaRedstone(pipe);
     }
+
+    public boolean isAdvancedBehaviorAllowed() {
+        return attachment.isAdvancedBehaviorAllowed();
+    }
 }

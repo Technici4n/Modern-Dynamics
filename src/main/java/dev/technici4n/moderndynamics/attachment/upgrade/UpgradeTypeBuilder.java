@@ -58,7 +58,7 @@ public class UpgradeTypeBuilder {
         this.slotLimit = slotLimit;
     }
 
-    public UpgradeTypeBuilder advancedFiltering() {
+    public UpgradeTypeBuilder advancedBehavior() {
         this.enableAdvancedBehavior = true;
         return this;
     }

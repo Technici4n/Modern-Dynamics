@@ -32,6 +32,7 @@ import me.shedaniel.rei.api.client.registry.display.DisplayCategory;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
@@ -82,6 +83,8 @@ public class UpgradeCategory implements DisplayCategory<UpgradeDisplay> {
                 .noShadow().color(0xFF404040, 0xFFBBBBBB));
 
         var effects = new ArrayList<UpgradeEffect>();
+        effects.add(new UpgradeEffect(0, type.isEnableAdvancedBehavior() ? -1 : 0, "enableAdvancedBehavior",
+                I18n.get("gui.moderndynamics.tooltip.enabled")));
         effects.add(new UpgradeEffect(16, type.getAddFilterSlots(), "addFilterSlots", "+" + type.getAddFilterSlots()));
         effects.add(new UpgradeEffect(32, type.getAddItemCount(), "addItemCount", "+" + type.getAddItemCount()));
         effects.add(new UpgradeEffect(48, type.getAddItemSpeed(), "addItemSpeed", "+" + type.getAddItemSpeed() * 100 + "%"));
@@ -104,7 +107,9 @@ public class UpgradeCategory implements DisplayCategory<UpgradeDisplay> {
                         new TextComponent(e.greenText).setStyle(greenStyle));
 
                 widgets.add(Widgets.createTexturedWidget(texture, baseX, baseY, e.textureU(), 0, 16, 16));
-                widgets.add(Widgets.createLabel(new Point(baseX + countXOffset, countY), new TextComponent("" + e.count())).noShadow()
+                // hack to treat -1 as ""
+                var renderedString = e.count() > 0 ? "" + e.count() : "";
+                widgets.add(Widgets.createLabel(new Point(baseX + countXOffset, countY), new TextComponent(renderedString)).noShadow()
                         .color(0xFF404040, 0xFFBBBBBB));
                 widgets.add(Widgets.createDrawableWidget((helper, matrices, mouseX, mouseY, delta) -> {
                     if (tooltipRect.contains(mouseX, mouseY)) {

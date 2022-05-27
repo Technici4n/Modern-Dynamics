@@ -38,6 +38,8 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 
 public class CycleSettingButton<T> extends Button {
+    private static final int DISABLED_SETTING = 0; // first setting is used when the button is disabled
+
     private final List<CycleSetting<T>> settings;
     private int currentSetting;
     private final BiConsumer<T, Boolean> onChange;
@@ -75,31 +77,38 @@ public class CycleSettingButton<T> extends Button {
 
     public static final List<CycleSetting<OversendingMode>> OVERSENDING_MODE = ImmutableList.of(
             new CycleSetting<>(OversendingMode.PREVENT_OVERSENDING,
-                    new TranslatableComponent("gui.moderndynamics.setting.oversending_mode.prevent_oversending"), 100, 204),
+                    new TranslatableComponent("gui.moderndynamics.setting.oversending_mode.prevent_oversending"), 196, 196),
             new CycleSetting<>(OversendingMode.ALLOW_OVERSENDING,
-                    new TranslatableComponent("gui.moderndynamics.setting.oversending_mode.allow_oversending"), 80, 204));
+                    new TranslatableComponent("gui.moderndynamics.setting.oversending_mode.allow_oversending"), 176, 196));
 
     public CycleSettingButton(List<CycleSetting<T>> settings, T initialSetting, BiConsumer<T, Boolean> onChange) {
         super(0, 0, 20, 20, TextComponent.EMPTY, button -> {
         });
         this.settings = settings;
+        setValue(initialSetting);
+        this.onChange = onChange;
+    }
+
+    public void setValue(T newValue) {
         for (int i = 0; i < settings.size(); i++) {
-            if (settings.get(i).value() == initialSetting) {
+            if (settings.get(i).value() == newValue) {
                 this.currentSetting = i;
                 break;
             }
         }
-        this.onChange = onChange;
     }
 
     @Override
     public void onPress() {
+        if (!isActive()) {
+            return;
+        }
         currentSetting = (currentSetting + 1) % settings.size();
         onChange.accept(getCurrentSetting().value(), true);
     }
 
     private CycleSetting<T> getCurrentSetting() {
-        return settings.get(currentSetting);
+        return settings.get(isActive() ? currentSetting : DISABLED_SETTING);
     }
 
     @Override

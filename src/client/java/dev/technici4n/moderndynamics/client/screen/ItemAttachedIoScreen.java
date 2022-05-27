@@ -20,6 +20,9 @@ package dev.technici4n.moderndynamics.client.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.technici4n.moderndynamics.attachment.Setting;
+import dev.technici4n.moderndynamics.attachment.settings.FilterNbtMode;
+import dev.technici4n.moderndynamics.attachment.settings.OversendingMode;
+import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
 import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import java.util.List;
 import net.minecraft.client.renderer.Rect2i;
@@ -38,6 +41,9 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
     private PlusMinusButton incMaxItemsInInventory;
     private PlusMinusButton decMaxItemsExtracted;
     private PlusMinusButton incMaxItemsExtracted;
+    private CycleSettingButton<FilterNbtMode> filterNbtModeButton;
+    private CycleSettingButton<RoutingMode> routingModeButton;
+    private CycleSettingButton<OversendingMode> oversendingModeButton;
 
     public ItemAttachedIoScreen(ItemAttachedIoMenu handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
@@ -69,6 +75,18 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
     @Override
     protected void addToggleButtons(List<CycleSettingButton<?>> toggleButtons) {
         super.addToggleButtons(toggleButtons);
+
+        if (menu.isSettingSupported(Setting.FILTER_NBT)) {
+            toggleButtons.add(filterNbtModeButton = new CycleSettingButton<>(CycleSettingButton.FILTER_NBT, menu.getFilterNbt(), menu::setFilterNbt));
+        }
+        if (menu.isSettingSupported(Setting.ROUTING_MODE)) {
+            toggleButtons
+                    .add(routingModeButton = new CycleSettingButton<>(CycleSettingButton.ROUTING_MODE, menu.getRoutingMode(), menu::setRoutingMode));
+        }
+        if (menu.isSettingSupported(Setting.OVERSENDING_MODE)) {
+            toggleButtons.add(oversendingModeButton = new CycleSettingButton<>(CycleSettingButton.OVERSENDING_MODE, menu.getOversendingMode(),
+                    menu::setOversendingMode));
+        }
 
         /*
          * if (menu.isSettingSupported(Setting.FILTER_DAMAGE)) {
@@ -115,6 +133,17 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
         if (decMaxItemsExtracted != null && incMaxItemsExtracted != null) {
             decMaxItemsExtracted.active = menu.getMaxItemsExtracted() > 1;
             incMaxItemsExtracted.active = menu.getMaxItemsExtracted() < menu.getMaxItemsExtractedMaximum();
+        }
+        if (filterNbtModeButton != null) {
+            filterNbtModeButton.active = menu.isAdvancedBehaviorAllowed();
+            filterNbtModeButton.setValue(menu.getFilterNbt());
+        }
+        if (routingModeButton != null) {
+            routingModeButton.setValue(menu.getRoutingMode());
+        }
+        if (oversendingModeButton != null) {
+            oversendingModeButton.active = menu.isAdvancedBehaviorAllowed();
+            oversendingModeButton.setValue(menu.getOversendingMode());
         }
 
         super.render(poseStack, mouseX, mouseY, partialTick);

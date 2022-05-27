@@ -44,19 +44,21 @@ public class AttachmentUpgradesProvider implements DataProvider {
 
         modUpgrade("ae2", "speed_card", 3).itemSpeed(1).itemTransferFrequency(1).fluidTransfer(0, 1);
         modUpgrade("ae2", "capacity_card", 6).filterSlots(2).itemCount(10).fluidTransfer(1, 0);
+        modUpgrade("ae2", "fuzzy_card", 1).advancedBehavior();
 
         modUpgrade("modern_industrialization", "motor", 5).itemSpeed(1).itemTransferFrequency(1);
         modUpgrade("modern_industrialization", "robot_arm", 10).itemCount(16);
         modUpgrade("modern_industrialization", "pump", 9).fluidTransfer(1, 1);
-        modUpgrade("modern_industrialization", "analog_circuit", 6).filterSlots(2);
+        modUpgrade("modern_industrialization", "analog_circuit", 6).filterSlots(2).advancedBehavior();
 
         modUpgrade("techreborn", "overclocker_upgrade", 3).itemSpeed(1).itemTransferFrequency(1).fluidTransfer(0, 1);
         modUpgrade("techreborn", "electronic_circuit", 6).filterSlots(2).itemCount(10);
-        modUpgrade("techreborn", "advanced_circuit", 6).filterSlots(2).itemCount(20).fluidTransfer(1, 0);
+        modUpgrade("techreborn", "advanced_circuit", 6).filterSlots(2).itemCount(10).fluidTransfer(1, 0).advancedBehavior();
 
         modUpgrade("indrev", "speed_enhancer", 3).itemSpeed(1).itemTransferFrequency(1).fluidTransfer(0, 1);
         modUpgrade("indrev", "circuit_mk1", 6).filterSlots(2).itemCount(10);
         modUpgrade("indrev", "circuit_mk2", 6).filterSlots(2).itemCount(20).fluidTransfer(1, 0);
+        modUpgrade("indrev", "circuit_mk3", 1).advancedBehavior();
     }
 
     private UpgradeTypeBuilder modUpgrade(String modid, String item, int slotLimit) {

@@ -80,4 +80,13 @@ class UpgradeContainer {
         int totalMultiply = 1 + reduce(UpgradeType::getMultiplyFluidTransfer);
         return Mth.clamp(totalAdd * totalMultiply, 1, 1_000_000) * Constants.Fluids.BASE_IO;
     }
+
+    public boolean isAdvancedBehaviorAllowed() {
+        for (var stack : upgrades) {
+            if (LoadedUpgrades.getType(stack.getItem()).isEnableAdvancedBehavior()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
