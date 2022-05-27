@@ -19,8 +19,8 @@
 package dev.technici4n.moderndynamics.attachment.attached;
 
 import dev.technici4n.moderndynamics.Constants;
+import dev.technici4n.moderndynamics.attachment.upgrade.LoadedUpgrades;
 import dev.technici4n.moderndynamics.attachment.upgrade.UpgradeType;
-import dev.technici4n.moderndynamics.attachment.upgrade.UpgradeTypes;
 import java.util.function.ToIntFunction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -48,13 +48,13 @@ class UpgradeContainer {
             }
         }
 
-        return UpgradeTypes.getSlotLimit(upgrade) > 0;
+        return LoadedUpgrades.getType(upgrade).getSlotLimit() > 0;
     }
 
     private int reduce(ToIntFunction<UpgradeType> valueExtractor) {
         int tot = 0;
         for (var stack : upgrades) {
-            tot += stack.getCount() * valueExtractor.applyAsInt(UpgradeTypes.getType(stack.getItem()));
+            tot += stack.getCount() * valueExtractor.applyAsInt(LoadedUpgrades.getType(stack.getItem()));
         }
         return tot;
     }

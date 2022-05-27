@@ -121,7 +121,7 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
 
     @Override
     public void emitItemQuads(ItemStack stack, Supplier<Random> randomSupplier, RenderContext context) {
-        drawPipe(new PipeModelData((byte) 12, (byte) 0, new AttachedAttachment[6]), context);
+        drawPipe(ITEM_DATA, context);
     }
 
     private void drawPipe(PipeModelData data, RenderContext context) {

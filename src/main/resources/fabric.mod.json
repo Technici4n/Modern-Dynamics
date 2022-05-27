@@ -25,9 +25,14 @@
     ],
     "fabric-datagen": [
       "dev.technici4n.moderndynamics.data.DataGenerators"
+    ],
+    "rei_plugins": [
+      "dev.technici4n.moderndynamics.client.compat.rei.MdReiPlugin"
     ]
   },
-
+  "mixins": [
+    "moderndynamics.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.11.3",
     "fabric": "*",

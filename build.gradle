@@ -51,7 +51,7 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     include modImplementation("teamreborn:energy:${project.energy_version}")
 
-    modRuntimeOnly("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
+    modImplementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
         exclude group: "net.fabricmc.fabric-api"
     }
     modRuntimeOnly("mcp.mobius.waila:wthit:fabric-${project.wthit_version}") {

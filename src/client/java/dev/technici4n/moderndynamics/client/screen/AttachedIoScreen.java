@@ -30,6 +30,7 @@ import dev.technici4n.moderndynamics.gui.menu.UpgradeSlot;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Widget;
@@ -58,7 +59,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
      */
     private static final int TAB_BORDER = 4;
 
-    private static final float TAB_OPEN_PER_TICK = 0.35f;
+    private static final float TAB_OPEN_PER_TICK = 0.20f;
 
     public static final ResourceLocation TEXTURE = MdId.of("textures/gui/attachment.png");
     public static final ResourceLocation TAB_RIGHT_TEXTURE = MdId.of("textures/gui/tab_right.png");
@@ -264,6 +265,13 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         font.draw(matrices, menu.getRedstoneMode().getTranslation(), tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 78, 0);
 
         RenderSystem.disableScissor();
+    }
+
+    public void appendExclusionZones(Consumer<Rect2i> consumer) {
+        // Upgrades
+        consumer.accept(new Rect2i(leftPos + UpgradePanel.START_LEFT, topPos + UpgradePanel.START_TOP, UpgradePanel.WIDTH, UpgradePanel.HEIGHT));
+        // Redstone tab
+        consumer.accept(redstoneTabRect);
     }
 
     private void updateRedstoneTabRect(float partialTicks) {

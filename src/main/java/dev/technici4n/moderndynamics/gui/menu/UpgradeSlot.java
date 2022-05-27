@@ -19,7 +19,7 @@
 package dev.technici4n.moderndynamics.gui.menu;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedIo;
-import dev.technici4n.moderndynamics.attachment.upgrade.UpgradeTypes;
+import dev.technici4n.moderndynamics.attachment.upgrade.LoadedUpgrades;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -68,6 +68,6 @@ public class UpgradeSlot extends Slot {
 
     @Override
     public int getMaxStackSize(ItemStack stack) {
-        return UpgradeTypes.getSlotLimit(stack.getItem());
+        return LoadedUpgrades.getType(stack.getItem()).getSlotLimit();
     }
 }

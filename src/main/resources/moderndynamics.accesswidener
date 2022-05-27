@@ -5,3 +5,6 @@ accessible method net/minecraft/client/renderer/LevelRenderer renderShape (Lcom/
 
 # fluid slot rendering
 extendable method net/minecraft/client/gui/screens/inventory/AbstractContainerScreen renderSlot (Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/inventory/Slot;)V
+
+# access server resource manager
+accessible class net/minecraft/server/MinecraftServer$ReloadableResources

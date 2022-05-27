@@ -16,19 +16,19 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.client.attachment;
+package dev.technici4n.moderndynamics.hooks;
 
-import dev.technici4n.moderndynamics.attachment.upgrade.LoadedUpgrades;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.event.EventFactory;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.server.level.ServerPlayer;
 
-public class SetAttachmentUpgradesPacket {
-    public static final ClientPlayNetworking.PlayChannelHandler HANDLER = (client, handler, buf, responseSender) -> {
-        var loadedUpgrades = LoadedUpgrades.fromPacket(buf);
-
-        if (!handler.getConnection().isMemoryConnection()) {
-            client.execute(() -> {
-                LoadedUpgrades.upload(loadedUpgrades);
-            });
+public interface ServerSendPacketEvent {
+    Event<ServerSendPacketEvent> EVENT = EventFactory.createArrayBacked(ServerSendPacketEvent.class, listeners -> (player, packet) -> {
+        for (var listener : listeners) {
+            listener.onSendPacket(player, packet);
         }
-    };
+    });
+
+    void onSendPacket(ServerPlayer player, Packet<?> packet);
 }

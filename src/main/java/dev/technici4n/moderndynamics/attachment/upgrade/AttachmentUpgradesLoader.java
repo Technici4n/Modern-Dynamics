@@ -24,6 +24,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import dev.technici4n.moderndynamics.ModernDynamics;
+import dev.technici4n.moderndynamics.hooks.ResourceReloadFinished;
+import dev.technici4n.moderndynamics.hooks.ServerSendPacketEvent;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,10 +37,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
+import net.minecraft.network.protocol.game.ClientboundUpdateRecipesPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -50,7 +52,7 @@ import net.minecraft.world.item.Item;
 public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<List<JsonObject>> implements IdentifiableResourceReloadListener {
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     // A bit dirty... could maybe use a better fabric API hook?
-    private static final Map<ResourceManager, Map<Item, UpgradeType>> LOADED_UPGRADES = new WeakHashMap<>();
+    private static final Map<ResourceManager, LoadedUpgrades> LOADED_UPGRADES = new WeakHashMap<>();
 
     private AttachmentUpgradesLoader() {
     }
@@ -79,7 +81,8 @@ public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<Lis
 
     @Override
     protected void apply(List<JsonObject> array, ResourceManager resourceManager, ProfilerFiller profiler) {
-        Map<Item, UpgradeType> upgrades = new IdentityHashMap<>();
+        Map<Item, UpgradeType> map = new IdentityHashMap<>();
+        List<Item> list = new ArrayList<>();
 
         for (JsonObject obj : array) {
             if (!ResourceConditions.objectMatchesConditions(obj)) {
@@ -90,28 +93,33 @@ public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<Lis
                 var item = GsonHelper.getAsItem(obj, "item");
                 var deserialized = GSON.fromJson(obj, UpgradeType.class);
                 // TODO validate
-                upgrades.put(item, deserialized);
+
+                if (!map.containsKey(item)) {
+                    list.add(item);
+                }
+                map.put(item, deserialized);
             } catch (Exception exception) {
                 ModernDynamics.LOGGER.error("Failed to read attachment upgrade entry " + obj, exception);
             }
         }
 
-        LOADED_UPGRADES.put(resourceManager, upgrades);
+        LOADED_UPGRADES.put(resourceManager, new LoadedUpgrades(map, list));
     }
 
     public static void setup() {
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new AttachmentUpgradesLoader());
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            UpgradeTypes.uploadMap(AttachmentUpgradesLoader.LOADED_UPGRADES.get(server.getResourceManager()));
+            LoadedUpgrades.upload(AttachmentUpgradesLoader.LOADED_UPGRADES.get(server.getResourceManager()));
         });
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
-            if (success) {
-                UpgradeTypes.uploadMap(AttachmentUpgradesLoader.LOADED_UPGRADES.get(resourceManager));
-                UpgradeTypes.syncToClients(server);
+        ResourceReloadFinished.EVENT.register((server, resourceManager) -> {
+            LoadedUpgrades.upload(AttachmentUpgradesLoader.LOADED_UPGRADES.get(resourceManager));
+
+            // TODO: should maybe invalidate all cached filters?
+        });
+        ServerSendPacketEvent.EVENT.register((player, packet) -> {
+            if (packet instanceof ClientboundUpdateRecipesPacket) {
+                LoadedUpgrades.syncToClient(player);
             }
-        });
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            UpgradeTypes.syncToClient(handler.player);
         });
     }
 }
