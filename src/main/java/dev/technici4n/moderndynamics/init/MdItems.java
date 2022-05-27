@@ -61,7 +61,7 @@ public class MdItems {
     public static final AttachmentItem FILTER = new IoAttachmentItem(MdAttachments.FILTER, IoAttachmentType.FILTER);
     public static final AttachmentItem INHIBITOR = new InhibitorAttachmentItem(MdAttachments.INHIBITOR);
 
-    public static final Item WRENCH = new Item(new Item.Properties().tab(MdItemGroup.getInstance()));
+    public static final Item WRENCH = new Item(new Item.Properties().stacksTo(1).tab(MdItemGroup.getInstance()));
     public static final DebugToolItem DEBUG_TOOL = new DebugToolItem();
 
     public static final PipeItem[] ALL_PIPES = new PipeItem[] {
