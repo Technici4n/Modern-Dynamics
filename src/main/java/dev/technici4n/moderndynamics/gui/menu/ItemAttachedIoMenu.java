@@ -34,6 +34,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.item.ItemStack;
 
 public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
 
@@ -64,6 +65,34 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
         } else {
             super.clicked(slotIndex, button, actionType, player);
         }
+    }
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        var itemVariant = ItemVariant.of(slots.get(index).getItem());
+        if (index < 36 && !itemVariant.isBlank()) {
+            // Try to set filter.
+            boolean alreadyHave = false;
+            for (var slot : slots) {
+                if (slot instanceof ItemConfigSlot) {
+                    if (itemVariant.matches(slot.getItem())) {
+                        alreadyHave = true;
+                    }
+                }
+            }
+
+            if (!alreadyHave) {
+                for (var slot : slots) {
+                    if (slot instanceof ItemConfigSlot itemConfigSlot) {
+                        if (slot.getItem().isEmpty()) {
+                            setFilter(itemConfigSlot.getConfigIdx(), itemVariant, false);
+                            return ItemStack.EMPTY;
+                        }
+                    }
+                }
+            }
+        }
+        return super.quickMoveStack(player, index);
     }
 
     public FilterDamageMode getFilterDamage() {

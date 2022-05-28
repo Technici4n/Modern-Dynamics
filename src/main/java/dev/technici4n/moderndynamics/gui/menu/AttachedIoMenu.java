@@ -100,6 +100,49 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
+        Slot slot = slots.get(index);
+        ItemStack stack = slot.getItem();
+        if (stack.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        if (index < 36) {
+            // Click inside player inventory. Try to move to upgrades.
+            // Don't try to use moveItemStackTo, it's missing some checks.
+            for (var otherSlot : slots) {
+                if (otherSlot instanceof UpgradeSlot && otherSlot.mayPlace(stack)) {
+                    if (ItemStack.isSameItemSameTags(otherSlot.getItem(), stack)) {
+                        int inserted = Math.min(stack.getCount(), otherSlot.getMaxStackSize() - otherSlot.getItem().getCount());
+                        if (inserted > 0) {
+                            stack.shrink(inserted);
+                            otherSlot.getItem().grow(inserted);
+                            otherSlot.setChanged();
+                            return ItemStack.EMPTY;
+                        }
+                    } else if (otherSlot.getItem().isEmpty()) {
+                        int inserted = Math.min(stack.getCount(), otherSlot.getMaxStackSize(stack));
+                        if (inserted > 0) {
+                            otherSlot.set(stack.split(inserted));
+                            return ItemStack.EMPTY;
+                        }
+                    }
+                }
+            }
+
+            if (index < 27) { // Main inventory to hotbar
+                if (moveItemStackTo(stack, 27, 36, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else { // Hotbar to main inventory
+                if (moveItemStackTo(stack, 0, 27, false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+        } else if (slot instanceof UpgradeSlot) {
+            // Move to player inventory
+            if (moveItemStackTo(stack, 0, 36, true)) {
+                return ItemStack.EMPTY;
+            }
+        }
         return ItemStack.EMPTY;
     }
 
