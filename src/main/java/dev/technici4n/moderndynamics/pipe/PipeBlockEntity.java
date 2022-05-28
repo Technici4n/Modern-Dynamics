@@ -395,6 +395,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
                                     initialData = new CompoundTag();
                                 }
                                 host.setAttachment(hitSide, attachmentItem, initialData);
+                                host.getAttachment(hitSide).onPlaced(player);
                                 level.blockUpdated(worldPosition, getBlockState().getBlock());
                                 refreshHosts();
                                 scheduleHostUpdates();

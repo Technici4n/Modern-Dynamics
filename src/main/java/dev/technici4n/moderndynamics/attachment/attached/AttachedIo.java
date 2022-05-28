@@ -25,9 +25,11 @@ import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import dev.technici4n.moderndynamics.util.WrenchHelper;
 import java.util.Set;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -147,6 +149,14 @@ public abstract class AttachedIo extends AttachedAttachment {
             return getRedstoneMode() == RedstoneMode.REQUIRES_HIGH;
         } else {
             return getRedstoneMode() == RedstoneMode.REQUIRES_LOW;
+        }
+    }
+
+    @Override
+    public void onPlaced(Player player) {
+        if (WrenchHelper.isWrench(player.getOffhandItem())) {
+            // Set to whitelist mode if the player has a wrench in his offhand.
+            filterInversion = FilterInversionMode.WHITELIST;
         }
     }
 }

@@ -28,6 +28,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
@@ -97,5 +98,8 @@ public class AttachedAttachment {
     @Nullable
     public MenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
         return null;
+    }
+
+    public void onPlaced(Player player) {
     }
 }
