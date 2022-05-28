@@ -20,6 +20,7 @@ package dev.technici4n.moderndynamics.gui.menu;
 
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
+import dev.technici4n.moderndynamics.gui.MdPackets;
 import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.Objects;
@@ -61,5 +62,12 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
         } else {
             super.clicked(slotIndex, button, actionType, player);
         }
+    }
+
+    public void setFilter(int configIdx, FluidVariant variant, boolean sendPacket) {
+        if (isClientSide() && sendPacket) {
+            MdPackets.sendSetFilter(containerId, configIdx, variant);
+        }
+        attachment.setFilter(configIdx, variant);
     }
 }

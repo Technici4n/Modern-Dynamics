@@ -27,11 +27,14 @@ import dev.technici4n.moderndynamics.attachment.settings.OversendingMode;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
 import dev.technici4n.moderndynamics.gui.menu.AttachedIoMenu;
+import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import dev.technici4n.moderndynamics.util.MdId;
 import dev.technici4n.moderndynamics.util.UnsidedPacketHandler;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -48,10 +51,39 @@ public class MdPackets {
         return () -> {
             AbstractContainerMenu handler = player.containerMenu;
             if (handler.containerId == syncId && handler instanceof ItemAttachedIoMenu attachmentMenu) {
-                attachmentMenu.attachment.setFilter(configIdx, variant);
+                attachmentMenu.setFilter(configIdx, variant, false);
             }
         };
     };
+
+    public static void sendSetFilter(int syncId, int filterSlot, ItemVariant variant) {
+        var buffer = PacketByteBufs.create();
+        buffer.writeInt(syncId);
+        buffer.writeInt(filterSlot);
+        variant.toPacket(buffer);
+        ClientPlayNetworking.send(SET_ITEM_VARIANT, buffer);
+    }
+
+    public static final ResourceLocation SET_FLUID_VARIANT = MdId.of("set_fluid_variant");
+    public static final UnsidedPacketHandler SET_FLUID_VARIANT_HANDLER = (player, buf) -> {
+        int syncId = buf.readInt();
+        int configIdx = buf.readInt();
+        FluidVariant variant = FluidVariant.fromPacket(buf);
+        return () -> {
+            AbstractContainerMenu handler = player.containerMenu;
+            if (handler.containerId == syncId && handler instanceof FluidAttachedIoMenu attachmentMenu) {
+                attachmentMenu.setFilter(configIdx, variant, false);
+            }
+        };
+    };
+
+    public static void sendSetFilter(int syncId, int filterSlot, FluidVariant variant) {
+        var buffer = PacketByteBufs.create();
+        buffer.writeInt(syncId);
+        buffer.writeInt(filterSlot);
+        variant.toPacket(buffer);
+        ClientPlayNetworking.send(SET_FLUID_VARIANT, buffer);
+    }
 
     public static final ResourceLocation SET_FILTER_MODE = MdId.of("set_filter_mode");
     public static final UnsidedPacketHandler SET_FILTER_MODE_HANDLER = createSetEnumHandler(FilterInversionMode.class, AttachedIoMenu.class,

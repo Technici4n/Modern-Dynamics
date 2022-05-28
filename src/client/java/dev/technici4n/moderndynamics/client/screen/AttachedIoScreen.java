@@ -386,4 +386,17 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
             }
         }
     }
+
+    // Accessors for use by the REI plugin
+    public Slot getHoveredSlot() {
+        return hoveredSlot;
+    }
+
+    public int getLeftPos() {
+        return leftPos;
+    }
+
+    public int getTopPos() {
+        return topPos;
+    }
 }

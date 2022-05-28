@@ -165,4 +165,11 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
     public int getMaxItemsExtractedMaximum() {
         return attachment.getMaxItemsExtractedMaximum();
     }
+
+    public void setFilter(int configIdx, ItemVariant variant, boolean sendPacket) {
+        if (isClientSide() && sendPacket) {
+            MdPackets.sendSetFilter(containerId, configIdx, variant);
+        }
+        attachment.setFilter(configIdx, variant);
+    }
 }

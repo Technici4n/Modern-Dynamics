@@ -78,6 +78,7 @@ public class FluidAttachedIo extends AttachedIo {
     public void setFilter(int idx, FluidVariant variant) {
         if (!variant.equals(this.filters.get(idx))) {
             this.filters.set(idx, variant);
+            setChangedCallback.run();
             resetCachedFilter();
         }
     }

@@ -30,7 +30,6 @@ import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItemSmooth
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes;
-import dev.technici4n.moderndynamics.util.UnsidedPacketHandler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -43,7 +42,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 
@@ -63,7 +61,6 @@ public final class ModernDynamicsClient implements ClientModInitializer {
         MenuScreens.register(MdMenus.ITEM_IO, ItemAttachedIoScreen::new);
         MenuScreens.register(MdMenus.FLUID_IO, FluidAttachedIoScreen::new);
 
-        registerPacketHandler(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER);
         ClientPlayNetworking.registerGlobalReceiver(MdPackets.SET_ATTACHMENT_UPGRADES, SetAttachmentUpgradesPacket.HANDLER);
 
         WorldRenderEvents.BLOCK_OUTLINE.register(ModernDynamicsClient::renderPipeAttachmentOutline);
@@ -80,11 +77,6 @@ public final class ModernDynamicsClient implements ClientModInitializer {
             }
             return ItemStack.EMPTY;
         });
-    }
-
-    private static void registerPacketHandler(ResourceLocation channelId, UnsidedPacketHandler unsidedPacketHandler) {
-        ClientPlayNetworking.registerGlobalReceiver(channelId,
-                (mc, handler, buf, responseSender) -> mc.execute(unsidedPacketHandler.handlePacket(mc.player, buf)));
     }
 
     /**

@@ -36,7 +36,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-// TODO: need to find a clean way to sync changes done by other players
+// TODO: need to sync item and fluid filter changes done by other players
 public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu {
     public final PipeBlockEntity pipe;
     public final Direction side;
@@ -132,6 +132,7 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
             MdPackets.sendSetFilterMode(containerId, value);
         }
         attachment.setFilterInversion(value);
+        // TODO: clear all these pipe.setChanged() calls and use the setChangedCallback in the attachment instead.
         pipe.setChanged();
     }
 

@@ -18,7 +18,10 @@
  */
 package dev.technici4n.moderndynamics;
 
+import dev.technici4n.moderndynamics.util.UnsidedPacketHandler;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.resources.ResourceLocation;
 
 public class MdProxy {
     public static final MdProxy INSTANCE = switch (FabricLoader.getInstance().getEnvironmentType()) {
@@ -34,5 +37,13 @@ public class MdProxy {
 
     public boolean isShiftDown() {
         return false;
+    }
+
+    /**
+     * Register a packet that can be received by both sides, server and client.
+     */
+    public void registerPacketHandler(ResourceLocation packetId, UnsidedPacketHandler unsidedHandler) {
+        ServerPlayNetworking.registerGlobalReceiver(packetId,
+                (ms, player, handler, buf, responseSender) -> ms.execute(unsidedHandler.handlePacket(player, buf)));
     }
 }

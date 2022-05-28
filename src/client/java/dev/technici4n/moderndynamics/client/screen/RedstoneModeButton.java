@@ -66,7 +66,7 @@ public class RedstoneModeButton extends Button {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, ItemAttachedIoScreen.TEXTURE);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
-        var x = 178;
+        var x = 176;
         if (!isActive()) {
             x += 16;
         } else if (getter.get() == mode) {
@@ -75,7 +75,7 @@ public class RedstoneModeButton extends Button {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
-        this.blit(poseStack, this.x, this.y, x, 183, width, height);
+        this.blit(poseStack, this.x, this.y, x, 180, width, height);
 
         // Draw an icon appropriate for the mode of this button
         int iconX = 240;
