@@ -19,16 +19,13 @@
 package dev.technici4n.moderndynamics.pipe;
 
 import dev.technici4n.moderndynamics.util.MdItemGroup;
-import net.minecraft.core.BlockPos;
+import dev.technici4n.moderndynamics.util.WrenchHelper;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Nullable;
 
 public class PipeItem extends BlockItem {
     public PipeItem(PipeBlock block) {
@@ -42,18 +39,46 @@ public class PipeItem extends BlockItem {
     }
 
     @Override
-    protected boolean updateCustomBlockEntityTag(BlockPos pos, Level world, @Nullable Player placer, ItemStack stack, BlockState state) {
-        if (!world.isClientSide()) {
-            // If adjacent pipes have us blacklisted, we blacklist them here.
-            BlockEntity be = world.getBlockEntity(pos);
+    protected boolean placeBlock(BlockPlaceContext context, BlockState state) {
+        boolean couldPlace = super.placeBlock(context, state);
+        if (!couldPlace) {
+            return false;
+        }
+
+        var level = context.getLevel();
+        var pos = context.getClickedPos();
+        var maybePlayer = context.getPlayer();
+
+        if (!level.isClientSide()) {
+            BlockEntity be = level.getBlockEntity(pos);
 
             if (be instanceof PipeBlockEntity pipe) {
                 for (Direction direction : Direction.values()) {
-                    BlockEntity adjBe = world.getBlockEntity(pos.relative(direction));
-
+                    // If adjacent pipes have us blacklisted, we blacklist them here.
+                    BlockEntity adjBe = level.getBlockEntity(pos.relative(direction));
                     if (adjBe instanceof PipeBlockEntity adjPipe) {
                         if ((adjPipe.connectionBlacklist & (1 << direction.getOpposite().get3DDataValue())) > 0) {
                             pipe.connectionBlacklist |= 1 << direction.get3DDataValue();
+                        }
+                    }
+
+                    // If wrench in offhand: blacklist all sides regardless.
+                    if (maybePlayer != null && WrenchHelper.isWrench(maybePlayer.getOffhandItem())) {
+                        pipe.connectionBlacklist |= 1 << direction.get3DDataValue();
+                        // Also blacklist the adjacent pipe.
+                        if (adjBe instanceof PipeBlockEntity adjPipe) {
+                            adjPipe.connectionBlacklist |= 1 << direction.getOpposite().get3DDataValue();
+                            level.blockEntityChanged(adjPipe.getBlockPos()); // Skip comparator update, just in case.
+                        }
+
+                        // If sneaking: allow connection to the clicked face, so remove from both blacklists.
+                        if (maybePlayer.isShiftKeyDown() && direction.getOpposite() == context.getClickedFace()) {
+                            pipe.connectionBlacklist ^= 1 << direction.get3DDataValue();
+                            // Also remove from adjacent pipe.
+                            if (adjBe instanceof PipeBlockEntity adjPipe) {
+                                adjPipe.connectionBlacklist ^= 1 << direction.getOpposite().get3DDataValue();
+                                level.blockEntityChanged(adjPipe.getBlockPos()); // Skip comparator update, just in case.
+                            }
                         }
                     }
                 }
@@ -61,7 +86,6 @@ public class PipeItem extends BlockItem {
             // else warn?
         }
 
-        // No clue what the return is for, vanilla doesn't seem to use it.
         return true;
     }
 }
