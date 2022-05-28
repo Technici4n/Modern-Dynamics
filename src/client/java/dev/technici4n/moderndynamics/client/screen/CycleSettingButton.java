@@ -28,12 +28,17 @@ import dev.technici4n.moderndynamics.attachment.settings.FilterNbtMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterSimilarMode;
 import dev.technici4n.moderndynamics.attachment.settings.OversendingMode;
 import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiConsumer;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 
@@ -43,6 +48,7 @@ public class CycleSettingButton<T> extends Button {
     private final List<CycleSetting<T>> settings;
     private int currentSetting;
     private final BiConsumer<T, Boolean> onChange;
+    private boolean advancedBehavior = false;
 
     public static final List<CycleSetting<FilterInversionMode>> FILTER_INVERSION = ImmutableList.of(
             new CycleSetting<>(FilterInversionMode.WHITELIST, new TranslatableComponent("gui.moderndynamics.setting.filter_mode.whitelist"), 176, 0),
@@ -70,7 +76,7 @@ public class CycleSettingButton<T> extends Button {
                     new TranslatableComponent("gui.moderndynamics.setting.filter_similar.include_similar"), 216, 60));
 
     public static final List<CycleSetting<RoutingMode>> ROUTING_MODE = ImmutableList.of(
-            new CycleSetting<>(RoutingMode.CLOSEST, new TranslatableComponent("gui.moderndynamics.setting.routing_mode.closest"), 0, 204),
+            new CycleSetting<>(RoutingMode.CLOSEST, new TranslatableComponent("gui.moderndynamics.setting.routing_mode.closest"), 216, 196),
             new CycleSetting<>(RoutingMode.FURTHEST, new TranslatableComponent("gui.moderndynamics.setting.routing_mode.furthest"), 20, 204),
             new CycleSetting<>(RoutingMode.RANDOM, new TranslatableComponent("gui.moderndynamics.setting.routing_mode.random"), 40, 204),
             new CycleSetting<>(RoutingMode.ROUND_ROBIN, new TranslatableComponent("gui.moderndynamics.setting.routing_mode.round_robin"), 60, 204));
@@ -81,12 +87,23 @@ public class CycleSettingButton<T> extends Button {
             new CycleSetting<>(OversendingMode.ALLOW_OVERSENDING,
                     new TranslatableComponent("gui.moderndynamics.setting.oversending_mode.allow_oversending"), 176, 196));
 
+    public static final Component REQUIRES_ADVANCED_BEHAVIOR = new TranslatableComponent(
+            "gui.moderndynamics.tooltip.requires_advanced_behavior").setStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED));
+
     public CycleSettingButton(List<CycleSetting<T>> settings, T initialSetting, BiConsumer<T, Boolean> onChange) {
         super(0, 0, 20, 20, TextComponent.EMPTY, button -> {
         });
         this.settings = settings;
         setValue(initialSetting);
         this.onChange = onChange;
+    }
+
+    /**
+     * Enable the tooltip saying that the setting requires advanced behavior.
+     */
+    public CycleSettingButton<T> requiresAdvancedBehavior() {
+        advancedBehavior = true;
+        return this;
     }
 
     public void setValue(T newValue) {
@@ -131,7 +148,12 @@ public class CycleSettingButton<T> extends Button {
         this.blit(poseStack, this.x, this.y, setting.spriteX(), y, width, height);
 
         if (this.isHovered) {
-            Minecraft.getInstance().screen.renderTooltip(poseStack, setting.tooltip(), mouseX, mouseY);
+            var tooltip = new ArrayList<Component>();
+            tooltip.add(setting.tooltip());
+            if (advancedBehavior && !isActive()) {
+                tooltip.add(REQUIRES_ADVANCED_BEHAVIOR);
+            }
+            Minecraft.getInstance().screen.renderTooltip(poseStack, tooltip, Optional.empty(), mouseX, mouseY);
         }
     }
 }

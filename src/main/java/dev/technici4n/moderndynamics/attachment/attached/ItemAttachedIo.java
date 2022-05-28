@@ -275,7 +275,7 @@ public class ItemAttachedIo extends AttachedIo {
     }
 
     public RoutingMode getRoutingMode() {
-        return routingMode;
+        return isAdvancedBehaviorAllowed() ? routingMode : RoutingMode.CLOSEST;
     }
 
     public void setRoutingMode(RoutingMode mode) {

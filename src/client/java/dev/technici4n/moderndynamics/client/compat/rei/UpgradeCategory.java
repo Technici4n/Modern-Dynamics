@@ -84,7 +84,7 @@ public class UpgradeCategory implements DisplayCategory<UpgradeDisplay> {
 
         var effects = new ArrayList<UpgradeEffect>();
         effects.add(new UpgradeEffect(0, type.isEnableAdvancedBehavior() ? -1 : 0, "enableAdvancedBehavior",
-                I18n.get("gui.moderndynamics.tooltip.enabled")));
+                I18n.get("gui.moderndynamics.tooltip.advanced_behavior_available")));
         effects.add(new UpgradeEffect(16, type.getAddFilterSlots(), "addFilterSlots", "+" + type.getAddFilterSlots()));
         effects.add(new UpgradeEffect(32, type.getAddItemCount(), "addItemCount", "+" + type.getAddItemCount()));
         effects.add(new UpgradeEffect(48, type.getAddItemSpeed(), "addItemSpeed", "+" + type.getAddItemSpeed() * 100 + "%"));

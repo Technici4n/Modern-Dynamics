@@ -77,15 +77,16 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
         super.addToggleButtons(toggleButtons);
 
         if (menu.isSettingSupported(Setting.FILTER_NBT)) {
-            toggleButtons.add(filterNbtModeButton = new CycleSettingButton<>(CycleSettingButton.FILTER_NBT, menu.getFilterNbt(), menu::setFilterNbt));
+            toggleButtons.add(filterNbtModeButton = new CycleSettingButton<>(
+                    CycleSettingButton.FILTER_NBT, menu.getFilterNbt(), menu::setFilterNbt).requiresAdvancedBehavior());
         }
         if (menu.isSettingSupported(Setting.ROUTING_MODE)) {
-            toggleButtons
-                    .add(routingModeButton = new CycleSettingButton<>(CycleSettingButton.ROUTING_MODE, menu.getRoutingMode(), menu::setRoutingMode));
+            toggleButtons.add(routingModeButton = new CycleSettingButton<>(
+                    CycleSettingButton.ROUTING_MODE, menu.getRoutingMode(), menu::setRoutingMode).requiresAdvancedBehavior());
         }
         if (menu.isSettingSupported(Setting.OVERSENDING_MODE)) {
-            toggleButtons.add(oversendingModeButton = new CycleSettingButton<>(CycleSettingButton.OVERSENDING_MODE, menu.getOversendingMode(),
-                    menu::setOversendingMode));
+            toggleButtons.add(oversendingModeButton = new CycleSettingButton<>(
+                    CycleSettingButton.OVERSENDING_MODE, menu.getOversendingMode(), menu::setOversendingMode).requiresAdvancedBehavior());
         }
 
         /*
@@ -139,6 +140,7 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
             filterNbtModeButton.setValue(menu.getFilterNbt());
         }
         if (routingModeButton != null) {
+            routingModeButton.active = menu.isAdvancedBehaviorAllowed();
             routingModeButton.setValue(menu.getRoutingMode());
         }
         if (oversendingModeButton != null) {

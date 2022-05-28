@@ -34,7 +34,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.item.ItemStack;
 
 public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
 
@@ -68,31 +67,25 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
     }
 
     @Override
-    public ItemStack quickMoveStack(Player player, int index) {
-        var itemVariant = ItemVariant.of(slots.get(index).getItem());
-        if (index < 36 && !itemVariant.isBlank()) {
-            // Try to set filter.
-            boolean alreadyHave = false;
-            for (var slot : slots) {
-                if (slot instanceof ItemConfigSlot) {
-                    if (itemVariant.matches(slot.getItem())) {
-                        alreadyHave = true;
-                    }
-                }
-            }
-
-            if (!alreadyHave) {
-                for (var slot : slots) {
-                    if (slot instanceof ItemConfigSlot itemConfigSlot) {
-                        if (slot.getItem().isEmpty()) {
-                            setFilter(itemConfigSlot.getConfigIdx(), itemVariant, false);
-                            return ItemStack.EMPTY;
-                        }
-                    }
+    protected boolean trySetFilterOnShiftClick(int clickedSlot) {
+        var itemVariant = ItemVariant.of(slots.get(clickedSlot).getItem());
+        // Check if variant is already configured.
+        for (var slot : slots) {
+            if (slot instanceof ItemConfigSlot) {
+                if (itemVariant.matches(slot.getItem())) {
+                    return false;
                 }
             }
         }
-        return super.quickMoveStack(player, index);
+        for (var slot : slots) {
+            if (slot instanceof ItemConfigSlot itemConfigSlot) {
+                if (slot.getItem().isEmpty()) {
+                    setFilter(itemConfigSlot.getConfigIdx(), itemVariant, false);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public FilterDamageMode getFilterDamage() {

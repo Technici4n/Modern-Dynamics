@@ -98,6 +98,10 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
         });
     }
 
+    protected boolean trySetFilterOnShiftClick(int clickedSlot) {
+        return false;
+    }
+
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         Slot slot = slots.get(index);
@@ -126,6 +130,11 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
                         }
                     }
                 }
+            }
+
+            // Try to set filter
+            if (trySetFilterOnShiftClick(index)) {
+                return ItemStack.EMPTY;
             }
 
             if (index < 27) { // Main inventory to hotbar

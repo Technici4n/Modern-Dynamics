@@ -32,7 +32,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.item.ItemStack;
 
 public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
 
@@ -66,34 +65,32 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
     }
 
     @Override
-    public ItemStack quickMoveStack(Player player, int index) {
-        if (index < 36 && !slots.get(index).getItem().isEmpty()) {
-            // Try to set filter.
-            var fluidVariant = StorageUtil.findStoredResource(
-                    ContainerItemContext.withInitial(slots.get(index).getItem()).find(FluidStorage.ITEM),
-                    fv -> {
-                        for (var slot : slots) {
-                            if (slot instanceof FluidConfigSlot fluidConfig) {
-                                if (fluidConfig.getFilter().equals(fv)) {
-                                    return false;
-                                }
+    protected boolean trySetFilterOnShiftClick(int clickedSlot) {
+        // Find resource that's not configured yet
+        var fluidVariant = StorageUtil.findStoredResource(
+                ContainerItemContext.withInitial(slots.get(clickedSlot).getItem()).find(FluidStorage.ITEM),
+                fv -> {
+                    for (var slot : slots) {
+                        if (slot instanceof FluidConfigSlot fluidConfig) {
+                            if (fluidConfig.getFilter().equals(fv)) {
+                                return false;
                             }
                         }
+                    }
+                    return true;
+                },
+                null);
+        if (fluidVariant != null) {
+            for (var slot : slots) {
+                if (slot instanceof FluidConfigSlot fluidConfig) {
+                    if (fluidConfig.getFilter().isBlank()) {
+                        setFilter(fluidConfig.getConfigIdx(), fluidVariant, false);
                         return true;
-                    },
-                    null);
-            if (fluidVariant != null) {
-                for (var slot : slots) {
-                    if (slot instanceof FluidConfigSlot fluidConfig) {
-                        if (fluidConfig.getFilter().isBlank()) {
-                            setFilter(fluidConfig.getConfigIdx(), fluidVariant, false);
-                            return ItemStack.EMPTY;
-                        }
                     }
                 }
             }
         }
-        return super.quickMoveStack(player, index);
+        return false;
     }
 
     public void setFilter(int configIdx, FluidVariant variant, boolean sendPacket) {
