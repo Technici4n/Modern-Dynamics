@@ -24,6 +24,7 @@ import dev.technici4n.moderndynamics.network.NetworkNode;
 import it.unimi.dsi.fastutil.objects.Reference2LongMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -122,7 +123,7 @@ public class ItemPathCache {
             computedPaths.add(new ItemPath(startPos, adjPos, path));
         }
 
-        return computedPaths;
+        return Collections.unmodifiableList(computedPaths);
     }
 
     private record SidedNode(NetworkNode<ItemHost, ItemCache> node, Direction side) {

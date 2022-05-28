@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.attachment.attached;
 
+import com.google.common.base.Preconditions;
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
@@ -49,7 +50,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class ItemAttachedIo extends AttachedIo {
 
-    private final Map<ItemVariant, Long> stuffedItems = new LinkedHashMap<>(); // TODO: read/write nbt
+    private final Map<ItemVariant, Long> stuffedItems = new LinkedHashMap<>();
+    private int roundRobinIndex;
 
     private final NonNullList<ItemVariant> filters;
 
@@ -108,6 +110,8 @@ public class ItemAttachedIo extends AttachedIo {
                 this.stuffedItems.put(variant, amount);
             }
         }
+
+        this.roundRobinIndex = Math.max(0, configData.getInt("roundRobinIndex"));
     }
 
     @Override
@@ -149,6 +153,9 @@ public class ItemAttachedIo extends AttachedIo {
         }
         if (!stuffedTag.isEmpty()) {
             configData.put("stuffed", stuffedTag);
+        }
+        if (roundRobinIndex != 0) {
+            configData.putInt("roundRobinIndex", roundRobinIndex);
         }
 
         return configData;
@@ -317,6 +324,19 @@ public class ItemAttachedIo extends AttachedIo {
     @Override
     protected void resetCachedFilter() {
         this.cachedFilter = null;
+    }
+
+    public int getRoundRobinIndex(int maxValue) {
+        Preconditions.checkArgument(maxValue > 0, "maxValue > 0");
+        roundRobinIndex = roundRobinIndex % maxValue;
+        return roundRobinIndex;
+    }
+
+    public void incrementRoundRobin() {
+        if (getRoutingMode() == RoutingMode.ROUND_ROBIN) {
+            roundRobinIndex++;
+            setChangedCallback.run();
+        }
     }
 
     public long moveStuffedToStorage(Storage<ItemVariant> targetStorage, long maxAmount) {

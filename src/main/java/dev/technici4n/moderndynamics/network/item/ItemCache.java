@@ -26,7 +26,6 @@ import java.util.List;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 
 public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
@@ -52,8 +51,8 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
         }
     }
 
-    protected long insert(Direction initialDirection, NetworkNode<ItemHost, ItemCache> startingPoint, FailedInsertStrategy strategy,
-            ItemVariant variant, long maxAmount, TransactionContext transaction, double speedMultiplier) {
+    protected long insertList(NetworkNode<ItemHost, ItemCache> startingPoint, Iterable<ItemPath> paths, ItemVariant variant,
+            long maxAmount, TransactionContext transaction, double speedMultiplier) {
         StoragePreconditions.notBlankNotNegative(variant, maxAmount);
         Preconditions.checkArgument(startingPoint.getNetworkCache() == this, "Tried to insert into another network!");
 
@@ -63,8 +62,6 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
 
         inserting = true;
         try {
-            var paths = pathCache.getPaths(startingPoint, initialDirection);
-
             long totalInserted = 0;
             for (var path : paths) {
                 // Check possible filter at the endpoint.

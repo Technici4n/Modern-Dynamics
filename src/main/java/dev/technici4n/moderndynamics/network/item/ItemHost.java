@@ -18,6 +18,8 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
@@ -31,6 +33,7 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
@@ -52,6 +55,7 @@ public class ItemHost extends NodeHost {
     private final List<TravelingItem> travelingItems = new ArrayList<>();
     private final List<ClientTravelingItem> clientTravelingItems = new ArrayList<>();
     private final long[] lastOperationTick = new long[6];
+    private final int[] roundRobinIndex = new int[6];
 
     public ItemHost(PipeBlockEntity pipe) {
         super(pipe);
@@ -80,7 +84,7 @@ public class ItemHost extends NodeHost {
     @Nullable
     public Object getApiInstance(BlockApiLookup<?, Direction> lookup, Direction side) {
         if (lookup == ItemStorage.SIDED && allowItemConnection(side)) {
-            return buildNetworkInjectStorage(side);
+            return buildExternalNetworkInjectStorage(side);
         }
         return null;
     }
@@ -91,17 +95,35 @@ public class ItemHost extends NodeHost {
         return attachment == null || attachment.allowsItemConnection();
     }
 
-    private Storage<ItemVariant> buildNetworkInjectStorage(Direction side) {
+    /**
+     * Storage used for external injections (e.g. via hoppers), does not respect routing mode.
+     */
+    private Storage<ItemVariant> buildExternalNetworkInjectStorage(Direction side) {
         double speedupFactor = getAttachment(side) instanceof ItemAttachedIo io ? io.getItemSpeedupFactor() : 1;
         return (InsertStorage) (resource, maxAmount, transaction) -> {
             NetworkNode<ItemHost, ItemCache> node = findNode();
             if (node != null) {
+                var cache = node.getNetworkCache();
+                var paths = cache.pathCache.getPaths(node, side.getOpposite());
                 // The node can be null if the pipe was just placed, and not initialized yet.
-                return node.getNetworkCache().insert(side.getOpposite(), node, FailedInsertStrategy.SEND_BACK_TO_SOURCE, resource, maxAmount,
-                        transaction, speedupFactor);
+                return cache.insertList(node, paths, resource, maxAmount, transaction, speedupFactor);
             } else {
                 return 0;
             }
+        };
+    }
+
+    /**
+     * Storage used by extractors. It respects routing mode.
+     */
+    private Storage<ItemVariant> buildExtractorNetworkInjectStorage(Direction side, ItemAttachedIo extractor) {
+        double speedupFactor = extractor.getItemSpeedupFactor();
+        NetworkNode<ItemHost, ItemCache> node = findNode();
+        var cache = node.getNetworkCache();
+        var paths = rearrangePaths(cache.pathCache.getPaths(node, side.getOpposite()), extractor);
+        return (InsertStorage) (resource, maxAmount, transaction) -> {
+            // The node can be null if the pipe was just placed, and not initialized yet.
+            return cache.insertList(node, paths, resource, maxAmount, transaction, speedupFactor);
         };
     }
 
@@ -118,6 +140,28 @@ public class ItemHost extends NodeHost {
         return null;
     }
 
+    private Iterable<ItemPath> rearrangePaths(List<ItemPath> path, ItemAttachedIo io) {
+        if (path.size() <= 1) {
+            return path;
+        }
+
+        return switch (io.getRoutingMode()) {
+        case CLOSEST -> path;
+        case FURTHEST -> Lists.reverse(path);
+        case RANDOM -> {
+            var pathCopy = new ArrayList<>(path);
+            Collections.shuffle(pathCopy);
+            yield pathCopy;
+        }
+        case ROUND_ROBIN -> {
+            int startIndex = io.getRoundRobinIndex(path.size());
+            yield Iterables.concat(
+                    path.subList(startIndex, path.size()),
+                    path.subList(0, startIndex));
+        }
+        };
+    }
+
     public void tickAttachments() {
         long currentTick = TickHelper.getTickCounter();
         for (var side : Direction.values()) {
@@ -129,7 +173,9 @@ public class ItemHost extends NodeHost {
                 if (itemAttachedIo.getType() == IoAttachmentType.EXTRACTOR) {
                     if (itemAttachedIo.isStuffed()) {
                         // Move from stuffed items to network
-                        if (itemAttachedIo.moveStuffedToStorage(buildNetworkInjectStorage(side), itemAttachedIo.getMaxItemsExtracted()) > 0) {
+                        if (itemAttachedIo.moveStuffedToStorage(buildExtractorNetworkInjectStorage(side, itemAttachedIo),
+                                itemAttachedIo.getMaxItemsExtracted()) > 0) {
+                            itemAttachedIo.incrementRoundRobin();
                             pipe.setChanged();
                             if (!itemAttachedIo.isStuffed()) {
                                 pipe.sync();
@@ -139,12 +185,14 @@ public class ItemHost extends NodeHost {
                         var adjStorage = getAdjacentStorage(side, false);
                         if (adjStorage == null)
                             continue;
-                        StorageUtil.move(
+                        if (StorageUtil.move(
                                 adjStorage,
-                                buildNetworkInjectStorage(side),
+                                buildExtractorNetworkInjectStorage(side, itemAttachedIo),
                                 itemAttachedIo::matchesItemFilter,
                                 itemAttachedIo.getMaxItemsExtracted(),
-                                null);
+                                null) > 0) {
+                            itemAttachedIo.incrementRoundRobin();
+                        }
                     }
                 } else if (itemAttachedIo.getType() == IoAttachmentType.ATTRACTOR) {
                     if (itemAttachedIo.isStuffed()) {
@@ -166,10 +214,13 @@ public class ItemHost extends NodeHost {
 
                         NetworkNode<ItemHost, ItemCache> thisNode = findNode();
                         var cache = thisNode.getNetworkCache();
-                        var paths = cache.pathCache;
-                        long toTransfer = itemAttachedIo.getMaxItemsExtracted();
+                        var pathCache = cache.pathCache;
+                        var paths = rearrangePaths(pathCache.getPaths(thisNode, side.getOpposite()), itemAttachedIo);
 
-                        for (var path : paths.getPaths(thisNode, side.getOpposite())) {
+                        long maxTransfer = itemAttachedIo.getMaxItemsExtracted();
+                        long toTransfer = maxTransfer;
+
+                        for (var path : paths) {
                             var extractTarget = ItemStorage.SIDED.find(pipe.getLevel(), path.targetPos, path.path[path.path.length - 1]);
                             if (extractTarget != null) {
                                 // Make sure to check the filter at the endpoint.
@@ -177,7 +228,7 @@ public class ItemHost extends NodeHost {
 
                                 var insertStorage = (InsertStorage) (variant, maxAmount, tx) -> {
                                     return insertTarget.insert(variant, maxAmount, tx, (v, a) -> {
-                                        var reversedPath = path.reverse();
+                                        var reversedPath = path.reversed();
                                         var travelingItem = reversedPath.makeTravelingItem(v, a, itemAttachedIo.getItemSpeedupFactor());
                                         reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
                                     });
@@ -191,6 +242,10 @@ public class ItemHost extends NodeHost {
                                 if (toTransfer == 0)
                                     break;
                             }
+                        }
+
+                        if (toTransfer < maxTransfer) {
+                            itemAttachedIo.incrementRoundRobin();
                         }
                     }
                 }
@@ -287,17 +342,10 @@ public class ItemHost extends NodeHost {
             }
         } else if (leftover > 0) {
             if (item.strategy == FailedInsertStrategy.SEND_BACK_TO_SOURCE) {
-                Direction[] revertedPath = new Direction[item.getPathLength()];
-                for (int i = 0; i < item.getPathLength(); ++i) {
-                    revertedPath[revertedPath.length - i - 1] = item.path.path[i].getOpposite();
-                }
                 addTravelingItem(new TravelingItem(
                         item.variant,
                         leftover,
-                        new ItemPath(
-                                item.path.targetPos,
-                                item.path.startingPos,
-                                revertedPath),
+                        item.path.reversed(),
                         FailedInsertStrategy.DROP,
                         item.speedMultiplier,
                         item.getPathLength() - 1 - Math.floor(item.traveledDistance)));

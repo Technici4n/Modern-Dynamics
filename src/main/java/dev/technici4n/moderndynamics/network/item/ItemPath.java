@@ -37,11 +37,17 @@ public class ItemPath {
     public final BlockPos startingPos;
     public final BlockPos targetPos;
     public final Direction[] path;
+    private @Nullable ItemPath reversed;
 
     public ItemPath(BlockPos startingPos, BlockPos targetPos, Direction[] path) {
+        this(startingPos, targetPos, path, null);
+    }
+
+    private ItemPath(BlockPos startingPos, BlockPos targetPos, Direction[] path, @Nullable ItemPath reversed) {
         this.startingPos = startingPos;
         this.targetPos = targetPos;
         this.path = path;
+        this.reversed = reversed;
     }
 
     public NetworkNode<ItemHost, ItemCache> getStartingPoint(ServerLevel level) {
@@ -85,11 +91,14 @@ public class ItemPath {
         return v -> true;
     }
 
-    public ItemPath reverse() {
-        Direction[] reversedPath = new Direction[path.length];
-        for (int i = 0; i < path.length; ++i) {
-            reversedPath[path.length - i - 1] = path[i].getOpposite();
+    public ItemPath reversed() {
+        if (reversed == null) {
+            Direction[] reversedPath = new Direction[path.length];
+            for (int i = 0; i < path.length; ++i) {
+                reversedPath[path.length - i - 1] = path[i].getOpposite();
+            }
+            reversed = new ItemPath(targetPos, startingPos, reversedPath, this);
         }
-        return new ItemPath(targetPos, startingPos, reversedPath);
+        return reversed;
     }
 }
