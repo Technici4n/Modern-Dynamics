@@ -46,14 +46,16 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
     private final BakedModel[] connectionNone;
     private final BakedModel[] connectionPipe;
     private final BakedModel[] connectionInventory;
+    private final BakedModel[] straightLine;
 
     public PipeBakedModel(ItemTransforms transformation, AttachmentsBakedModel attachments, BakedModel[] connectionNone,
-            BakedModel[] connectionPipe, BakedModel[] connectionInventory) {
+            BakedModel[] connectionPipe, BakedModel[] connectionInventory, BakedModel[] straightLine) {
         this.transformation = transformation;
         this.attachments = attachments;
         this.connectionNone = connectionNone;
         this.connectionPipe = connectionPipe;
         this.connectionInventory = connectionInventory;
+        this.straightLine = straightLine;
     }
 
     @Override
@@ -128,13 +130,26 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
     private void drawPipe(PipeModelData data, RenderContext context) {
         int connectionsPipe = data.pipeConnections();
         int connectionsInventory = data.inventoryConnections();
-        connectionsPipe |= connectionsInventory;
 
-        int connectionsNone = ~connectionsPipe;
+        if (connectionsInventory == 0 && (connectionsPipe == 3 || connectionsPipe == 12 || connectionsPipe == 48)) {
+            // Straight line!
+            if (connectionsPipe == 3) {
+                context.fallbackConsumer().accept(straightLine[0]);
+            } else if (connectionsPipe == 12) {
+                context.fallbackConsumer().accept(straightLine[2]);
+            } else {
+                context.fallbackConsumer().accept(straightLine[4]);
+            }
+        } else {
+            connectionsPipe |= connectionsInventory;
+            int connectionsNone = ~connectionsPipe;
 
-        appendBitmasked(context.fallbackConsumer(), connectionsNone, connectionNone);
-        appendBitmasked(context.fallbackConsumer(), connectionsPipe, connectionPipe);
-        appendBitmasked(context.fallbackConsumer(), connectionsInventory, connectionInventory);
+            appendBitmasked(context.fallbackConsumer(), connectionsNone, connectionNone);
+            appendBitmasked(context.fallbackConsumer(), connectionsPipe, connectionPipe);
+            appendBitmasked(context.fallbackConsumer(), connectionsInventory, connectionInventory);
+        }
+
+        // Attachments
         for (int i = 0; i < 6; ++i) {
             var attachment = data.attachments()[i];
             if (attachment != null) {

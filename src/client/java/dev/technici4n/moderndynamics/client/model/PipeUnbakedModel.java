@@ -35,11 +35,14 @@ public class PipeUnbakedModel implements UnbakedModel {
     private final ResourceLocation connectionNone;
     private final ResourceLocation connectionPipe;
     private final ResourceLocation connectionInventory;
+    private final ResourceLocation straightLine;
 
-    public PipeUnbakedModel(ResourceLocation connectionNone, ResourceLocation connectionPipe, ResourceLocation connectionInventory) {
+    public PipeUnbakedModel(ResourceLocation connectionNone, ResourceLocation connectionPipe, ResourceLocation connectionInventory,
+            ResourceLocation straightLine) {
         this.connectionNone = connectionNone;
         this.connectionPipe = connectionPipe;
         this.connectionInventory = connectionInventory;
+        this.straightLine = straightLine;
     }
 
     public static BakedModel[] loadRotatedModels(ResourceLocation modelId, ModelBakery modelLoader) {
@@ -62,7 +65,8 @@ public class PipeUnbakedModel implements UnbakedModel {
                 (AttachmentsBakedModel) modelLoader.bake(AttachmentsUnbakedModel.ID, BlockModelRotation.X0_Y0),
                 loadRotatedModels(connectionNone, modelLoader),
                 loadRotatedModels(connectionPipe, modelLoader),
-                loadRotatedModels(connectionInventory, modelLoader));
+                loadRotatedModels(connectionInventory, modelLoader),
+                loadRotatedModels(straightLine, modelLoader));
     }
 
     @Override
@@ -72,11 +76,12 @@ public class PipeUnbakedModel implements UnbakedModel {
         textures.addAll(unbakedModelGetter.apply(connectionNone).getMaterials(unbakedModelGetter, set));
         textures.addAll(unbakedModelGetter.apply(connectionPipe).getMaterials(unbakedModelGetter, set));
         textures.addAll(unbakedModelGetter.apply(connectionInventory).getMaterials(unbakedModelGetter, set));
+        textures.addAll(unbakedModelGetter.apply(straightLine).getMaterials(unbakedModelGetter, set));
         return textures;
     }
 
     @Override
     public Collection<ResourceLocation> getDependencies() {
-        return List.of(AttachmentsUnbakedModel.ID, connectionNone, connectionPipe, connectionInventory);
+        return List.of(AttachmentsUnbakedModel.ID, connectionNone, connectionPipe, connectionInventory, straightLine);
     }
 }

@@ -82,11 +82,13 @@ public class PipeModelsProvider implements DataProvider {
         var noneModel = registerPipePart(cache, baseFolder, pipe, "none", texture, transparent);
         var inventoryModel = registerPipePart(cache, baseFolder, pipe, "inventory", connectionTexture, transparent);
         var pipeModel = registerPipePart(cache, baseFolder, pipe, "pipe", texture, transparent);
+        var straightModel = registerPipePart(cache, baseFolder, pipe, "straight", texture, transparent);
 
         var modelJson = new JsonObject();
         modelJson.addProperty("connection_none", noneModel);
         modelJson.addProperty("connection_inventory", inventoryModel);
         modelJson.addProperty("connection_pipe", pipeModel);
+        modelJson.addProperty("straight_line", straightModel);
         DataProvider.saveStable(cache, modelJson, baseFolder.resolve("main.json"));
     }
 
