@@ -26,6 +26,8 @@ import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.ContainerHelper;
@@ -150,6 +152,17 @@ public abstract class AttachedIo extends AttachedAttachment {
         } else {
             return getRedstoneMode() == RedstoneMode.REQUIRES_LOW;
         }
+    }
+
+    @Override
+    public List<ItemStack> getDrops() {
+        var drops = new ArrayList<>(super.getDrops());
+        for (var upgrade : upgradeContainer.upgrades) {
+            if (!upgrade.isEmpty()) {
+                drops.add(upgrade);
+            }
+        }
+        return drops;
     }
 
     @Override
