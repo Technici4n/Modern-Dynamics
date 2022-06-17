@@ -27,7 +27,7 @@ public class SetAttachmentUpgradesPacket {
 
         if (!handler.getConnection().isMemoryConnection()) {
             client.execute(() -> {
-                LoadedUpgrades.upload(loadedUpgrades);
+                LoadedUpgrades.trySet(loadedUpgrades);
             });
         }
     };

@@ -4,8 +4,6 @@
   "package": "dev.technici4n.moderndynamics.hooks.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MinecraftServerMixin",
-    "ServerGamePacketListenerImplMixin"
   ],
   "injectors": {
     "defaultRequire": 1

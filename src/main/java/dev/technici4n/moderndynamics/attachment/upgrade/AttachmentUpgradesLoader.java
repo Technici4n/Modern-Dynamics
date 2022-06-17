@@ -24,8 +24,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import dev.technici4n.moderndynamics.ModernDynamics;
-import dev.technici4n.moderndynamics.hooks.ResourceReloadFinished;
-import dev.technici4n.moderndynamics.hooks.ServerSendPacketEvent;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,7 +38,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
-import net.minecraft.network.protocol.game.ClientboundUpdateRecipesPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -109,17 +106,17 @@ public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<Lis
     public static void setup() {
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new AttachmentUpgradesLoader());
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            LoadedUpgrades.upload(AttachmentUpgradesLoader.LOADED_UPGRADES.get(server.getResourceManager()));
+            LoadedUpgrades.trySet(LOADED_UPGRADES.remove(server.getResourceManager()));
         });
-        ResourceReloadFinished.EVENT.register((server, resourceManager) -> {
-            LoadedUpgrades.upload(AttachmentUpgradesLoader.LOADED_UPGRADES.get(resourceManager));
-
-            // TODO: should maybe invalidate all cached filters?
-        });
-        ServerSendPacketEvent.EVENT.register((player, packet) -> {
-            if (packet instanceof ClientboundUpdateRecipesPacket) {
-                LoadedUpgrades.syncToClient(player);
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
+            if (success) {
+                LoadedUpgrades.trySet(LOADED_UPGRADES.remove(resourceManager));
+                // TODO: should maybe invalidate all cached filters?
             }
+        });
+        ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
+            LoadedUpgrades.trySet(LOADED_UPGRADES.remove(player.server.getResourceManager()));
+            LoadedUpgrades.syncToClient(player);
         });
     }
 }

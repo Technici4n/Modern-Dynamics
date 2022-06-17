@@ -29,6 +29,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
+import org.jetbrains.annotations.Nullable;
 
 public class LoadedUpgrades {
     private static LoadedUpgrades holder = new LoadedUpgrades(Map.of(), List.of());
@@ -42,8 +43,10 @@ public class LoadedUpgrades {
         return holder.map.getOrDefault(item, DUMMY_UPGRADE);
     }
 
-    public static void upload(LoadedUpgrades upgrades) {
-        holder = upgrades;
+    public static void trySet(@Nullable LoadedUpgrades upgrades) {
+        if (upgrades != null) {
+            holder = upgrades;
+        }
     }
 
     public static void syncToClient(ServerPlayer player) {
