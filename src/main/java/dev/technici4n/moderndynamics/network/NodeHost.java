@@ -253,7 +253,7 @@ public abstract class NodeHost {
 
     public void addDrops(List<ItemStack> drops) {
         for (Direction side : Direction.values()) {
-            var attachment = removeAttachment(side);
+            var attachment = getAttachment(side);
             if (attachment != null) {
                 drops.addAll(attachment.getDrops());
             }
