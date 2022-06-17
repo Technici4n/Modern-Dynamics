@@ -69,6 +69,11 @@ public class ItemAttachedIo extends AttachedIo {
      * Maximum amount of items extracted per operation.
      */
     private int maxItemsExtracted;
+    /**
+     * Whether we are currently at the max amount of {@link #maxItemsExtracted}. If we are and an upgrade is applied,
+     * then {@link #maxItemsExtracted} should be updated to the new maximum.
+     */
+    boolean maxItemsExtractedAtMax;
     // Is lazily initialized when it is needed and reset to null if any of the config changes
     @Nullable
     private ItemCachedFilter cachedFilter;
@@ -94,7 +99,7 @@ public class ItemAttachedIo extends AttachedIo {
         if (configData.contains("maxItemsExtracted", Tag.TAG_INT)) {
             setMaxItemsExtracted(configData.getInt("maxItemsExtracted"));
         } else {
-            this.maxItemsExtracted = getMaxItemsExtractedMaximum();
+            setMaxItemsExtracted(getMaxItemsExtractedMaximum());
         }
         this.maxItemsInInventory = configData.getInt("maxItemsInInventory");
         this.maxItemsInInventory = Mth.clamp(this.maxItemsInInventory, 0, getMaxItemsExtractedMaximum());
@@ -165,7 +170,12 @@ public class ItemAttachedIo extends AttachedIo {
     public void onUpgradesChanged() {
         super.onUpgradesChanged();
 
-        setMaxItemsExtracted(getMaxItemsExtracted()); // make sure the value stays under the max if the max changes
+        // If the max rises and we are at the max, make sure to bump the current value of maxItemsExtracted
+        if (maxItemsExtractedAtMax) {
+            setMaxItemsExtracted(getMaxItemsExtractedMaximum());
+        }
+        // Make sure the value stays under the max if the max changes
+        setMaxItemsExtracted(getMaxItemsExtracted());
     }
 
     public boolean matchesItemFilter(ItemVariant variant) {
@@ -304,6 +314,8 @@ public class ItemAttachedIo extends AttachedIo {
 
     public void setMaxItemsExtracted(int value) {
         this.maxItemsExtracted = Mth.clamp(value, 1, getMaxItemsExtractedMaximum());
+
+        this.maxItemsExtractedAtMax = maxItemsExtracted == getMaxItemsExtractedMaximum();
     }
 
     public int getMaxItemsExtractedMaximum() {

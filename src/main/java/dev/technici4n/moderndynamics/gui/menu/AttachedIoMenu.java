@@ -149,6 +149,8 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
         } else if (slot instanceof UpgradeSlot) {
             // Move to player inventory
             if (moveItemStackTo(stack, 0, 36, true)) {
+                // Send change notification because vanilla doesn't send it.
+                slot.setChanged();
                 return ItemStack.EMPTY;
             }
         }
