@@ -41,6 +41,7 @@ public class AttachmentUpgradesProvider implements DataProvider {
         vanillaUpgrade(Items.STICKY_PISTON, 1).itemSpeed(1);
         vanillaUpgrade(Items.HOPPER, 6).filterSlots(2).itemCount(5);
         vanillaUpgrade(Items.REPEATER, 3).itemTransferFrequency(1);
+        vanillaUpgrade(Items.COMPARATOR, 1).advancedBehavior();
 
         modUpgrade("ae2", "speed_card", 3).itemSpeed(1).itemTransferFrequency(1).fluidTransfer(0, 1);
         modUpgrade("ae2", "capacity_card", 6).filterSlots(2).itemCount(10).fluidTransfer(1, 0);
