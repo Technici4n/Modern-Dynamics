@@ -105,7 +105,7 @@ public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<Lis
 
     public static void setup() {
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new AttachmentUpgradesLoader());
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             LoadedUpgrades.trySet(LOADED_UPGRADES.remove(server.getResourceManager()));
         });
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
