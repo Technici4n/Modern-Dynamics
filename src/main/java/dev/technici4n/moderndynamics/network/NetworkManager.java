@@ -54,11 +54,13 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
 
             manager.iteratingOverNetworks = true;
 
-            for (Network<?, ?> network : manager.networks) {
-                network.cache.tick();
+            try {
+                for (Network<?, ?> network : manager.networks) {
+                    network.cache.tick();
+                }
+            } finally {
+                manager.iteratingOverNetworks = false;
             }
-
-            manager.iteratingOverNetworks = false;
         }
     }
 
