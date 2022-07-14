@@ -40,7 +40,6 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
@@ -245,22 +244,22 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
                 tabX + 2,
                 tabY + 3);
 
-        var header = new TranslatableComponent("gui.moderndynamics.setting.redstone_control.header");
+        var header = Component.translatable("gui.moderndynamics.setting.redstone_control.header");
         font.drawShadow(matrices, header, tabX + TAB_BORDER + 16, tabY + TAB_BORDER + 4, 0xe1c92f);
 
         /* Draw a sub-header that indicates whether the attachment is currently operating based on the status or not */
-        var subHeaderStatus = new TranslatableComponent("gui.moderndynamics.setting.redstone_control.status_header");
+        var subHeaderStatus = Component.translatable("gui.moderndynamics.setting.redstone_control.status_header");
         font.drawShadow(matrices, subHeaderStatus, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 42, 0xaaafb8);
         Component enabledStatusText;
         if (menu.isEnabledViaRedstone()) {
-            enabledStatusText = new TranslatableComponent("gui.moderndynamics.setting.redstone_control.enabled");
+            enabledStatusText = Component.translatable("gui.moderndynamics.setting.redstone_control.enabled");
         } else {
-            enabledStatusText = new TranslatableComponent("gui.moderndynamics.setting.redstone_control.disabled");
+            enabledStatusText = Component.translatable("gui.moderndynamics.setting.redstone_control.disabled");
         }
         font.draw(matrices, enabledStatusText, tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 54, 0);
 
         /* Draw a sub-header that simply spells out the currently chosen redstone mode again */
-        var subHeaderSetting = new TranslatableComponent("gui.moderndynamics.setting.redstone_control.signal_required_header");
+        var subHeaderSetting = Component.translatable("gui.moderndynamics.setting.redstone_control.signal_required_header");
         font.drawShadow(matrices, subHeaderSetting, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 66, 0xaaafb8);
         font.draw(matrices, menu.getRedstoneMode().getTranslation(), tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 78, 0);
 
@@ -377,7 +376,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
             if (redstoneTabCurrentOpen <= 0 && isInRedstoneTabRect(mouseX, mouseY)) {
                 var lines = List.<Component>of(
-                        new TranslatableComponent("gui.moderndynamics.setting.redstone_control.header")
+                        Component.translatable("gui.moderndynamics.setting.redstone_control.header")
                                 .withStyle(ChatFormatting.WHITE),
                         menu.getRedstoneMode().getTranslation()
                                 .copy()

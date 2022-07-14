@@ -23,7 +23,6 @@ import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -71,11 +70,14 @@ public final class MdModelLoader {
             var path = modelId.getPath();
             if (ALL_PIPES.contains(path)) {
                 // This is a pipe, try to load its json model.
-                try (var resource = this.resourceManager.getResource(MdId.of("models/pipe/" + path + "/main.json"))) {
-                    var obj = JsonParser.parseReader(new InputStreamReader(resource.getInputStream())).getAsJsonObject();
-                    return new PipeUnbakedModel(new ResourceLocation(GsonHelper.getAsString(obj, "connection_none")),
-                            new ResourceLocation(GsonHelper.getAsString(obj, "connection_pipe")),
-                            new ResourceLocation(GsonHelper.getAsString(obj, "connection_inventory")));
+                try {
+                    var resource = this.resourceManager.getResource(MdId.of("models/pipe/" + path + "/main.json")).get();
+                    try (var stream = resource.openAsReader()) {
+                        var obj = JsonParser.parseReader(stream).getAsJsonObject();
+                        return new PipeUnbakedModel(new ResourceLocation(GsonHelper.getAsString(obj, "connection_none")),
+                                new ResourceLocation(GsonHelper.getAsString(obj, "connection_pipe")),
+                                new ResourceLocation(GsonHelper.getAsString(obj, "connection_inventory")));
+                    }
                 } catch (IOException exception) {
                     throw new ModelProviderException("Failed to find pipe model json for pipe " + modelId, exception);
                 } catch (RuntimeException runtimeException) {

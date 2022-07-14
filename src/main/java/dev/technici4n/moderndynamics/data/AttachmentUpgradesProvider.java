@@ -18,14 +18,13 @@
  */
 package dev.technici4n.moderndynamics.data;
 
-import dev.technici4n.moderndynamics.attachment.upgrade.AttachmentUpgradesLoader;
 import dev.technici4n.moderndynamics.attachment.upgrade.UpgradeTypeBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
-import net.minecraft.data.HashCache;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
@@ -75,12 +74,12 @@ public class AttachmentUpgradesProvider implements DataProvider {
     }
 
     @Override
-    public void run(HashCache cache) throws IOException {
+    public void run(CachedOutput cache) throws IOException {
         genUpgrades();
 
         for (var builder : builders) {
             var path = gen.getOutputFolder().resolve("data/%s/attachment_upgrades/%s".formatted(gen.getModId(), builder.getFileName()));
-            DataProvider.save(AttachmentUpgradesLoader.GSON, cache, builder.toJson(), path);
+            DataProvider.saveStable(cache, builder.toJson(), path);
         }
     }
 

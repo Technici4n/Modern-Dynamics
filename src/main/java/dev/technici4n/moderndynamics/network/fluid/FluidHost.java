@@ -304,8 +304,8 @@ public class FluidHost extends NodeHost {
         }
 
         @Override
-        public Iterator<? extends StorageView<FluidVariant>> iterator(TransactionContext transaction) {
-            return Iterators.transform(delegate.iterator(transaction), View::new);
+        public Iterator<StorageView<FluidVariant>> iterator() {
+            return Iterators.transform(delegate.iterator(), View::new);
         }
 
         private class View implements StorageView<FluidVariant> {

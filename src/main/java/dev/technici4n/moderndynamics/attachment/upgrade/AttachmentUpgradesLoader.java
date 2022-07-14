@@ -63,13 +63,14 @@ public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<Lis
     protected List<JsonObject> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
         List<JsonObject> result = new ArrayList<>();
 
-        for (var location : resourceManager.listResources("attachment_upgrades", s -> s.endsWith(".json"))) {
-            try (var resource = resourceManager.getResource(location);
-                    var inputStream = resource.getInputStream();
+        for (var entry : resourceManager.listResources("attachment_upgrades", s -> s.getPath().endsWith(".json")).entrySet()) {
+            var resource = entry.getValue();
+            try (var inputStream = resource.open();
                     var reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
                 result.add(JsonParser.parseReader(reader).getAsJsonObject());
             } catch (IOException | JsonParseException | IllegalStateException exception) { // getAsJsonObject can throw ISE
-                ModernDynamics.LOGGER.error("Error when loading Modern Dynamics attachment upgrade with path %s".formatted(location), exception);
+                ModernDynamics.LOGGER.error("Error when loading Modern Dynamics attachment upgrade with path %s".formatted(entry.getKey()),
+                        exception);
             }
         }
 

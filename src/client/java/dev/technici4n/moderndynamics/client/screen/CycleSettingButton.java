@@ -39,8 +39,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 
 public class CycleSettingButton<T> extends Button {
     private static final int DISABLED_SETTING = 0; // first setting is used when the button is disabled
@@ -51,47 +49,47 @@ public class CycleSettingButton<T> extends Button {
     private boolean advancedBehavior = false;
 
     public static final List<CycleSetting<FilterInversionMode>> FILTER_INVERSION = ImmutableList.of(
-            new CycleSetting<>(FilterInversionMode.WHITELIST, new TranslatableComponent("gui.moderndynamics.setting.filter_mode.whitelist"), 176, 0),
-            new CycleSetting<>(FilterInversionMode.BLACKLIST, new TranslatableComponent("gui.moderndynamics.setting.filter_mode.blacklist"), 196, 0));
+            new CycleSetting<>(FilterInversionMode.WHITELIST, Component.translatable("gui.moderndynamics.setting.filter_mode.whitelist"), 176, 0),
+            new CycleSetting<>(FilterInversionMode.BLACKLIST, Component.translatable("gui.moderndynamics.setting.filter_mode.blacklist"), 196, 0));
 
     public static final List<CycleSetting<FilterNbtMode>> FILTER_NBT = ImmutableList.of(
-            new CycleSetting<>(FilterNbtMode.RESPECT_NBT, new TranslatableComponent("gui.moderndynamics.setting.filter_nbt.respect_nbt"), 216, 0),
-            new CycleSetting<>(FilterNbtMode.IGNORE_NBT, new TranslatableComponent("gui.moderndynamics.setting.filter_nbt.ignore_nbt"), 236, 0));
+            new CycleSetting<>(FilterNbtMode.RESPECT_NBT, Component.translatable("gui.moderndynamics.setting.filter_nbt.respect_nbt"), 216, 0),
+            new CycleSetting<>(FilterNbtMode.IGNORE_NBT, Component.translatable("gui.moderndynamics.setting.filter_nbt.ignore_nbt"), 236, 0));
 
     public static final List<CycleSetting<FilterDamageMode>> FILTER_DAMAGE = ImmutableList.of(
-            new CycleSetting<>(FilterDamageMode.RESPECT_DAMAGE, new TranslatableComponent("gui.moderndynamics.setting.filter_damage.respect_damage"),
+            new CycleSetting<>(FilterDamageMode.RESPECT_DAMAGE, Component.translatable("gui.moderndynamics.setting.filter_damage.respect_damage"),
                     176, 60),
-            new CycleSetting<>(FilterDamageMode.IGNORE_DAMAGE, new TranslatableComponent("gui.moderndynamics.setting.filter_damage.ignore_damage"),
+            new CycleSetting<>(FilterDamageMode.IGNORE_DAMAGE, Component.translatable("gui.moderndynamics.setting.filter_damage.ignore_damage"),
                     196, 60));
 
     public static final List<CycleSetting<FilterModMode>> FILTER_MOD = ImmutableList.of(
-            new CycleSetting<>(FilterModMode.IGNORE_MOD, new TranslatableComponent("gui.moderndynamics.setting.filter_mod.ignore_mod"), 196, 120),
+            new CycleSetting<>(FilterModMode.IGNORE_MOD, Component.translatable("gui.moderndynamics.setting.filter_mod.ignore_mod"), 196, 120),
             new CycleSetting<>(FilterModMode.INCLUDE_ALL_OF_MOD,
-                    new TranslatableComponent("gui.moderndynamics.setting.filter_mod.include_all_of_mod"), 176, 120));
+                    Component.translatable("gui.moderndynamics.setting.filter_mod.include_all_of_mod"), 176, 120));
 
     public static final List<CycleSetting<FilterSimilarMode>> FILTER_SIMILAR = ImmutableList.of(
             new CycleSetting<>(FilterSimilarMode.IGNORE_SIMILAR,
-                    new TranslatableComponent("gui.moderndynamics.setting.filter_similar.ignore_similar"), 236, 60),
+                    Component.translatable("gui.moderndynamics.setting.filter_similar.ignore_similar"), 236, 60),
             new CycleSetting<>(FilterSimilarMode.INCLUDE_SIMILAR,
-                    new TranslatableComponent("gui.moderndynamics.setting.filter_similar.include_similar"), 216, 60));
+                    Component.translatable("gui.moderndynamics.setting.filter_similar.include_similar"), 216, 60));
 
     public static final List<CycleSetting<RoutingMode>> ROUTING_MODE = ImmutableList.of(
-            new CycleSetting<>(RoutingMode.CLOSEST, new TranslatableComponent("gui.moderndynamics.setting.routing_mode.closest"), 216, 196),
-            new CycleSetting<>(RoutingMode.FURTHEST, new TranslatableComponent("gui.moderndynamics.setting.routing_mode.furthest"), 20, 204),
-            new CycleSetting<>(RoutingMode.RANDOM, new TranslatableComponent("gui.moderndynamics.setting.routing_mode.random"), 40, 204),
-            new CycleSetting<>(RoutingMode.ROUND_ROBIN, new TranslatableComponent("gui.moderndynamics.setting.routing_mode.round_robin"), 60, 204));
+            new CycleSetting<>(RoutingMode.CLOSEST, Component.translatable("gui.moderndynamics.setting.routing_mode.closest"), 216, 196),
+            new CycleSetting<>(RoutingMode.FURTHEST, Component.translatable("gui.moderndynamics.setting.routing_mode.furthest"), 20, 204),
+            new CycleSetting<>(RoutingMode.RANDOM, Component.translatable("gui.moderndynamics.setting.routing_mode.random"), 40, 204),
+            new CycleSetting<>(RoutingMode.ROUND_ROBIN, Component.translatable("gui.moderndynamics.setting.routing_mode.round_robin"), 60, 204));
 
     public static final List<CycleSetting<OversendingMode>> OVERSENDING_MODE = ImmutableList.of(
             new CycleSetting<>(OversendingMode.PREVENT_OVERSENDING,
-                    new TranslatableComponent("gui.moderndynamics.setting.oversending_mode.prevent_oversending"), 196, 196),
+                    Component.translatable("gui.moderndynamics.setting.oversending_mode.prevent_oversending"), 196, 196),
             new CycleSetting<>(OversendingMode.ALLOW_OVERSENDING,
-                    new TranslatableComponent("gui.moderndynamics.setting.oversending_mode.allow_oversending"), 176, 196));
+                    Component.translatable("gui.moderndynamics.setting.oversending_mode.allow_oversending"), 176, 196));
 
-    public static final Component REQUIRES_ADVANCED_BEHAVIOR = new TranslatableComponent(
+    public static final Component REQUIRES_ADVANCED_BEHAVIOR = Component.translatable(
             "gui.moderndynamics.tooltip.requires_advanced_behavior").setStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED));
 
     public CycleSettingButton(List<CycleSetting<T>> settings, T initialSetting, BiConsumer<T, Boolean> onChange) {
-        super(0, 0, 20, 20, TextComponent.EMPTY, button -> {
+        super(0, 0, 20, 20, Component.empty(), button -> {
         });
         this.settings = settings;
         setValue(initialSetting);

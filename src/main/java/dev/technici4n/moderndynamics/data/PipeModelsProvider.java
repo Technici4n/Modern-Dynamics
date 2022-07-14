@@ -18,8 +18,6 @@
  */
 package dev.technici4n.moderndynamics.data;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import dev.technici4n.moderndynamics.init.MdBlocks;
@@ -29,12 +27,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Locale;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
-import net.minecraft.data.HashCache;
 
 public class PipeModelsProvider implements DataProvider {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-
     private final FabricDataGenerator gen;
 
     public PipeModelsProvider(FabricDataGenerator gen) {
@@ -42,12 +38,12 @@ public class PipeModelsProvider implements DataProvider {
     }
 
     @Override
-    public void run(HashCache cache) throws IOException {
+    public void run(CachedOutput cache) throws IOException {
         registerPipeModels(cache);
         registerAttachments(cache);
     }
 
-    private void registerPipeModels(HashCache cache) throws IOException {
+    private void registerPipeModels(CachedOutput cache) throws IOException {
         registerPipeModel(cache, MdBlocks.ITEM_PIPE, "base/item/basic", "connector/iron", true);
         registerPipeModel(cache, MdBlocks.FLUID_PIPE, "base/fluid/basic", "connector/copper", true);
 
@@ -79,7 +75,7 @@ public class PipeModelsProvider implements DataProvider {
          */
     }
 
-    private void registerPipeModel(HashCache cache, PipeBlock pipe, String texture, String connectionTexture, boolean transparent)
+    private void registerPipeModel(CachedOutput cache, PipeBlock pipe, String texture, String connectionTexture, boolean transparent)
             throws IOException {
         var baseFolder = gen.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(gen.getModId(), pipe.id));
 
@@ -91,13 +87,13 @@ public class PipeModelsProvider implements DataProvider {
         modelJson.addProperty("connection_none", noneModel);
         modelJson.addProperty("connection_inventory", inventoryModel);
         modelJson.addProperty("connection_pipe", pipeModel);
-        DataProvider.save(GSON, cache, modelJson, baseFolder.resolve("main.json"));
+        DataProvider.saveStable(cache, modelJson, baseFolder.resolve("main.json"));
     }
 
     /**
      * Register a simple textures pipe part model, and return the id of the model.
      */
-    private String registerPipePart(HashCache cache, Path baseFolder, PipeBlock pipe, String kind, String texture, boolean transparentSuffix)
+    private String registerPipePart(CachedOutput cache, Path baseFolder, PipeBlock pipe, String kind, String texture, boolean transparentSuffix)
             throws IOException {
         var obj = new JsonObject();
         obj.addProperty("parent", MdId.of("base/pipe_%s%s".formatted(kind, transparentSuffix ? "_transparent" : "")).toString());
@@ -105,13 +101,13 @@ public class PipeModelsProvider implements DataProvider {
         obj.add("textures", textures);
         textures.addProperty("0", MdId.of(texture).toString());
 
-        DataProvider.save(GSON, cache, obj, baseFolder.resolve(kind + ".json"));
+        DataProvider.saveStable(cache, obj, baseFolder.resolve(kind + ".json"));
 
         var id = "pipe/%s/%s".formatted(pipe.id, kind);
         return MdId.of(id).toString();
     }
 
-    private void registerAttachments(HashCache cache) throws IOException {
+    private void registerAttachments(CachedOutput cache) throws IOException {
         // Register each model.
         for (var attachment : RenderedAttachment.getAllAttachments()) {
             registerAttachment(cache, attachment, "attachment/" + attachment.id.toLowerCase(Locale.ROOT));
@@ -121,14 +117,14 @@ public class PipeModelsProvider implements DataProvider {
     /**
      * Register a simple attachment part model, and return the id of the model.
      */
-    private void registerAttachment(HashCache cache, RenderedAttachment attachment, String texture) throws IOException {
+    private void registerAttachment(CachedOutput cache, RenderedAttachment attachment, String texture) throws IOException {
         var obj = new JsonObject();
         obj.addProperty("parent", MdId.of("base/pipe_inventory_transparent").toString());
         var textures = new JsonObject();
         obj.add("textures", textures);
         textures.addProperty("0", MdId.of(texture).toString());
 
-        DataProvider.save(GSON, cache, obj,
+        DataProvider.saveStable(cache, obj,
                 gen.getOutputFolder().resolve("assets/%s/models/attachment/%s.json".formatted(gen.getModId(), attachment.id)));
     }
 

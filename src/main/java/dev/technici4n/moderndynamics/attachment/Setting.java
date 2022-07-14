@@ -21,7 +21,6 @@ package dev.technici4n.moderndynamics.attachment;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import java.util.Locale;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 
 public enum Setting {
     /**
@@ -72,7 +71,7 @@ public enum Setting {
     }
 
     Setting() {
-        this.tooltipName = new TranslatableComponent("gui.moderndynamics.tooltip."
+        this.tooltipName = Component.translatable("gui.moderndynamics.tooltip."
                 + name().toLowerCase(Locale.ROOT));
     }
 }

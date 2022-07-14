@@ -98,12 +98,12 @@ public class IoAttachmentItem extends AttachmentItem {
          * }
          * if (filters != null) {
          * filters.withStyle(ChatFormatting.WHITE);
-         * tooltipComponents.add(new TranslatableComponent("gui.moderndynamics.tooltip.filters", filters).withStyle(ChatFormatting.GRAY));
+         * tooltipComponents.add(Component.translatable("gui.moderndynamics.tooltip.filters", filters).withStyle(ChatFormatting.GRAY));
          * }
          * } else {
-         * var keyText = new TranslatableComponent("gui.moderndynamics.tooltip.more_info_key").withStyle(ChatFormatting.YELLOW,
+         * var keyText = Component.translatable("gui.moderndynamics.tooltip.more_info_key").withStyle(ChatFormatting.YELLOW,
          * ChatFormatting.ITALIC);
-         * tooltipComponents.add(new TranslatableComponent("gui.moderndynamics.tooltip.more_info", keyText).withStyle(ChatFormatting.GRAY));
+         * tooltipComponents.add(Component.translatable("gui.moderndynamics.tooltip.more_info", keyText).withStyle(ChatFormatting.GRAY));
          * }
          * }
          */

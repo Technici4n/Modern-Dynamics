@@ -22,7 +22,7 @@ import dev.technici4n.moderndynamics.network.NetworkCache;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
@@ -59,7 +59,7 @@ public class DebugToolItem extends Item {
                     message.append("No node found.\n");
                 }
 
-                ctx.getPlayer().displayClientMessage(new TextComponent(message.toString()), false);
+                ctx.getPlayer().displayClientMessage(Component.literal(message.toString()), false);
 
                 return InteractionResult.CONSUME;
             }

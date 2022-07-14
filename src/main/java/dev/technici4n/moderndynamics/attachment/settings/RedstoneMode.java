@@ -19,7 +19,6 @@
 package dev.technici4n.moderndynamics.attachment.settings;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 
 public enum RedstoneMode {
     IGNORED("gui.moderndynamics.setting.redstone_control.ignored"),
@@ -33,6 +32,6 @@ public enum RedstoneMode {
     }
 
     RedstoneMode(String translationKey) {
-        this.component = new TranslatableComponent(translationKey);
+        this.component = Component.translatable(translationKey);
     }
 }

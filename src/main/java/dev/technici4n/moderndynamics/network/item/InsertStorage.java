@@ -23,11 +23,10 @@ import java.util.Iterator;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 
 public interface InsertStorage extends InsertionOnlyStorage<ItemVariant> {
     @Override
-    default Iterator<StorageView<ItemVariant>> iterator(TransactionContext transaction) {
+    default Iterator<StorageView<ItemVariant>> iterator() {
         return Collections.emptyIterator();
     }
 }

@@ -34,6 +34,7 @@ repositories {
     maven {
         url 'https://maven.bai.lol'
         content {
+            includeGroup "lol.bai"
             includeGroup "mcp.mobius.waila"
         }
     }
@@ -238,7 +239,7 @@ if (System.getenv("CURSEFORGE_API_KEY") && !version.endsWith("-SNAPSHOT")) {
             changelogType = "markdown"
             delegate.changelog = changelog
 
-            addGameVersion "1.18.2"
+            addGameVersion "1.19"
             addGameVersion "Fabric"
             addGameVersion "Java 17"
 
@@ -271,6 +272,6 @@ task publishModrinth (type: TaskModrinthUpload){
     delegate.changelog = changelog
     versionType = releaseChannel.toUpperCase()
     uploadFile = remapJar.archiveFile
-    addGameVersion "1.18.2"
+    addGameVersion "1.19"
     addLoader "fabric"
 }

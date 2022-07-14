@@ -27,8 +27,6 @@ import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import java.util.List;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.Nullable;
 
@@ -152,9 +150,9 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
 
         // Render tooltips (except buttons, those are handled in the buttons themselves)
         if (maxItemsInInventoryTooltipRect != null && maxItemsInInventoryTooltipRect.contains(Math.round(mouseX), Math.round(mouseY))) {
-            renderTooltip(poseStack, new TranslatableComponent("gui.moderndynamics.setting.max_items_in_inventory.tooltip"), mouseX, mouseY);
+            renderTooltip(poseStack, Component.translatable("gui.moderndynamics.setting.max_items_in_inventory.tooltip"), mouseX, mouseY);
         } else if (maxItemsExtractedTooltipRect != null && maxItemsExtractedTooltipRect.contains(Math.round(mouseX), Math.round(mouseY))) {
-            renderTooltip(poseStack, new TranslatableComponent("gui.moderndynamics.setting.max_items_extracted.tooltip"), mouseX, mouseY);
+            renderTooltip(poseStack, Component.translatable("gui.moderndynamics.setting.max_items_extracted.tooltip"), mouseX, mouseY);
         } else {
             this.renderTooltip(poseStack, mouseX, mouseY);
         }
@@ -201,9 +199,9 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
 
     private Component getMaxItemsInInventoryText() {
         if (menu.getMaxItemsInInventory() <= 0) {
-            return new TranslatableComponent("gui.moderndynamics.setting.max_items_in_inventory.infinite");
+            return Component.translatable("gui.moderndynamics.setting.max_items_in_inventory.infinite");
         } else {
-            return new TextComponent(String.valueOf(menu.getMaxItemsInInventory()));
+            return Component.literal(String.valueOf(menu.getMaxItemsInInventory()));
         }
     }
 

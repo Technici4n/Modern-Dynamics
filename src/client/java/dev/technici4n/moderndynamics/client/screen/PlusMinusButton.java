@@ -22,13 +22,13 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 public class PlusMinusButton extends Button {
     private final boolean minus;
 
     public PlusMinusButton(int x, int y, boolean minus, Runnable click) {
-        super(x, y, 14, 14, TextComponent.EMPTY, btn -> click.run());
+        super(x, y, 14, 14, Component.empty(), btn -> click.run());
         this.minus = minus;
     }
 

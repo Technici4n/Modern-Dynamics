@@ -78,8 +78,7 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
                         }
                     }
                     return true;
-                },
-                null);
+                });
         if (fluidVariant != null) {
             for (var slot : slots) {
                 if (slot instanceof FluidConfigSlot fluidConfig) {

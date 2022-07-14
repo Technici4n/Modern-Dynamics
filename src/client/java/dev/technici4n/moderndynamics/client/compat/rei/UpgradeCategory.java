@@ -35,8 +35,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 
 public class UpgradeCategory implements DisplayCategory<UpgradeDisplay> {
     public static final CategoryIdentifier<UpgradeDisplay> ID = CategoryIdentifier.of(MdId.of("upgrades"));
@@ -48,7 +46,7 @@ public class UpgradeCategory implements DisplayCategory<UpgradeDisplay> {
 
     @Override
     public Component getTitle() {
-        return new TranslatableComponent("gui.moderndynamics.rei.upgrade_category");
+        return Component.translatable("gui.moderndynamics.rei.upgrade_category");
     }
 
     @Override
@@ -75,11 +73,11 @@ public class UpgradeCategory implements DisplayCategory<UpgradeDisplay> {
 
         widgets.add(Widgets
                 .createLabel(new Point(bounds.x + 29, bounds.y + 11),
-                        new TranslatableComponent("gui.moderndynamics.tooltip.upgrades_max", type.getSlotLimit()))
+                        Component.translatable("gui.moderndynamics.tooltip.upgrades_max", type.getSlotLimit()))
                 .leftAligned().noShadow().color(0xFF404040, 0xFFBBBBBB));
         widgets.add(Widgets
                 .createLabel(new Point(bounds.getCenterX(), bounds.y + 5 + 22),
-                        new TranslatableComponent("gui.moderndynamics.tooltip.upgrades_effects").setStyle(Style.EMPTY.withUnderlined(true)))
+                        Component.translatable("gui.moderndynamics.tooltip.upgrades_effects").setStyle(Style.EMPTY.withUnderlined(true)))
                 .noShadow().color(0xFF404040, 0xFFBBBBBB));
 
         var effects = new ArrayList<UpgradeEffect>();
@@ -103,13 +101,13 @@ public class UpgradeCategory implements DisplayCategory<UpgradeDisplay> {
             for (UpgradeEffect e : effects) {
                 var tooltipRect = new Rectangle(baseX, baseY, 20, 20);
                 var greenStyle = Style.EMPTY.applyFormat(ChatFormatting.GREEN);
-                var tooltip = new TranslatableComponent("gui.moderndynamics.tooltip.upgrade_" + e.upgradeName(),
-                        new TextComponent(e.greenText).setStyle(greenStyle));
+                var tooltip = Component.translatable("gui.moderndynamics.tooltip.upgrade_" + e.upgradeName(),
+                        Component.literal(e.greenText).setStyle(greenStyle));
 
                 widgets.add(Widgets.createTexturedWidget(texture, baseX, baseY, e.textureU(), 0, 16, 16));
                 // hack to treat -1 as ""
                 var renderedString = e.count() > 0 ? "" + e.count() : "";
-                widgets.add(Widgets.createLabel(new Point(baseX + countXOffset, countY), new TextComponent(renderedString)).noShadow()
+                widgets.add(Widgets.createLabel(new Point(baseX + countXOffset, countY), Component.literal(renderedString)).noShadow()
                         .color(0xFF404040, 0xFFBBBBBB));
                 widgets.add(Widgets.createDrawableWidget((helper, matrices, mouseX, mouseY, delta) -> {
                     if (tooltipRect.contains(mouseX, mouseY)) {
