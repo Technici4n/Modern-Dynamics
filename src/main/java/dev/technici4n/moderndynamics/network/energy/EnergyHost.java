@@ -22,7 +22,6 @@ import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
-import dev.technici4n.moderndynamics.network.TickHelper;
 import dev.technici4n.moderndynamics.network.shared.TransferLimits;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.List;
@@ -41,9 +40,10 @@ public class EnergyHost extends NodeHost {
     private final EnergyPipeTier tier;
     private long energy;
     // Rate limiting
-    private long lastRateUpdate = 0;
-    private final TransferLimits insertLimit = new TransferLimits(); // inserted INTO the neighbor inventories
-    private final TransferLimits extractLimit = new TransferLimits(); // extracted FROM the neighbor inventories
+    // inserted INTO the neighbor inventories
+    private final TransferLimits<Void> insertLimit = new TransferLimits<>(this::getTransferLimit);
+    // extracted FROM the neighbor inventories
+    private final TransferLimits<Void> extractLimit = new TransferLimits<>(this::getTransferLimit);
     // Caps
     private final EnergyStorage[] caps = new EnergyStorage[6];
 
@@ -157,14 +157,8 @@ public class EnergyHost extends NodeHost {
         energy = Math.max(0, Math.min(tag.getLong("energy"), getMaxEnergy()));
     }
 
-    private void updateRateLimits() {
-        long currentTick = TickHelper.getTickCounter();
-
-        if (currentTick > lastRateUpdate) {
-            lastRateUpdate = currentTick;
-            extractLimit.reset();
-            insertLimit.reset();
-        }
+    private long getTransferLimit(Direction side, Void context) {
+        return tier.getMaxConnectionTransfer();
     }
 
     private class ExternalEnergyStorage extends DelegatingEnergyStorage {
@@ -177,8 +171,7 @@ public class EnergyHost extends NodeHost {
 
         @Override
         public long insert(long maxAmount, TransactionContext transaction) {
-            updateRateLimits();
-            maxAmount = Math.min(maxAmount, tier.getMaxConnectionTransfer() - insertLimit.used[directionId]);
+            maxAmount = insertLimit.limit(directionId, maxAmount, null);
             if (maxAmount <= 0)
                 return 0;
 
@@ -189,8 +182,7 @@ public class EnergyHost extends NodeHost {
 
         @Override
         public long extract(long maxAmount, TransactionContext transaction) {
-            updateRateLimits();
-            maxAmount = Math.min(maxAmount, tier.getMaxConnectionTransfer() - extractLimit.used[directionId]);
+            maxAmount = extractLimit.limit(directionId, maxAmount, null);
             if (maxAmount <= 0)
                 return 0;
 
@@ -213,10 +205,9 @@ public class EnergyHost extends NodeHost {
             NetworkNode<EnergyHost, EnergyCache> node = findNode();
 
             if (node != null && node.getHost() == EnergyHost.this) {
-                updateRateLimits();
                 // extractLimit because the network is receiving from an adjacent inventory,
                 // as if it was extracting from it
-                maxAmount = Math.min(maxAmount, tier.getMaxConnectionTransfer() - extractLimit.used[directionId]);
+                maxAmount = extractLimit.limit(directionId, maxAmount, null);
                 if (maxAmount <= 0)
                     return 0;
 
@@ -235,10 +226,9 @@ public class EnergyHost extends NodeHost {
             NetworkNode<EnergyHost, EnergyCache> node = findNode();
 
             if (node != null && node.getHost() == EnergyHost.this) {
-                updateRateLimits();
                 // insertLimit because the network is being extracted from an adjacent inventory,
                 // as if it was inserting into it
-                maxAmount = Math.min(maxAmount, tier.getMaxConnectionTransfer() - insertLimit.used[directionId]);
+                maxAmount = insertLimit.limit(directionId, maxAmount, null);
                 if (maxAmount <= 0)
                     return 0;
 

@@ -28,7 +28,6 @@ import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
-import dev.technici4n.moderndynamics.network.TickHelper;
 import dev.technici4n.moderndynamics.network.shared.TransferLimits;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.TransferUtil;
@@ -55,9 +54,10 @@ public class FluidHost extends NodeHost {
     private FluidVariant variant = FluidVariant.blank();
     private long amount = 0;
     // Rate limiting
-    private long lastRateUpdate = 0;
-    private final TransferLimits insertLimit = new TransferLimits(); // inserted INTO the neighbor inventories
-    private final TransferLimits extractLimit = new TransferLimits(); // extracted FROM the neighbor inventories
+    // inserted INTO the neighbor inventories
+    private final TransferLimits<FluidVariant> insertLimit = new TransferLimits<>(this::getNetworkToOutsideLimit);
+    // extracted FROM the neighbor inventories
+    private final TransferLimits<FluidVariant> extractLimit = new TransferLimits<>(this::getOutsideToNetworkLimit);
     // Caps
     private final Storage<FluidVariant>[] caps = new Storage[6];
 
@@ -234,19 +234,9 @@ public class FluidHost extends NodeHost {
         amount = tag.getLong("amount");
     }
 
-    private void updateRateLimits() {
-        long currentTick = TickHelper.getTickCounter();
-
-        if (currentTick > lastRateUpdate) {
-            lastRateUpdate = currentTick;
-            extractLimit.reset();
-            insertLimit.reset();
-        }
-    }
-
-    private long getNetworkToOutsideLimit(Direction side, FluidVariant variant) {
+    private long getNetworkToOutsideLimit(Direction side, @Nullable FluidVariant variant) {
         if (getAttachment(side) instanceof FluidAttachedIo io) {
-            if (!io.matchesFilter(variant) || !io.isEnabledViaRedstone(pipe)) {
+            if ((variant != null && !io.matchesFilter(variant)) || !io.isEnabledViaRedstone(pipe)) {
                 return 0;
             }
             if (io.getType() == IoAttachmentType.EXTRACTOR)
@@ -258,9 +248,9 @@ public class FluidHost extends NodeHost {
         return Constants.Fluids.BASE_IO;
     }
 
-    private long getOutsideToNetworkLimit(Direction side, FluidVariant variant) {
+    private long getOutsideToNetworkLimit(Direction side, @Nullable FluidVariant variant) {
         if (getAttachment(side) instanceof FluidAttachedIo io) {
-            if (!io.matchesFilter(variant) || !io.isEnabledViaRedstone(pipe)) {
+            if ((variant != null && !io.matchesFilter(variant)) || !io.isEnabledViaRedstone(pipe)) {
                 return 0;
             }
             if (io.getType() == IoAttachmentType.ATTRACTOR)
@@ -293,9 +283,7 @@ public class FluidHost extends NodeHost {
 
         @Override
         public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            updateRateLimits();
-            maxAmount = Math.min(maxAmount,
-                    getNetworkToOutsideLimit(Direction.from3DDataValue(directionId), resource) - insertLimit.used[directionId]);
+            maxAmount = insertLimit.limit(directionId, maxAmount, resource);
             if (maxAmount <= 0)
                 return 0;
 
@@ -306,9 +294,7 @@ public class FluidHost extends NodeHost {
 
         @Override
         public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            updateRateLimits();
-            maxAmount = Math.min(maxAmount,
-                    getOutsideToNetworkLimit(Direction.from3DDataValue(directionId), resource) - extractLimit.used[directionId]);
+            maxAmount = extractLimit.limit(directionId, maxAmount, resource);
             if (maxAmount <= 0)
                 return 0;
 
@@ -331,9 +317,7 @@ public class FluidHost extends NodeHost {
 
             @Override
             public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-                updateRateLimits();
-                maxAmount = Math.min(maxAmount,
-                        getOutsideToNetworkLimit(Direction.from3DDataValue(directionId), resource) - extractLimit.used[directionId]);
+                maxAmount = extractLimit.limit(directionId, maxAmount, resource);
                 if (maxAmount <= 0)
                     return 0;
 
@@ -380,11 +364,9 @@ public class FluidHost extends NodeHost {
         public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
             StoragePreconditions.notBlankNotNegative(resource, maxAmount);
 
-            updateRateLimits();
             // extractLimit because the network is receiving from an adjacent inventory,
             // as if it was extracting from it
-            maxAmount = Math.min(maxAmount,
-                    getOutsideToNetworkLimit(Direction.from3DDataValue(directionId), resource) - extractLimit.used[directionId]);
+            maxAmount = extractLimit.limit(directionId, maxAmount, resource);
             if (maxAmount <= 0)
                 return 0;
 
@@ -398,11 +380,9 @@ public class FluidHost extends NodeHost {
         public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
             StoragePreconditions.notBlankNotNegative(resource, maxAmount);
 
-            updateRateLimits();
             // insertLimit because the network is being extracted from an adjacent inventory,
             // as if it was inserting into it
-            maxAmount = Math.min(maxAmount,
-                    getNetworkToOutsideLimit(Direction.from3DDataValue(directionId), resource) - insertLimit.used[directionId]);
+            maxAmount = insertLimit.limit(directionId, maxAmount, resource);
             if (maxAmount <= 0)
                 return 0;
 
