@@ -372,7 +372,11 @@ public class ItemHost extends NodeHost {
         super.readNbt(tag);
         ListTag list = tag.getList("travelingItems", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); ++i) {
-            travelingItems.add(TravelingItem.fromNbt(list.getCompound(i)));
+            var item = TravelingItem.fromNbt(list.getCompound(i));
+
+            if (!item.variant.isBlank()) { // Guard against blank variants in case a mod is removed
+                travelingItems.add(item);
+            }
         }
     }
 
