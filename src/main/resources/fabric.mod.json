@@ -28,6 +28,9 @@
     ],
     "rei_client": [
       "dev.technici4n.moderndynamics.client.compat.rei.MdReiPlugin"
+    ],
+    "jei_mod_plugin": [
+      "dev.technici4n.moderndynamics.client.compat.jei.MdJeiPlugin"
     ]
   },
   "mixins": [
