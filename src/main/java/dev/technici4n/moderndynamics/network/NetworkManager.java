@@ -143,6 +143,8 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
             networks.remove(node.network);
         }
 
+        pendingUpdates.remove(node);
+
         for (NetworkNode.Connection<H, C> connection : node.getConnections()) {
             NetworkNode<H, C> target = connection.target();
             target.removeConnection(connection.direction().getOpposite(), node);
