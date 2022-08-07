@@ -54,9 +54,7 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
     public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
         if (slotIndex >= 0 && getSlot(slotIndex) instanceof FluidConfigSlot configSlot && configSlot.isEnabled()) {
             var selectedVariant = Objects.requireNonNullElse(
-                    StorageUtil.findStoredResource(
-                            ContainerItemContext.ofPlayerCursor(player, this).find(FluidStorage.ITEM),
-                            null),
+                    StorageUtil.findStoredResource(ContainerItemContext.ofPlayerCursor(player, this).find(FluidStorage.ITEM)),
                     FluidVariant.blank());
             attachment.setFilter(configSlot.getConfigIdx(), selectedVariant);
         } else {
