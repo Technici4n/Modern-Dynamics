@@ -23,6 +23,8 @@ import dev.technici4n.moderndynamics.client.screen.AttachedIoScreen;
 import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.util.MdId;
+import java.util.ArrayList;
+import java.util.List;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
@@ -36,9 +38,6 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @JeiPlugin
 public class MdJeiPlugin implements IModPlugin {
@@ -72,8 +71,7 @@ public class MdJeiPlugin implements IModPlugin {
                 UpgradeCategory.TYPE,
                 LoadedUpgrades.get().list.stream()
                         .map(u -> new UpgradeDisplay(u, LoadedUpgrades.getType(u)))
-                        .toList()
-        );
+                        .toList());
     }
 
     @Override

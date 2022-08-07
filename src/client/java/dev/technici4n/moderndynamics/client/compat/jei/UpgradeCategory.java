@@ -21,6 +21,8 @@ package dev.technici4n.moderndynamics.client.compat.jei;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.util.MdId;
+import java.util.ArrayList;
+import java.util.List;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -38,9 +40,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
 
