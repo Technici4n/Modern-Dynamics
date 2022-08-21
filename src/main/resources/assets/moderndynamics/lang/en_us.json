@@ -30,6 +30,7 @@
     "gui.moderndynamics.setting.routing_mode.random": "Random",
     "gui.moderndynamics.setting.routing_mode.round_robin": "Round-Robin",
     "gui.moderndynamics.tooltip.advanced_behavior_available": "Available",
+    "gui.moderndynamics.tooltip.attachment_upgrades": "Press U in JEI/REI to view upgrades",
     "gui.moderndynamics.tooltip.filter_damage": "Damage",
     "gui.moderndynamics.tooltip.filter_inversion": "Invert",
     "gui.moderndynamics.tooltip.filter_mod": "Mod",
