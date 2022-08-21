@@ -52,9 +52,7 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
     private final IDrawable icon;
     private final IDrawable background;
     private final IDrawable slotDrawable;
-    private final List<UpgradeEffect> effects = new ArrayList<>();
     private final IDrawable[] icons;
-    private int effectsBaseX;
 
     public UpgradeCategory(IGuiHelper guiHelper) {
         this.background = guiHelper.createBlankDrawable(150, 67);
@@ -96,10 +94,12 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
     public void setRecipe(IRecipeLayoutBuilder builder, UpgradeDisplay recipe, IFocusGroup focuses) {
         builder.addSlot(RecipeIngredientRole.INPUT, 7, 7)
                 .addItemStack(new ItemStack(recipe.item()));
+    }
 
+    private EffectsInfo computeEffects(UpgradeDisplay recipe) {
         var type = recipe.upgradeInfo();
 
-        effects.clear();
+        var effects = new ArrayList<UpgradeEffect>();
         effects.add(new UpgradeEffect(0, type.isEnableAdvancedBehavior() ? -1 : 0, "enableAdvancedBehavior",
                 I18n.get("gui.moderndynamics.tooltip.advanced_behavior_available")));
         effects.add(new UpgradeEffect(1, type.getAddFilterSlots(), "addFilterSlots", "+" + type.getAddFilterSlots()));
@@ -114,7 +114,9 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
         effects.removeIf(e -> e.count() == 0);
 
         int totalWidth = effects.size() * EFFECT_WIDTH + (effects.size() - 1) * EFFECT_SPACING;
-        effectsBaseX = (background.getWidth() - totalWidth) / 2;
+        int effectsBaseX = (background.getWidth() - totalWidth) / 2;
+
+        return new EffectsInfo(effects, effectsBaseX);
     }
 
     @Override
@@ -137,9 +139,11 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
         var effectsTextX = (background.getWidth() - fontRenderer.width(effectsText)) / 2;
         fontRenderer.draw(stack, effectsText, effectsTextX, 5 + 22, 0xFF404040);
 
-        int baseX = effectsBaseX;
+        var effects = computeEffects(recipe);
 
-        for (var e : effects) {
+        int baseX = effects.effectsBaseX();
+
+        for (var e : effects.effects()) {
             icons[e.iconIndex].draw(stack, baseX, EFFECT_BASE_Y);
             if (e.count >= 0) {
                 fontRenderer.draw(stack, String.valueOf(e.count), baseX + countXOffset, countY, 0xFF404040);
@@ -151,8 +155,10 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
 
     @Override
     public List<Component> getTooltipStrings(UpgradeDisplay recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
-        var x = effectsBaseX;
-        for (var e : effects) {
+        var effects = computeEffects(recipe);
+
+        var x = effects.effectsBaseX();
+        for (var e : effects.effects()) {
             var tooltipRect = new Rect2i(x, EFFECT_BASE_Y, 20, 20);
 
             if (tooltipRect.contains((int) mouseX, (int) mouseY)) {
@@ -169,5 +175,8 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
     }
 
     private record UpgradeEffect(int iconIndex, int count, String upgradeName, String greenText) {
+    }
+
+    private record EffectsInfo(List<UpgradeEffect> effects, int effectsBaseX) {
     }
 }
