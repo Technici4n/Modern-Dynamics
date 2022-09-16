@@ -1,7 +1,9 @@
 # Modern Dynamics (MD)
 Modern item and fluid transport for Fabric, inspired by Thermal Dynamics.
 
-## Status: In development, testing appreciated!
+Download now from [Curseforge](https://www.curseforge.com/minecraft/mc-mods/modern-dynamics) or [Modrinth](https://modrinth.com/mod/modern-dynamics)!
+
+## Status: Released, testing appreciated!
 We appreciate people testing out Modern Dynamics, however please expect it to contain bugs and rough edges.
 If you want to help, download a build [from GitHub](https://github.com/Technici4n/Modern-Dynamics/releases) and test it out in your world.
 If you find any bug or missing feature, please open **one issue per feature/bug** on GitHub,
