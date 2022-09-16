@@ -221,7 +221,7 @@ public class ItemHost extends NodeHost {
                         long toTransfer = maxTransfer;
 
                         for (var path : paths) {
-                            var extractTarget = ItemStorage.SIDED.find(pipe.getLevel(), path.targetPos, path.path[path.path.length - 1]);
+                            var extractTarget = ItemStorage.SIDED.find(pipe.getLevel(), path.targetPos, path.getTargetBlockSide());
                             if (extractTarget != null) {
                                 // Make sure to check the filter at the endpoint.
                                 var endpointFilter = path.getEndFilter(cache.level);

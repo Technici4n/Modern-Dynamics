@@ -36,6 +36,9 @@ public class ItemPath {
      */
     public final BlockPos startingPos;
     public final BlockPos targetPos;
+    /**
+     * Contains the direction to turn for each path-element, to get from startingPos up until, but excluding targetPos.
+     */
     public final Direction[] path;
     private @Nullable ItemPath reversed;
 
@@ -55,7 +58,22 @@ public class ItemPath {
     }
 
     public SimulatedInsertionTarget getInsertionTarget(Level world) {
-        return SimulatedInsertionTargets.getTarget(world, targetPos, path[path.length - 1].getOpposite());
+        return SimulatedInsertionTargets.getTarget(world, targetPos, getTargetBlockSide());
+    }
+
+    /**
+     * @return The last direction in this path, which corresponds with the side of the block opposite
+     *         of {@link #getTargetBlockSide()}.
+     */
+    public Direction getLastDirection() {
+        return path[path.length - 1];
+    }
+
+    /**
+     * @return The side of the block at {@link #targetPos} this path navigates to.
+     */
+    public Direction getTargetBlockSide() {
+        return getLastDirection().getOpposite();
     }
 
     public TravelingItem makeTravelingItem(ItemVariant variant, long amount, double speedMultiplier) {
@@ -70,18 +88,18 @@ public class ItemPath {
 
     @Nullable
     AttachedAttachment getEndAttachment(ServerLevel level) {
-        var lastNode = ItemHost.MANAGER.findNode(level, targetPos.relative(path[path.length - 1].getOpposite()));
+        var lastNode = ItemHost.MANAGER.findNode(level, targetPos.relative(getTargetBlockSide()));
         var host = lastNode.getHost();
-        return host.getAttachment(path[path.length - 1]);
+        return host.getAttachment(getLastDirection());
     }
 
     /**
      * Return the predicate for the attachment at the very end of the pipe.
      */
     Predicate<ItemVariant> getEndFilter(ServerLevel level) {
-        var endPipe = targetPos.relative(path[path.length - 1].getOpposite());
+        var endPipe = targetPos.relative(getTargetBlockSide());
         if (level.getBlockEntity(endPipe) instanceof PipeBlockEntity pipe) {
-            if (pipe.getAttachment(path[path.length - 1]) instanceof ItemAttachedIo io) {
+            if (pipe.getAttachment(getLastDirection()) instanceof ItemAttachedIo io) {
                 if (!io.isEnabledViaRedstone(pipe)) {
                     return v -> false;
                 }
