@@ -162,7 +162,10 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
 
         if (!level.isClientSide()) { // WTHIT calls this on the client side
             for (NodeHost host : getHosts()) {
-                host.separateNetwork();
+                if (hostsRegistered) {
+                    host.separateNetwork();
+                }
+
                 host.writeNbt(nbt);
             }
         }
@@ -173,7 +176,10 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         connectionBlacklist = nbt.getByte("connectionBlacklist");
 
         for (NodeHost host : getHosts()) {
-            host.separateNetwork();
+            if (hostsRegistered) {
+                host.separateNetwork();
+            }
+
             host.readNbt(nbt);
         }
     }
