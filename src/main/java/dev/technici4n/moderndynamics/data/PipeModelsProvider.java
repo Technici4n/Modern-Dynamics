@@ -25,28 +25,31 @@ import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import java.util.concurrent.CompletableFuture;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 
 public class PipeModelsProvider implements DataProvider {
-    private final FabricDataGenerator gen;
+    private final FabricDataOutput gen;
 
-    public PipeModelsProvider(FabricDataGenerator gen) {
+    public PipeModelsProvider(FabricDataOutput gen) {
         this.gen = gen;
     }
 
     @Override
-    public void run(CachedOutput cache) throws IOException {
-        registerPipeModels(cache);
-        registerAttachments(cache);
+    public CompletableFuture<?> run(CachedOutput cache) {
+
+        return CompletableFuture.allOf(registerPipeModels(cache), registerAttachments(cache));
     }
 
-    private void registerPipeModels(CachedOutput cache) throws IOException {
-        registerPipeModel(cache, MdBlocks.ITEM_PIPE, "base/item/basic", "connector/iron", true);
-        registerPipeModel(cache, MdBlocks.FLUID_PIPE, "base/fluid/basic", "connector/copper", true);
-
+    private CompletableFuture<?> registerPipeModels(CachedOutput cache) {
+        CompletableFuture<?> registerItemPipe = registerPipeModel(cache, MdBlocks.ITEM_PIPE, "base/item/basic", "connector/iron", true);
+        CompletableFuture<?> registerFluidPipe = registerPipeModel(cache, MdBlocks.FLUID_PIPE, "base/fluid/basic", "connector/copper", true);
+        return CompletableFuture.allOf(registerItemPipe, registerFluidPipe);
         /*
          * registerPipeModel(cache, MdBlocks.BASIC_ITEM_PIPE_OPAQUE, "base/item/basic_opaque", "connector/tin", false);
          * registerPipeModel(cache, MdBlocks.FAST_ITEM_PIPE, "lead", "connection_lead");
@@ -75,8 +78,7 @@ public class PipeModelsProvider implements DataProvider {
          */
     }
 
-    private void registerPipeModel(CachedOutput cache, PipeBlock pipe, String texture, String connectionTexture, boolean transparent)
-            throws IOException {
+    private CompletableFuture<?> registerPipeModel(CachedOutput cache, PipeBlock pipe, String texture, String connectionTexture, boolean transparent){
         var baseFolder = gen.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(gen.getModId(), pipe.id));
 
         var noneModel = registerPipePart(cache, baseFolder, pipe, "none", texture, transparent);
@@ -87,14 +89,14 @@ public class PipeModelsProvider implements DataProvider {
         modelJson.addProperty("connection_none", noneModel);
         modelJson.addProperty("connection_inventory", inventoryModel);
         modelJson.addProperty("connection_pipe", pipeModel);
-        DataProvider.saveStable(cache, modelJson, baseFolder.resolve("main.json"));
+        return DataProvider.saveStable(cache, modelJson, baseFolder.resolve("main.json"));
     }
 
     /**
      * Register a simple textures pipe part model, and return the id of the model.
      */
     private String registerPipePart(CachedOutput cache, Path baseFolder, PipeBlock pipe, String kind, String texture, boolean transparentSuffix)
-            throws IOException {
+            {
         var obj = new JsonObject();
         obj.addProperty("parent", MdId.of("base/pipe_%s%s".formatted(kind, transparentSuffix ? "_transparent" : "")).toString());
         var textures = new JsonObject();
@@ -107,24 +109,26 @@ public class PipeModelsProvider implements DataProvider {
         return MdId.of(id).toString();
     }
 
-    private void registerAttachments(CachedOutput cache) throws IOException {
+    private CompletableFuture<?> registerAttachments(CachedOutput cache) {
+        final List<CompletableFuture<?>> futures = new ArrayList<>();
         // Register each model.
         for (var attachment : RenderedAttachment.getAllAttachments()) {
-            registerAttachment(cache, attachment, "attachment/" + attachment.id.toLowerCase(Locale.ROOT));
+            futures.add(registerAttachment(cache, attachment, "attachment/" + attachment.id.toLowerCase(Locale.ROOT)));
         }
+        return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
     }
 
     /**
      * Register a simple attachment part model, and return the id of the model.
      */
-    private void registerAttachment(CachedOutput cache, RenderedAttachment attachment, String texture) throws IOException {
+    private CompletableFuture<?> registerAttachment(CachedOutput cache, RenderedAttachment attachment, String texture) {
         var obj = new JsonObject();
         obj.addProperty("parent", MdId.of("base/pipe_inventory_transparent").toString());
         var textures = new JsonObject();
         obj.add("textures", textures);
         textures.addProperty("0", MdId.of(texture).toString());
 
-        DataProvider.saveStable(cache, obj,
+        return DataProvider.saveStable(cache, obj,
                 gen.getOutputFolder().resolve("assets/%s/models/attachment/%s.json".formatted(gen.getModId(), attachment.id)));
     }
 

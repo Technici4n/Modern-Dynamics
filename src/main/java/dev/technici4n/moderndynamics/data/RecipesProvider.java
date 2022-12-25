@@ -20,40 +20,41 @@ package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.init.MdItems;
 import java.util.function.Consumer;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.world.item.Items;
 
 public class RecipesProvider extends FabricRecipeProvider {
-    public RecipesProvider(FabricDataGenerator dataGenerator) {
-        super(dataGenerator);
+    public RecipesProvider(FabricDataOutput output) {
+        super(output);
     }
 
     @Override
-    protected void generateRecipes(Consumer<FinishedRecipe> exporter) {
-        ShapedRecipeBuilder.shaped(MdItems.ITEM_PIPE, 8)
+    public void buildRecipes(Consumer<FinishedRecipe> exporter) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.ITEM_PIPE, 8)
                 .pattern("igi")
                 .define('i', Items.IRON_INGOT)
                 .define('g', Items.GLASS)
                 .unlockedBy("has_ingot", has(Items.IRON_INGOT))
                 .save(exporter);
-        ShapedRecipeBuilder.shaped(MdItems.FLUID_PIPE, 8)
+        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.FLUID_PIPE, 8)
                 .pattern("igi")
                 .define('i', Items.COPPER_INGOT)
                 .define('g', Items.GLASS)
                 .unlockedBy("has_ingot", has(Items.COPPER_INGOT))
                 .save(exporter);
 
-        ShapedRecipeBuilder.shaped(MdItems.INHIBITOR, 4)
+        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.INHIBITOR, 4)
                 .pattern("mnm")
                 .define('m', Items.IRON_INGOT)
                 .define('n', Items.IRON_NUGGET)
                 .unlockedBy("has_item_pipe", has(MdItems.ITEM_PIPE))
                 .save(exporter);
 
-        ShapedRecipeBuilder.shaped(MdItems.WRENCH)
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, MdItems.WRENCH)
                 .pattern(" i ")
                 .pattern("lii")
                 .pattern("il ")
@@ -62,7 +63,7 @@ public class RecipesProvider extends FabricRecipeProvider {
                 .unlockedBy("has_iron", has(Items.IRON_INGOT))
                 .save(exporter);
 
-        ShapedRecipeBuilder.shaped(MdItems.ATTRACTOR, 1)
+        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION,MdItems.ATTRACTOR, 1)
                 .pattern(" e ")
                 .pattern("mrm")
                 .pattern(" p ")
@@ -73,7 +74,7 @@ public class RecipesProvider extends FabricRecipeProvider {
                 .unlockedBy("has_ender_pearl", has(Items.ENDER_PEARL))
                 .save(exporter);
 
-        ShapedRecipeBuilder.shaped(MdItems.EXTRACTOR, 1)
+        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.EXTRACTOR, 1)
                 .pattern(" h ")
                 .pattern("mrm")
                 .pattern(" p ")
@@ -84,7 +85,7 @@ public class RecipesProvider extends FabricRecipeProvider {
                 .unlockedBy("has_hopper", has(Items.HOPPER))
                 .save(exporter);
 
-        ShapedRecipeBuilder.shaped(MdItems.FILTER, 1)
+        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.FILTER, 1)
                 .pattern(" l ")
                 .pattern("mrm")
                 .pattern(" p ")

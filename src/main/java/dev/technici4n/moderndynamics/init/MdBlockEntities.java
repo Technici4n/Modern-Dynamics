@@ -30,6 +30,7 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import team.reborn.energy.api.EnergyStorage;
@@ -80,7 +81,7 @@ public final class MdBlockEntities {
         TypeFactory<T> typeFactory = new TypeFactory<>(factory);
         BlockEntityType<T> type = FabricBlockEntityTypeBuilder.create(typeFactory, block).build(null);
         typeFactory.type = type;
-        Registry.register(Registry.BLOCK_ENTITY_TYPE, MdId.of(block.id), type);
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, MdId.of(block.id), type);
         // noinspection unchecked
         block.setBlockEntityProvider((BlockEntityType<PipeBlockEntity>) type);
 

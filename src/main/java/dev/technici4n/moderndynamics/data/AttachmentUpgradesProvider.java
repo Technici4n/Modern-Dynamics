@@ -19,20 +19,20 @@
 package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.attachment.upgrade.UpgradeTypeBuilder;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import java.util.concurrent.CompletableFuture;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
 public class AttachmentUpgradesProvider implements DataProvider {
-    private final FabricDataGenerator gen;
+    private final FabricDataOutput gen;
     private final List<UpgradeTypeBuilder> builders = new ArrayList<>();
 
-    public AttachmentUpgradesProvider(FabricDataGenerator gen) {
+    public AttachmentUpgradesProvider(FabricDataOutput gen) {
         this.gen = gen;
     }
 
@@ -74,13 +74,15 @@ public class AttachmentUpgradesProvider implements DataProvider {
     }
 
     @Override
-    public void run(CachedOutput cache) throws IOException {
+    public CompletableFuture<?> run(CachedOutput cache){
         genUpgrades();
+        final List<CompletableFuture<?>> futures = new ArrayList<>();
 
         for (var builder : builders) {
             var path = gen.getOutputFolder().resolve("data/%s/attachment_upgrades/%s".formatted(gen.getModId(), builder.getFileName()));
-            DataProvider.saveStable(cache, builder.toJson(), path);
+            futures.add(DataProvider.saveStable(cache, builder.toJson(), path));
         }
+        return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
     }
 
     @Override

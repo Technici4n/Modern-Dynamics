@@ -18,18 +18,21 @@
  */
 package dev.technici4n.moderndynamics.data;
 
+import java.util.concurrent.CompletableFuture;
+
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.init.MdTags;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
+import net.minecraft.core.HolderLookup;
 
 public class ItemTagsProvider extends FabricTagProvider.ItemTagProvider {
-    public ItemTagsProvider(FabricDataGenerator dataGenerator) {
-        super(dataGenerator);
+    public ItemTagsProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> completableFuture) {
+        super(output, completableFuture);
     }
 
     @Override
-    protected void generateTags() {
-        tag(MdTags.WRENCHES).add(MdItems.WRENCH);
+    protected void addTags(HolderLookup.Provider arg){
+        tag(MdTags.WRENCHES).add(reverseLookup(MdItems.WRENCH));
     }
 }

@@ -27,6 +27,7 @@ import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -43,10 +44,10 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
         super((int syncId, Inventory playerInventory, FriendlyByteBuf packetByteBuf) -> {
             var world = playerInventory.player.level;
 
-            var bet = Registry.BLOCK_ENTITY_TYPE.get(packetByteBuf.readResourceLocation());
+            var bet = BuiltInRegistries.BLOCK_ENTITY_TYPE.get(packetByteBuf.readResourceLocation());
             var side = packetByteBuf.readEnum(Direction.class);
             var pos = packetByteBuf.readBlockPos();
-            var item = Registry.ITEM.byId(packetByteBuf.readVarInt());
+            var item = BuiltInRegistries.ITEM.byId(packetByteBuf.readVarInt());
             if (!(item instanceof AttachmentItem attachmentItem)) {
                 throw new IllegalStateException("Server sent a non-attachment item as menu host: " + item);
             }
@@ -68,7 +69,7 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
     public static <A extends AttachedAttachment, T extends AbstractContainerMenu, I extends AttachmentItem> AttachmentMenuType<A, T> create(
             String id, AttachmentFactory<A, I> attachmentFactory, MenuFactory<A, T> menuFactory) {
         var type = new AttachmentMenuType<>(attachmentFactory, menuFactory);
-        Registry.register(Registry.MENU, MdId.of(id), type);
+        Registry.register(BuiltInRegistries.MENU, MdId.of(id), type);
         return type;
     }
 
@@ -84,10 +85,10 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
         return new ExtendedScreenHandlerFactory() {
             @Override
             public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
-                buf.writeResourceLocation(Registry.BLOCK_ENTITY_TYPE.getKey(pipe.getType()));
+                buf.writeResourceLocation(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(pipe.getType()));
                 buf.writeEnum(side);
                 buf.writeBlockPos(pipe.getBlockPos());
-                buf.writeVarInt(Registry.ITEM.getId(attachment.getItem()));
+                buf.writeVarInt(BuiltInRegistries.ITEM.getId(attachment.getItem()));
                 buf.writeNbt(attachment.writeConfigTag(new CompoundTag()));
             }
 

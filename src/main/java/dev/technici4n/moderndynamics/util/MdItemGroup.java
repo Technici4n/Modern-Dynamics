@@ -19,12 +19,12 @@
 package dev.technici4n.moderndynamics.util;
 
 import dev.technici4n.moderndynamics.init.MdItems;
-import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 
 public final class MdItemGroup {
-    private static final CreativeModeTab INSTANCE = FabricItemGroupBuilder.create(MdId.of(MdId.MOD_ID))
+    private static final CreativeModeTab INSTANCE = FabricItemGroup.builder(MdId.of(MdId.MOD_ID))
             .icon(() -> new ItemStack(MdItems.ITEM_PIPE))
             .build();
 

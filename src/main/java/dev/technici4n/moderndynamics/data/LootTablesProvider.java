@@ -18,19 +18,30 @@
  */
 package dev.technici4n.moderndynamics.data;
 
+import java.util.function.BiConsumer;
+
 import dev.technici4n.moderndynamics.init.MdBlocks;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.storage.loot.LootTable.Builder;
 
 public class LootTablesProvider extends FabricBlockLootTableProvider {
-    protected LootTablesProvider(FabricDataGenerator dataGenerator) {
-        super(dataGenerator);
+    protected LootTablesProvider(FabricDataOutput output) {
+        super(output);
     }
 
     @Override
-    protected void generateBlockLootTables() {
+    public void generate() {
         for (var block : MdBlocks.ALL_PIPES) {
             dropSelf(block);
         }
     }
+
+    @Override
+    public void accept(BiConsumer<ResourceLocation, Builder> biConsumer) {
+        super.generate(biConsumer);
+    }
+
+    
 }

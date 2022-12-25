@@ -23,6 +23,7 @@ import java.lang.reflect.Modifier;
 import net.fabricmc.fabric.api.resource.conditions.v1.ConditionJsonProvider;
 import net.fabricmc.fabric.api.resource.conditions.v1.DefaultResourceConditions;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
@@ -50,7 +51,7 @@ public class UpgradeTypeBuilder {
     }
 
     public UpgradeTypeBuilder(ItemLike upgrade, int slotLimit) {
-        var itemId = Registry.ITEM.getKey(upgrade.asItem());
+        var itemId = BuiltInRegistries.ITEM.getKey(upgrade.asItem());
 
         this.conditions = null;
         this.item = itemId.toString();
