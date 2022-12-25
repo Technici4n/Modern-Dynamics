@@ -55,7 +55,6 @@ public class ItemHost extends NodeHost {
     private final List<TravelingItem> travelingItems = new ArrayList<>();
     private final List<ClientTravelingItem> clientTravelingItems = new ArrayList<>();
     private final long[] lastOperationTick = new long[6];
-    private final int[] roundRobinIndex = new int[6];
 
     public ItemHost(PipeBlockEntity pipe) {
         super(pipe);
