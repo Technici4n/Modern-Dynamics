@@ -44,8 +44,8 @@ public class PipeModelsProvider implements DataProvider {
     }
 
     private void registerPipeModels(CachedOutput cache) throws IOException {
-        registerPipeModel(cache, MdBlocks.ITEM_PIPE, "base/item/basic", "connector/iron", true);
-        registerPipeModel(cache, MdBlocks.FLUID_PIPE, "base/fluid/basic", "connector/copper", true);
+        registerPipeModel(cache, MdBlocks.ITEM_PIPE, true);
+        registerPipeModel(cache, MdBlocks.FLUID_PIPE, true);
 
         /*
          * registerPipeModel(cache, MdBlocks.BASIC_ITEM_PIPE_OPAQUE, "base/item/basic_opaque", "connector/tin", false);
@@ -75,38 +75,26 @@ public class PipeModelsProvider implements DataProvider {
          */
     }
 
-    private void registerPipeModel(CachedOutput cache, PipeBlock pipe, String texture, String connectionTexture, boolean transparent)
+    private void registerPipeModel(CachedOutput cache, PipeBlock pipe, boolean transparent)
             throws IOException {
         var baseFolder = gen.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(gen.getModId(), pipe.id));
 
-        var noneModel = registerPipePart(cache, baseFolder, pipe, "none", texture, transparent);
-        var inventoryModel = registerPipePart(cache, baseFolder, pipe, "inventory", connectionTexture, transparent);
-        var pipeModel = registerPipePart(cache, baseFolder, pipe, "pipe", texture, transparent);
-        var straightModel = registerPipePart(cache, baseFolder, pipe, "straight", texture, transparent);
-
-        var modelJson = new JsonObject();
-        modelJson.addProperty("connection_none", noneModel);
-        modelJson.addProperty("connection_inventory", inventoryModel);
-        modelJson.addProperty("connection_pipe", pipeModel);
-        modelJson.addProperty("straight_line", straightModel);
-        DataProvider.saveStable(cache, modelJson, baseFolder.resolve("main.json"));
+        registerPipePart(cache, baseFolder, pipe, "connector", transparent);
+        registerPipePart(cache, baseFolder, pipe, "straight", transparent);
     }
 
     /**
      * Register a simple textures pipe part model, and return the id of the model.
      */
-    private String registerPipePart(CachedOutput cache, Path baseFolder, PipeBlock pipe, String kind, String texture, boolean transparentSuffix)
+    private void registerPipePart(CachedOutput cache, Path baseFolder, PipeBlock pipe, String kind, boolean transparentSuffix)
             throws IOException {
         var obj = new JsonObject();
-        obj.addProperty("parent", MdId.of("base/pipe_%s%s".formatted(kind, transparentSuffix ? "_transparent" : "")).toString());
+        obj.addProperty("parent", MdId.of("base/%s%s".formatted(kind, transparentSuffix ? "_transparent" : "")).toString());
         var textures = new JsonObject();
         obj.add("textures", textures);
-        textures.addProperty("0", MdId.of(texture).toString());
+        textures.addProperty("0", MdId.of("pipe/%s/%s".formatted(pipe.id, kind)).toString());
 
         DataProvider.saveStable(cache, obj, baseFolder.resolve(kind + ".json"));
-
-        var id = "pipe/%s/%s".formatted(pipe.id, kind);
-        return MdId.of(id).toString();
     }
 
     private void registerAttachments(CachedOutput cache) throws IOException {
@@ -121,7 +109,7 @@ public class PipeModelsProvider implements DataProvider {
      */
     private void registerAttachment(CachedOutput cache, RenderedAttachment attachment, String texture) throws IOException {
         var obj = new JsonObject();
-        obj.addProperty("parent", MdId.of("base/pipe_inventory_transparent").toString());
+        obj.addProperty("parent", MdId.of("base/connector_transparent").toString());
         var textures = new JsonObject();
         obj.add("textures", textures);
         textures.addProperty("0", MdId.of(texture).toString());

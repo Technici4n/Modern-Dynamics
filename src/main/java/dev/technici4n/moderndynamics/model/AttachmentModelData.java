@@ -25,26 +25,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.Nullable;
 
-public final class AttachmentModelData {
-    private final String modelId;
-    /**
-     * Also available to make "block picking" work on the client.
-     */
-    private final Item item;
-
-    private AttachmentModelData(String modelId, Item item) {
-        this.modelId = modelId;
-        this.item = item;
-    }
-
-    public String getModelId() {
-        return modelId;
-    }
-
-    public Item getItem() {
-        return item;
-    }
-
+/**
+ * Item is also available to make "block picking" work on the client.
+ */
+public record AttachmentModelData(String modelId, Item item) {
     public CompoundTag write(CompoundTag tag) {
         tag.putString("model", modelId);
         tag.putString("item", Registry.ITEM.getKey(item).toString());
