@@ -28,7 +28,7 @@ public class PlusMinusButton extends Button {
     private final boolean minus;
 
     public PlusMinusButton(int x, int y, boolean minus, Runnable click) {
-        super(x, y, 14, 14, Component.empty(), btn -> click.run());
+        super(x, y, 14, 14, Component.empty(), btn -> click.run(), DEFAULT_NARRATION);
         this.minus = minus;
     }
 
@@ -47,6 +47,6 @@ public class PlusMinusButton extends Button {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
-        this.blit(poseStack, this.x, this.y, x, y, width, height);
+        this.blit(poseStack, this.getX(), this.getY(), x, y, width, height);
     }
 }

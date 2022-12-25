@@ -90,7 +90,7 @@ public class CycleSettingButton<T> extends Button {
 
     public CycleSettingButton(List<CycleSetting<T>> settings, T initialSetting, BiConsumer<T, Boolean> onChange) {
         super(0, 0, 20, 20, Component.empty(), button -> {
-        });
+        }, DEFAULT_NARRATION);
         this.settings = settings;
         setValue(initialSetting);
         this.onChange = onChange;
@@ -143,7 +143,7 @@ public class CycleSettingButton<T> extends Button {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
-        this.blit(poseStack, this.x, this.y, setting.spriteX(), y, width, height);
+        this.blit(poseStack, this.getX(), this.getY(), setting.spriteX(), y, width, height);
 
         if (this.isHovered) {
             var tooltip = new ArrayList<Component>();

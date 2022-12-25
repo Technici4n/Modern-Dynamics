@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -97,8 +97,8 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         var x = leftPos + (imageWidth - overallWidth) / 2;
 
         for (var toggleButton : toggleButtons) {
-            toggleButton.x = x;
-            toggleButton.y = topPos + 82;
+            toggleButton.setX(x);
+            toggleButton.setY(topPos + 82);
             x += toggleButton.getWidth() + BUTTON_GAP;
 
             addRenderableWidget(toggleButton);
@@ -106,12 +106,12 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
 
         // Reposition redstone tab buttons
         updateRedstoneTabRect(0);
-        redstoneModeIgnored.x = redstoneTabRect.getX() + 28;
-        redstoneModeIgnored.y = redstoneTabRect.getY() + 22;
-        redstoneModeLow.x = redstoneModeIgnored.x + redstoneModeIgnored.getWidth() + 4;
-        redstoneModeLow.y = redstoneModeIgnored.y;
-        redstoneModeHigh.x = redstoneModeLow.x + redstoneModeLow.getWidth() + 4;
-        redstoneModeHigh.y = redstoneModeLow.y;
+        redstoneModeIgnored.setX(redstoneTabRect.getX() + 28);
+        redstoneModeIgnored.setY(redstoneTabRect.getY() + 22);
+        redstoneModeLow.setX(redstoneModeIgnored.getX() + redstoneModeIgnored.getWidth() + 4);
+        redstoneModeLow.setY(redstoneModeIgnored.getY());
+        redstoneModeHigh.setX(redstoneModeLow.getX() + redstoneModeLow.getWidth() + 4);
+        redstoneModeHigh.setY(redstoneModeLow.getY());
         addRenderableWidget(redstoneModeIgnored);
         addRenderableWidget(redstoneModeLow);
         addRenderableWidget(redstoneModeHigh);
@@ -232,10 +232,10 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         // Draw a small rectangle background for the buttons
         fill(
                 matrices,
-                redstoneModeIgnored.x - 4,
-                redstoneModeIgnored.y - 4,
-                redstoneModeHigh.x + redstoneModeHigh.getWidth() + 4,
-                redstoneModeHigh.y + redstoneModeHigh.getHeight() + 4,
+                redstoneModeIgnored.getX() - 4,
+                redstoneModeIgnored.getY() - 4,
+                redstoneModeHigh.getX() + redstoneModeHigh.getWidth() + 4,
+                redstoneModeHigh.getY() + redstoneModeHigh.getHeight() + 4,
                 0xff611005);
 
         // Redstone Icon
@@ -353,7 +353,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
                 && mouseY < redstoneTabRect.getY() + redstoneTabRect.getHeight();
     }
 
-    private class RedstoneTabOpenCloseHandler implements GuiEventListener, NarratableEntry, Widget {
+    private class RedstoneTabOpenCloseHandler implements GuiEventListener, NarratableEntry, Renderable {
         @Override
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
             if (isInRedstoneTabRect(mouseX, mouseY) && button == 0) {

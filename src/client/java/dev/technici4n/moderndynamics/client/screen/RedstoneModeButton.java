@@ -36,7 +36,7 @@ public class RedstoneModeButton extends Button {
 
     public RedstoneModeButton(RedstoneMode mode, Supplier<RedstoneMode> getter, BiConsumer<RedstoneMode, Boolean> setter) {
         super(0, 0, 16, 16, mode.getTranslation(), button -> {
-        });
+        }, DEFAULT_NARRATION);
         this.mode = mode;
         this.getter = getter;
         this.setter = setter;
@@ -75,7 +75,7 @@ public class RedstoneModeButton extends Button {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
-        this.blit(poseStack, this.x, this.y, x, 180, width, height);
+        this.blit(poseStack, this.getX(), this.getY(), x, 180, width, height);
 
         // Draw an icon appropriate for the mode of this button
         int iconX = 240;
@@ -84,7 +84,7 @@ public class RedstoneModeButton extends Button {
         case REQUIRES_LOW -> 240;
         case REQUIRES_HIGH -> 224;
         };
-        this.blit(poseStack, this.x, this.y, iconX, iconY, 16, 16);
+        this.blit(poseStack, this.getX(), this.getY(), iconX, iconY, 16, 16);
         RenderSystem.disableScissor();
 
         if (this.isHovered) {

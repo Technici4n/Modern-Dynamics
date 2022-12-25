@@ -18,9 +18,10 @@
  */
 package dev.technici4n.moderndynamics.client.model;
 
-import com.mojang.math.Quaternion;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
+
 import com.mojang.math.Transformation;
-import com.mojang.math.Vector3f;
 import net.minecraft.client.resources.model.BlockModelRotation;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.core.Direction;
@@ -40,7 +41,8 @@ public class MdModels {
     };
 
     public static ModelState preRotated(BlockModelRotation rotation, float preAngle) {
-        Transformation preRotation = new Transformation(null, new Quaternion(new Vector3f(0, 0, 1), preAngle, true), null, null);
+
+        Transformation preRotation = new Transformation(null, new Quaternionf().setAngleAxis(preAngle, 0, 0, 1), null, null);
         Transformation combined = rotation.getRotation().compose(preRotation);
         return new ModelState() {
             @Override

@@ -19,7 +19,11 @@
 package dev.technici4n.moderndynamics.client.ber;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
+
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.network.fluid.FluidHost;
 import dev.technici4n.moderndynamics.network.item.ItemHost;
@@ -78,7 +82,9 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
                     // Cool rotation
                     float rotAngle = (float) ((ClientTravelingItemSmoothing.getClientTick() + tickDelta) * item.speed()
                             + random.nextFloat() * 2 * Math.PI);
-                    matrices.mulPose(Vector3f.YP.rotation(rotAngle));
+                    Vector3fc YP = new Vector3f(0.f, 1.f, 0.f);
+                    Vector3fc rotated = YP.rotateY(rotAngle, new Vector3f());
+                    matrices.mulPose(YP.rotationTo(rotated, new Quaternionf()));
 
                     // Render multiple items depending on stack size
                     int renderCount = getRenderAmount(item.amount());

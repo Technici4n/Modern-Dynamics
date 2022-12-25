@@ -18,7 +18,6 @@
  */
 package dev.technici4n.moderndynamics.client.model;
 
-import com.mojang.datafixers.util.Pair;
 import java.util.*;
 import java.util.function.Function;
 import net.minecraft.client.renderer.block.model.BlockModel;
@@ -26,7 +25,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.BlockModelRotation;
 import net.minecraft.client.resources.model.Material;
-import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
@@ -42,7 +41,7 @@ public class PipeUnbakedModel implements UnbakedModel {
         this.connectionInventory = connectionInventory;
     }
 
-    public static BakedModel[] loadRotatedModels(ResourceLocation modelId, ModelBakery modelLoader) {
+    public static BakedModel[] loadRotatedModels(ResourceLocation modelId, ModelBaker modelLoader) {
         // Load side models
         BakedModel[] models = new BakedModel[6];
 
@@ -54,7 +53,7 @@ public class PipeUnbakedModel implements UnbakedModel {
     }
 
     @Override
-    public BakedModel bake(ModelBakery modelLoader, Function<Material, TextureAtlasSprite> textureGetter, ModelState rotationContainer,
+    public BakedModel bake(ModelBaker modelLoader, Function<Material, TextureAtlasSprite> textureGetter, ModelState rotationContainer,
             ResourceLocation modelId) {
         return new PipeBakedModel(
                 // Load transform from the vanilla block model
@@ -66,13 +65,11 @@ public class PipeUnbakedModel implements UnbakedModel {
     }
 
     @Override
-    public Collection<Material> getMaterials(Function<ResourceLocation, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> set) {
-        List<Material> textures = new ArrayList<>();
-        textures.addAll(unbakedModelGetter.apply(AttachmentsUnbakedModel.ID).getMaterials(unbakedModelGetter, set));
-        textures.addAll(unbakedModelGetter.apply(connectionNone).getMaterials(unbakedModelGetter, set));
-        textures.addAll(unbakedModelGetter.apply(connectionPipe).getMaterials(unbakedModelGetter, set));
-        textures.addAll(unbakedModelGetter.apply(connectionInventory).getMaterials(unbakedModelGetter, set));
-        return textures;
+    public void resolveParents(Function<ResourceLocation, UnbakedModel> unbakedModelGetter) {
+        unbakedModelGetter.apply(AttachmentsUnbakedModel.ID).resolveParents(unbakedModelGetter);
+        unbakedModelGetter.apply(connectionNone).resolveParents(unbakedModelGetter);
+        unbakedModelGetter.apply(connectionPipe).resolveParents(unbakedModelGetter);
+        unbakedModelGetter.apply(connectionInventory).resolveParents(unbakedModelGetter);
     }
 
     @Override
