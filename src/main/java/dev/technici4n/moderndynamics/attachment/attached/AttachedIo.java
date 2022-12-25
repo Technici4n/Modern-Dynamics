@@ -24,6 +24,8 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
+import dev.technici4n.moderndynamics.attachment.upgrade.LoadedUpgrades;
+import dev.technici4n.moderndynamics.attachment.upgrade.UpgradeType;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
 import java.util.ArrayList;
@@ -96,7 +98,35 @@ public abstract class AttachedIo extends AttachedAttachment {
     }
 
     public boolean mayPlaceUpgrade(int slot, Item upgrade) {
-        return upgradeContainer.mayPlaceUpgrade(slot, upgrade);
+        if (!upgradeContainer.mayPlaceUpgrade(slot, upgrade)) {
+            // Duplicate upgrade
+            return false;
+        }
+
+        UpgradeType type = LoadedUpgrades.getType(upgrade);
+        if (type.getAddFilterSlots() > 0) {
+            return true;
+        }
+
+        if (this instanceof ItemAttachedIo) {
+            if (type.isEnableAdvancedBehavior() || type.getAddItemSpeed() > 0) {
+                return true;
+            }
+
+            if (getType() != IoAttachmentType.FILTER) {
+                if (type.getAddItemCount() > 0 || type.getAddItemTransferFrequency() > 0) {
+                    return true;
+                }
+            }
+        }
+
+        if (this instanceof FluidAttachedIo) {
+            if (type.getAddFluidTransfer() > 0 || type.getMultiplyFluidTransfer() > 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void onUpgradesChanged() {
