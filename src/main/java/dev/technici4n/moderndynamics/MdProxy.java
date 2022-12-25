@@ -21,6 +21,7 @@ package dev.technici4n.moderndynamics;
 import dev.technici4n.moderndynamics.util.UnsidedPacketHandler;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 public class MdProxy {
@@ -45,5 +46,11 @@ public class MdProxy {
     public void registerPacketHandler(ResourceLocation packetId, UnsidedPacketHandler unsidedHandler) {
         ServerPlayNetworking.registerGlobalReceiver(packetId,
                 (ms, player, handler, buf, responseSender) -> ms.execute(unsidedHandler.handlePacket(player, buf)));
+    }
+
+    /**
+     * Send a packet to the server.
+     */
+    public void sendPacket(ResourceLocation packetId, FriendlyByteBuf buf) {
     }
 }

@@ -31,6 +31,9 @@
     ],
     "jei_mod_plugin": [
       "dev.technici4n.moderndynamics.client.compat.jei.MdJeiPlugin"
+    ],
+    "emi": [
+      "dev.technici4n.moderndynamics.client.compat.emi.MdEmiPlugin"
     ]
   },
   "mixins": [
