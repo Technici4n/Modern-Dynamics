@@ -451,7 +451,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     public ItemStack overridePickBlock(HitResult hitResult) {
         Vec3 posInBlock = hitResult.getLocation().subtract(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ());
         Direction side = hitTestAttachments(posInBlock);
-        return side != null ? new ItemStack(clientModelData.attachments()[side.get3DDataValue()].getItem()) : ItemStack.EMPTY;
+        return side != null ? new ItemStack(clientModelData.attachments()[side.get3DDataValue()].item()) : ItemStack.EMPTY;
     }
 
     public void onRemoved() {

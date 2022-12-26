@@ -46,7 +46,7 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
     public static final RecipeType<UpgradeDisplay> TYPE = RecipeType.create(MdId.MOD_ID, "upgrades", UpgradeDisplay.class);
     public static final int EFFECT_WIDTH = 23;
     public static final int EFFECT_SPACING = 5;
-    public static final int EFFECT_BASE_Y = 5 + 36;
+    public static final int EFFECT_BASE_Y = 5 + 32;
     public static final ResourceLocation ICON_TEXTURE = MdId.of("textures/gui/icons.png");
 
     private final IDrawable icon;
@@ -55,7 +55,7 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
     private final IDrawable[] icons;
 
     public UpgradeCategory(IGuiHelper guiHelper) {
-        this.background = guiHelper.createBlankDrawable(150, 67);
+        this.background = guiHelper.createBlankDrawable(142, 59);
         this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(MdItems.EXTRACTOR));
         this.slotDrawable = guiHelper.getSlotDrawable();
 
@@ -92,7 +92,7 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, UpgradeDisplay recipe, IFocusGroup focuses) {
-        builder.addSlot(RecipeIngredientRole.INPUT, 7, 7)
+        builder.addSlot(RecipeIngredientRole.INPUT, 3, 3)
                 .addItemStack(new ItemStack(recipe.item()));
     }
 
@@ -121,23 +121,22 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
 
     @Override
     public void draw(UpgradeDisplay recipe, IRecipeSlotsView recipeSlotsView, PoseStack stack, double mouseX, double mouseY) {
-
-        slotDrawable.draw(stack, 6, 6);
+        slotDrawable.draw(stack, 2, 2);
 
         var type = recipe.upgradeInfo();
         int countXOffset = 17;
-        int countY = 18 + 36;
+        int countY = 18 + 32;
 
         var minecraft = Minecraft.getInstance();
         var fontRenderer = minecraft.font;
 
         var maxUpgrades = Component.translatable("gui.moderndynamics.tooltip.upgrades_max", type.getSlotLimit());
-        fontRenderer.draw(stack, maxUpgrades, 29, 11, 0xFF404040);
+        fontRenderer.draw(stack, maxUpgrades, 25, 7, 0xFF404040);
 
         var effectsText = Component.translatable("gui.moderndynamics.tooltip.upgrades_effects")
                 .withStyle(ChatFormatting.UNDERLINE);
         var effectsTextX = (background.getWidth() - fontRenderer.width(effectsText)) / 2;
-        fontRenderer.draw(stack, effectsText, effectsTextX, 5 + 22, 0xFF404040);
+        fontRenderer.draw(stack, effectsText, effectsTextX, 5 + 18, 0xFF404040);
 
         var effects = computeEffects(recipe);
 

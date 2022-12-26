@@ -30,6 +30,7 @@ import dev.technici4n.moderndynamics.gui.menu.UpgradeSlot;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -124,6 +125,19 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(poseStack);
         super.render(poseStack, mouseX, mouseY, partialTick);
+    }
+
+    @Override
+    protected void renderTooltip(PoseStack poseStack, int mouseX, int mouseY) {
+        if (hoveredSlot != null && !hoveredSlot.hasItem() && hoveredSlot instanceof UpgradeSlot) {
+            renderTooltip(poseStack, List.of(
+                    Component.translatable("gui.moderndynamics.tooltip.slot.upgrade"),
+                    Component.translatable("gui.moderndynamics.tooltip.slot.upgrade_desc1").withStyle(ChatFormatting.GOLD),
+                    Component.translatable("gui.moderndynamics.tooltip.slot.upgrade_desc2").withStyle(ChatFormatting.GOLD)),
+                    Optional.empty(), mouseX, mouseY);
+        } else {
+            super.renderTooltip(poseStack, mouseX, mouseY);
+        }
     }
 
     @Override

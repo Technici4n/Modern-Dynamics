@@ -32,6 +32,13 @@ repositories {
         }
     }
     maven {
+        url "https://maven.terraformersmc.com"
+        content {
+            includeGroup "com.terraformersmc"
+            includeGroup "dev.emi"
+        }
+    }
+    maven {
         url 'https://maven.bai.lol'
         content {
             includeGroup "lol.bai"
@@ -60,22 +67,38 @@ dependencies {
     include modImplementation("teamreborn:energy:${project.energy_version}")
 
     if (project.runtime_itemlist_mod == "jei") {
-        modImplementation("mezz.jei:jei-${jei_minecraft_version}-fabric:${jei_version}") {
+        modImplementation("mezz.jei:jei-${project.jei_minecraft_version}-fabric:${project.jei_version}") {
             exclude group: "mezz.jei"
         }
+    } else {
+        modCompileOnly("mezz.jei:jei-${project.jei_minecraft_version}-fabric:${project.jei_version}") {
+            exclude group: "mezz.jei"
+        }
+    }
 
+    if (project.runtime_itemlist_mod == "rei") {
+        // Manually override architectury TODO remove once REI's dependency is fixed
+        modRuntimeOnly "dev.architectury:architectury-fabric:6.2.43"
+        modImplementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
+            exclude(group: "net.fabricmc.fabric-api")
+        }
+    } else {
         modCompileOnly("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
             exclude group: "net.fabricmc.fabric-api"
         }
-    } else if (project.runtime_itemlist_mod == "rei") {
-        modCompileOnly("mezz.jei:jei-${jei_minecraft_version}-fabric:${jei_version}") {
-            exclude group: "mezz.jei"
-        }
+    }
 
-        modImplementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
+    if (project.runtime_itemlist_mod == "emi") {
+        modImplementation("dev.emi:emi:${project.emi_version}+${project.emi_minecraft_version}") {
             exclude group: "net.fabricmc.fabric-api"
         }
     } else {
+        modCompileOnly("dev.emi:emi:${project.emi_version}+${project.emi_minecraft_version}") {
+            exclude group: "net.fabricmc.fabric-api"
+        }
+    }
+
+    if (!(project.runtime_itemlist_mod in ["jei", "rei", "emi"])) {
         throw new GradleException("Invalid runtime_itemlist_mod value: " + project.runtime_itemlist_mod)
     }
 

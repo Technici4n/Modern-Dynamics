@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.gui;
 
+import dev.technici4n.moderndynamics.MdProxy;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
@@ -32,7 +33,6 @@ import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import dev.technici4n.moderndynamics.util.MdId;
 import dev.technici4n.moderndynamics.util.UnsidedPacketHandler;
 import io.netty.buffer.Unpooled;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -61,7 +61,7 @@ public class MdPackets {
         buffer.writeInt(syncId);
         buffer.writeInt(filterSlot);
         variant.toPacket(buffer);
-        ClientPlayNetworking.send(SET_ITEM_VARIANT, buffer);
+        MdProxy.INSTANCE.sendPacket(SET_ITEM_VARIANT, buffer);
     }
 
     public static final ResourceLocation SET_FLUID_VARIANT = MdId.of("set_fluid_variant");
@@ -82,7 +82,7 @@ public class MdPackets {
         buffer.writeInt(syncId);
         buffer.writeInt(filterSlot);
         variant.toPacket(buffer);
-        ClientPlayNetworking.send(SET_FLUID_VARIANT, buffer);
+        MdProxy.INSTANCE.sendPacket(SET_FLUID_VARIANT, buffer);
     }
 
     public static final ResourceLocation SET_FILTER_MODE = MdId.of("set_filter_mode");
@@ -167,7 +167,7 @@ public class MdPackets {
         var buffer = new FriendlyByteBuf(Unpooled.buffer(64));
         buffer.writeInt(syncId);
         buffer.writeEnum(enumValue);
-        ClientPlayNetworking.send(packetId, buffer);
+        MdProxy.INSTANCE.sendPacket(packetId, buffer);
     }
 
     private static <T extends Enum<T>, M extends AbstractContainerMenu> UnsidedPacketHandler createSetEnumHandler(Class<T> enumClass,
@@ -188,7 +188,7 @@ public class MdPackets {
         var buffer = new FriendlyByteBuf(Unpooled.buffer(64));
         buffer.writeInt(syncId);
         buffer.writeInt(value);
-        ClientPlayNetworking.send(packetId, buffer);
+        MdProxy.INSTANCE.sendPacket(packetId, buffer);
     }
 
     private static UnsidedPacketHandler createSetIntHandler(IntSetter setter) {

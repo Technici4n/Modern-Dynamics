@@ -47,8 +47,9 @@ public class PipeModelsProvider implements DataProvider {
     }
 
     private CompletableFuture<?> registerPipeModels(CachedOutput cache) {
-        CompletableFuture<?> registerItemPipe = registerPipeModel(cache, MdBlocks.ITEM_PIPE, "base/item/basic", "connector/iron", true);
-        CompletableFuture<?> registerFluidPipe = registerPipeModel(cache, MdBlocks.FLUID_PIPE, "base/fluid/basic", "connector/copper", true);
+
+        CompletableFuture<?> registerItemPipe = registerPipeModel(cache, MdBlocks.ITEM_PIPE, true);
+        CompletableFuture<?> registerFluidPipe = registerPipeModel(cache, MdBlocks.FLUID_PIPE, true);
         return CompletableFuture.allOf(registerItemPipe, registerFluidPipe);
         /*
          * registerPipeModel(cache, MdBlocks.BASIC_ITEM_PIPE_OPAQUE, "base/item/basic_opaque", "connector/tin", false);
@@ -78,35 +79,25 @@ public class PipeModelsProvider implements DataProvider {
          */
     }
 
-    private CompletableFuture<?> registerPipeModel(CachedOutput cache, PipeBlock pipe, String texture, String connectionTexture, boolean transparent){
+    private CompletableFuture<?> registerPipeModel(CachedOutput cache, PipeBlock pipe, boolean transparent){
         var baseFolder = gen.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(gen.getModId(), pipe.id));
 
-        var noneModel = registerPipePart(cache, baseFolder, pipe, "none", texture, transparent);
-        var inventoryModel = registerPipePart(cache, baseFolder, pipe, "inventory", connectionTexture, transparent);
-        var pipeModel = registerPipePart(cache, baseFolder, pipe, "pipe", texture, transparent);
-
-        var modelJson = new JsonObject();
-        modelJson.addProperty("connection_none", noneModel);
-        modelJson.addProperty("connection_inventory", inventoryModel);
-        modelJson.addProperty("connection_pipe", pipeModel);
-        return DataProvider.saveStable(cache, modelJson, baseFolder.resolve("main.json"));
+        var connectorModelFuture = registerPipePart(cache, baseFolder, pipe, "connector", transparent);
+        var straightModelFuture = registerPipePart(cache, baseFolder, pipe, "straight", transparent);
+        return CompletableFuture.allOf(connectorModelFuture, straightModelFuture);
     }
 
     /**
      * Register a simple textures pipe part model, and return the id of the model.
      */
-    private String registerPipePart(CachedOutput cache, Path baseFolder, PipeBlock pipe, String kind, String texture, boolean transparentSuffix)
-            {
+    private CompletableFuture<?> registerPipePart(CachedOutput cache, Path baseFolder, PipeBlock pipe, String kind, boolean transparentSuffix){
         var obj = new JsonObject();
-        obj.addProperty("parent", MdId.of("base/pipe_%s%s".formatted(kind, transparentSuffix ? "_transparent" : "")).toString());
+        obj.addProperty("parent", MdId.of("base/%s%s".formatted(kind, transparentSuffix ? "_transparent" : "")).toString());
         var textures = new JsonObject();
         obj.add("textures", textures);
-        textures.addProperty("0", MdId.of(texture).toString());
+        textures.addProperty("0", MdId.of("pipe/%s/%s".formatted(pipe.id, kind)).toString());
 
-        DataProvider.saveStable(cache, obj, baseFolder.resolve(kind + ".json"));
-
-        var id = "pipe/%s/%s".formatted(pipe.id, kind);
-        return MdId.of(id).toString();
+        return DataProvider.saveStable(cache, obj, baseFolder.resolve(kind + ".json"));
     }
 
     private CompletableFuture<?> registerAttachments(CachedOutput cache) {
@@ -123,7 +114,7 @@ public class PipeModelsProvider implements DataProvider {
      */
     private CompletableFuture<?> registerAttachment(CachedOutput cache, RenderedAttachment attachment, String texture) {
         var obj = new JsonObject();
-        obj.addProperty("parent", MdId.of("base/pipe_inventory_transparent").toString());
+        obj.addProperty("parent", MdId.of("base/connector_transparent").toString());
         var textures = new JsonObject();
         obj.add("textures", textures);
         textures.addProperty("0", MdId.of(texture).toString());

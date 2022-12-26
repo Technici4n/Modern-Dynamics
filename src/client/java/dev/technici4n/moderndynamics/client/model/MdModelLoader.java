@@ -18,11 +18,9 @@
  */
 package dev.technici4n.moderndynamics.client.model;
 
-import com.google.gson.JsonParser;
 import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.util.MdId;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,7 +33,6 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.GsonHelper;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -68,21 +65,9 @@ public final class MdModelLoader {
             }
 
             var path = modelId.getPath();
+
             if (ALL_PIPES.contains(path)) {
-                // This is a pipe, try to load its json model.
-                try {
-                    var resource = this.resourceManager.getResource(MdId.of("models/pipe/" + path + "/main.json")).get();
-                    try (var stream = resource.openAsReader()) {
-                        var obj = JsonParser.parseReader(stream).getAsJsonObject();
-                        return new PipeUnbakedModel(new ResourceLocation(GsonHelper.getAsString(obj, "connection_none")),
-                                new ResourceLocation(GsonHelper.getAsString(obj, "connection_pipe")),
-                                new ResourceLocation(GsonHelper.getAsString(obj, "connection_inventory")));
-                    }
-                } catch (IOException exception) {
-                    throw new ModelProviderException("Failed to find pipe model json for pipe " + modelId, exception);
-                } catch (RuntimeException runtimeException) {
-                    throw new ModelProviderException("Failed to load pipe model json for pipe " + modelId, runtimeException);
-                }
+                return new PipeUnbakedModel(path);
             }
 
             return null;
@@ -91,7 +76,8 @@ public final class MdModelLoader {
 
     private static class ResourceProvider implements ModelResourceProvider {
         @Override
-        public @Nullable UnbakedModel loadModelResource(ResourceLocation resourceId, ModelProviderContext context) {
+        @Nullable
+        public UnbakedModel loadModelResource(ResourceLocation resourceId, ModelProviderContext context) {
             if (!resourceId.getNamespace().equals(MdId.MOD_ID)) {
                 return null;
             }
