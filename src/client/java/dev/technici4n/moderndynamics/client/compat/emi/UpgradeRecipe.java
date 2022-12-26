@@ -33,6 +33,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
@@ -56,7 +57,7 @@ record UpgradeRecipe(Item item, UpgradeType upgradeInfo) implements EmiRecipe {
     @Override
     @Nullable
     public ResourceLocation getId() {
-        var itemId = Registry.ITEM.getKey(item);
+        var itemId = BuiltInRegistries.ITEM.getKey(item);
         return MdId.of("upgrades/" + itemId.getNamespace() + "/" + itemId.getPath());
     }
 

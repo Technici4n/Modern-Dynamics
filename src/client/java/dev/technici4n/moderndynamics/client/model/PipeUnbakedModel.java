@@ -59,22 +59,26 @@ public class PipeUnbakedModel implements UnbakedModel {
     }
 
     @Override
+    public Collection<ResourceLocation> getDependencies() {
+        return List.of(connector, straightLine, AttachmentsUnbakedModel.ID);
+    }
+    
+    @Override
+    public void resolveParents(Function<ResourceLocation, UnbakedModel> unbakedModelGetter) {
+        unbakedModelGetter.apply(connector).resolveParents(unbakedModelGetter);
+        unbakedModelGetter.apply(straightLine).resolveParents(unbakedModelGetter);
+        unbakedModelGetter.apply(AttachmentsUnbakedModel.ID).resolveParents(unbakedModelGetter);
+    }
+
+    @Override
     public BakedModel bake(ModelBaker modelBaker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState transform,
     ResourceLocation location) {
         return new PipeBakedModel(
                 // Load transform from the vanilla block model
-                ((BlockModel) modelLoader.getModel(new ResourceLocation("block/cube"))).getTransforms(),
-                (AttachmentsBakedModel) modelLoader.bake(AttachmentsUnbakedModel.ID, BlockModelRotation.X0_Y0),
-                loadRotatedModels(connectionNone, modelLoader),
-                loadRotatedModels(connectionPipe, modelLoader),
-                loadRotatedModels(connectionInventory, modelLoader));
+                spriteGetter.apply(baseTexture),
+                loadRotatedModels(connector, modelBaker),
+                loadRotatedModels(straightLine, modelBaker),
+                (AttachmentsBakedModel) modelBaker.bake(AttachmentsUnbakedModel.ID, BlockModelRotation.X0_Y0));
     }
 
-    @Override
-    public void resolveParents(Function<ResourceLocation, UnbakedModel> unbakedModelGetter) {
-        unbakedModelGetter.apply(AttachmentsUnbakedModel.ID).resolveParents(unbakedModelGetter);
-        unbakedModelGetter.apply(connectionNone).resolveParents(unbakedModelGetter);
-        unbakedModelGetter.apply(connectionPipe).resolveParents(unbakedModelGetter);
-        unbakedModelGetter.apply(connectionInventory).resolveParents(unbakedModelGetter);
-    }
 }
