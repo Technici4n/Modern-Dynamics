@@ -18,12 +18,9 @@
  */
 package dev.technici4n.moderndynamics.client.model;
 
-import com.mojang.datafixers.util.Pair;
 import dev.technici4n.moderndynamics.util.MdId;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -34,7 +31,6 @@ import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.Nullable;
 
 public class PipeUnbakedModel implements UnbakedModel {
     private final Material baseTexture;
@@ -62,7 +58,7 @@ public class PipeUnbakedModel implements UnbakedModel {
     public Collection<ResourceLocation> getDependencies() {
         return List.of(connector, straightLine, AttachmentsUnbakedModel.ID);
     }
-    
+
     @Override
     public void resolveParents(Function<ResourceLocation, UnbakedModel> unbakedModelGetter) {
         unbakedModelGetter.apply(connector).resolveParents(unbakedModelGetter);
@@ -72,7 +68,7 @@ public class PipeUnbakedModel implements UnbakedModel {
 
     @Override
     public BakedModel bake(ModelBaker modelBaker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState transform,
-    ResourceLocation location) {
+            ResourceLocation location) {
         return new PipeBakedModel(
                 // Load transform from the vanilla block model
                 spriteGetter.apply(baseTexture),

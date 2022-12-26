@@ -25,7 +25,6 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.debug.DebugToolItem;
 import dev.technici4n.moderndynamics.pipe.PipeItem;
 import dev.technici4n.moderndynamics.util.MdId;
-import dev.technici4n.moderndynamics.util.MdItemGroup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
@@ -62,7 +61,7 @@ public class MdItems {
     public static final AttachmentItem FILTER = new IoAttachmentItem(MdAttachments.FILTER, IoAttachmentType.FILTER);
     public static final AttachmentItem INHIBITOR = new InhibitorAttachmentItem(MdAttachments.INHIBITOR);
 
-    //public static final Item WRENCH = new Item(new Item.Properties().stacksTo(1).tab(MdItemGroup.getInstance()));
+    // public static final Item WRENCH = new Item(new Item.Properties().stacksTo(1).tab(MdItemGroup.getInstance()));
     // tab method was remove (or moved somewhere else but I did bother searching further)
     public static final Item WRENCH = new Item(new Item.Properties().stacksTo(1));
 

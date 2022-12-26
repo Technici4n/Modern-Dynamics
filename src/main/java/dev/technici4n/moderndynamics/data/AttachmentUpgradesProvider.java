@@ -76,7 +76,7 @@ public class AttachmentUpgradesProvider implements DataProvider {
     }
 
     @Override
-    public CompletableFuture<?> run(CachedOutput cache){
+    public CompletableFuture<?> run(CachedOutput cache) {
         genUpgrades();
         final List<CompletableFuture<?>> futures = new ArrayList<>();
 

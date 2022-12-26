@@ -18,9 +18,8 @@
  */
 package dev.technici4n.moderndynamics.data;
 
-import java.util.function.BiConsumer;
-
 import dev.technici4n.moderndynamics.init.MdBlocks;
+import java.util.function.BiConsumer;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
 import net.minecraft.resources.ResourceLocation;
@@ -43,5 +42,4 @@ public class LootTablesProvider extends FabricBlockLootTableProvider {
         super.generate(biConsumer);
     }
 
-    
 }

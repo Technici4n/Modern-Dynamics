@@ -19,11 +19,6 @@
 package dev.technici4n.moderndynamics.client.ber;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
-import org.joml.Vector3fc;
-
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.network.fluid.FluidHost;
 import dev.technici4n.moderndynamics.network.item.ItemHost;
@@ -38,6 +33,9 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEntity> {
     private final BlockEntityRendererProvider.Context ctx;

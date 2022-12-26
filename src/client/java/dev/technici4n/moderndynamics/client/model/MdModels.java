@@ -18,13 +18,11 @@
  */
 package dev.technici4n.moderndynamics.client.model;
 
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
-
 import com.mojang.math.Transformation;
 import net.minecraft.client.resources.model.BlockModelRotation;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.core.Direction;
+import org.joml.Quaternionf;
 
 public class MdModels {
     /**

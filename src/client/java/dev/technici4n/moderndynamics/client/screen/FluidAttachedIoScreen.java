@@ -28,9 +28,6 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
 import java.util.Optional;
-
-import org.joml.Matrix4f;
-
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.minecraft.client.renderer.GameRenderer;
@@ -38,6 +35,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.InventoryMenu;
+import org.joml.Matrix4f;
 
 public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu> {
     public FluidAttachedIoScreen(FluidAttachedIoMenu abstractContainerMenu, Inventory inventory, Component component) {

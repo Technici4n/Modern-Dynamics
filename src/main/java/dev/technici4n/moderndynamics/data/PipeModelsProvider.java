@@ -23,7 +23,6 @@ import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.util.MdId;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +78,7 @@ public class PipeModelsProvider implements DataProvider {
          */
     }
 
-    private CompletableFuture<?> registerPipeModel(CachedOutput cache, PipeBlock pipe, boolean transparent){
+    private CompletableFuture<?> registerPipeModel(CachedOutput cache, PipeBlock pipe, boolean transparent) {
         var baseFolder = gen.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(gen.getModId(), pipe.id));
 
         var connectorModelFuture = registerPipePart(cache, baseFolder, pipe, "connector", transparent);
@@ -90,7 +89,7 @@ public class PipeModelsProvider implements DataProvider {
     /**
      * Register a simple textures pipe part model, and return the id of the model.
      */
-    private CompletableFuture<?> registerPipePart(CachedOutput cache, Path baseFolder, PipeBlock pipe, String kind, boolean transparentSuffix){
+    private CompletableFuture<?> registerPipePart(CachedOutput cache, Path baseFolder, PipeBlock pipe, String kind, boolean transparentSuffix) {
         var obj = new JsonObject();
         obj.addProperty("parent", MdId.of("base/%s%s".formatted(kind, transparentSuffix ? "_transparent" : "")).toString());
         var textures = new JsonObject();

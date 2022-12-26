@@ -18,10 +18,9 @@
  */
 package dev.technici4n.moderndynamics.data;
 
-import java.util.concurrent.CompletableFuture;
-
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.init.MdTags;
+import java.util.concurrent.CompletableFuture;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.minecraft.core.HolderLookup;
@@ -32,7 +31,7 @@ public class ItemTagsProvider extends FabricTagProvider.ItemTagProvider {
     }
 
     @Override
-    protected void addTags(HolderLookup.Provider arg){
+    protected void addTags(HolderLookup.Provider arg) {
         tag(MdTags.WRENCHES).add(reverseLookup(MdItems.WRENCH));
     }
 }

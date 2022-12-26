@@ -29,7 +29,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public class PipeItem extends BlockItem {
     public PipeItem(PipeBlock block) {
         // tab method no longer exist
-        //super(block, new Item.Properties().tab(MdItemGroup.getInstance()));
+        // super(block, new Item.Properties().tab(MdItemGroup.getInstance()));
         super(block, new Item.Properties());
         block.setItem(this);
     }

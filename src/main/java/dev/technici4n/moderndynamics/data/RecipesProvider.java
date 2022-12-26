@@ -63,7 +63,7 @@ public class RecipesProvider extends FabricRecipeProvider {
                 .unlockedBy("has_iron", has(Items.IRON_INGOT))
                 .save(exporter);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION,MdItems.ATTRACTOR, 1)
+        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.ATTRACTOR, 1)
                 .pattern(" e ")
                 .pattern("mrm")
                 .pattern(" p ")
