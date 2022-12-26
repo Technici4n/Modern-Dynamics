@@ -25,8 +25,11 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.debug.DebugToolItem;
 import dev.technici4n.moderndynamics.pipe.PipeItem;
 import dev.technici4n.moderndynamics.util.MdId;
+import dev.technici4n.moderndynamics.util.MdItemGroup;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 
 public class MdItems {
@@ -101,15 +104,26 @@ public class MdItems {
     };
 
     public static void init() {
+        CreativeModeTab MdCreativeTab = MdItemGroup.getInstance();
         for (var pipe : ALL_PIPES) {
             Registry.register(BuiltInRegistries.ITEM, MdId.of(pipe.getBlock().id), pipe);
+            ItemGroupEvents.modifyEntriesEvent(MdCreativeTab).register(content -> {
+                content.accept(pipe);
+            });
         }
 
         for (var attachmentItem : ALL_ATTACHMENTS) {
             Registry.register(BuiltInRegistries.ITEM, MdId.of(attachmentItem.attachment.id), attachmentItem);
+            ItemGroupEvents.modifyEntriesEvent(MdCreativeTab).register(content -> {
+                content.accept(attachmentItem);
+            });
         }
 
         Registry.register(BuiltInRegistries.ITEM, MdId.of("wrench"), WRENCH);
         Registry.register(BuiltInRegistries.ITEM, MdId.of("debug_tool"), DEBUG_TOOL);
+        ItemGroupEvents.modifyEntriesEvent(MdCreativeTab).register(content -> {
+            content.accept(WRENCH);
+            content.accept(DEBUG_TOOL);
+        });
     }
 }
