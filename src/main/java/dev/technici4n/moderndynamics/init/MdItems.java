@@ -61,8 +61,6 @@ public class MdItems {
     public static final AttachmentItem FILTER = new IoAttachmentItem(MdAttachments.FILTER, IoAttachmentType.FILTER);
     public static final AttachmentItem INHIBITOR = new InhibitorAttachmentItem(MdAttachments.INHIBITOR);
 
-    // public static final Item WRENCH = new Item(new Item.Properties().stacksTo(1).tab(MdItemGroup.getInstance()));
-    // tab method was remove (or moved somewhere else but I did bother searching further)
     public static final Item WRENCH = new Item(new Item.Properties().stacksTo(1));
 
     public static final DebugToolItem DEBUG_TOOL = new DebugToolItem();

@@ -27,8 +27,7 @@ public abstract class AttachmentItem extends Item {
     public final RenderedAttachment attachment;
 
     public AttachmentItem(RenderedAttachment attachment) {
-        // tab method removed
-        super(new Properties());// .tab(MdItemGroup.getInstance()));
+        super(new Properties());
         this.attachment = attachment;
     }
 

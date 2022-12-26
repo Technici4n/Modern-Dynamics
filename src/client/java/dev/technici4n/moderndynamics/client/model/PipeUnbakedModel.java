@@ -70,7 +70,6 @@ public class PipeUnbakedModel implements UnbakedModel {
     public BakedModel bake(ModelBaker modelBaker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState transform,
             ResourceLocation location) {
         return new PipeBakedModel(
-                // Load transform from the vanilla block model
                 spriteGetter.apply(baseTexture),
                 loadRotatedModels(connector, modelBaker),
                 loadRotatedModels(straightLine, modelBaker),
