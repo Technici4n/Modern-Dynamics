@@ -40,7 +40,7 @@ public class MdModels {
 
     public static ModelState preRotated(BlockModelRotation rotation, float preAngle) {
 
-        Transformation preRotation = new Transformation(null, new Quaternionf().setAngleAxis(preAngle, 0, 0, 1), null, null);
+        Transformation preRotation = new Transformation(null, new Quaternionf(0, 0, 1, 0), null, null);
         Transformation combined = rotation.getRotation().compose(preRotation);
         return new ModelState() {
             @Override
