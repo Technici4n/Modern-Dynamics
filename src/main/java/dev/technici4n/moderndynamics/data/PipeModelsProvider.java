@@ -44,8 +44,9 @@ public class PipeModelsProvider implements DataProvider {
     }
 
     private void registerPipeModels(CachedOutput cache) throws IOException {
-        registerPipeModel(cache, MdBlocks.ITEM_PIPE, true);
-        registerPipeModel(cache, MdBlocks.FLUID_PIPE, true);
+        for (var pipe : MdBlocks.ALL_PIPES) {
+            registerPipeModel(cache, pipe);
+        }
 
         /*
          * registerPipeModel(cache, MdBlocks.BASIC_ITEM_PIPE_OPAQUE, "base/item/basic_opaque", "connector/tin", false);
@@ -75,21 +76,21 @@ public class PipeModelsProvider implements DataProvider {
          */
     }
 
-    private void registerPipeModel(CachedOutput cache, PipeBlock pipe, boolean transparent)
+    private void registerPipeModel(CachedOutput cache, PipeBlock pipe)
             throws IOException {
         var baseFolder = gen.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(gen.getModId(), pipe.id));
 
-        registerPipePart(cache, baseFolder, pipe, "connector", transparent);
-        registerPipePart(cache, baseFolder, pipe, "straight", transparent);
+        registerPipePart(cache, baseFolder, pipe, "connector");
+        registerPipePart(cache, baseFolder, pipe, "straight");
     }
 
     /**
      * Register a simple textures pipe part model, and return the id of the model.
      */
-    private void registerPipePart(CachedOutput cache, Path baseFolder, PipeBlock pipe, String kind, boolean transparentSuffix)
+    private void registerPipePart(CachedOutput cache, Path baseFolder, PipeBlock pipe, String kind)
             throws IOException {
         var obj = new JsonObject();
-        obj.addProperty("parent", MdId.of("base/%s%s".formatted(kind, transparentSuffix ? "_transparent" : "")).toString());
+        obj.addProperty("parent", MdId.of("base/%s%s".formatted(kind, pipe.isTransparent() ? "_transparent" : "")).toString());
         var textures = new JsonObject();
         obj.add("textures", textures);
         textures.addProperty("0", MdId.of("pipe/%s/%s".formatted(pipe.id, kind)).toString());

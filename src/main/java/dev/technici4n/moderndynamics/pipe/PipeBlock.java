@@ -56,6 +56,7 @@ public class PipeBlock extends Block implements EntityBlock, SimpleWaterloggedBl
     public final String id;
     private PipeItem item;
     private BlockEntityType<PipeBlockEntity> blockEntityType;
+    private boolean transparent = true;
 
     public PipeBlock(String id) {
         super(Properties.of(Material.METAL).noOcclusion().isRedstoneConductor((state, world, pos) -> false));
@@ -86,6 +87,15 @@ public class PipeBlock extends Block implements EntityBlock, SimpleWaterloggedBl
     public void setBlockEntityProvider(BlockEntityType<PipeBlockEntity> blockEntityType) {
         Preconditions.checkState(this.blockEntityType == null, "blockEntityType has already been set on %s", this);
         this.blockEntityType = blockEntityType;
+    }
+
+    public PipeBlock setTransparent(boolean transparent) {
+        this.transparent = transparent;
+        return this;
+    }
+
+    public boolean isTransparent() {
+        return this.transparent;
     }
 
     @Override

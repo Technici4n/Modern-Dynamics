@@ -203,6 +203,7 @@ public abstract class NodeHost {
         return false;
     }
 
+    @MustBeInvokedByOverriders
     public void writeNbt(CompoundTag tag) {
         // Only write a sub-tag if any attachments exist
         if (hasAttachments()) {
@@ -220,6 +221,7 @@ public abstract class NodeHost {
         }
     }
 
+    @MustBeInvokedByOverriders
     public void readNbt(CompoundTag tag) {
         if (tag.contains("attachments", Tag.TAG_LIST)) {
             var attachmentTags = tag.getList("attachments", Tag.TAG_COMPOUND);

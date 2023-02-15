@@ -22,17 +22,14 @@ import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
 import net.fabricmc.fabric.api.client.model.ModelProviderContext;
-import net.fabricmc.fabric.api.client.model.ModelProviderException;
 import net.fabricmc.fabric.api.client.model.ModelResourceProvider;
 import net.fabricmc.fabric.api.client.model.ModelVariantProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -40,34 +37,29 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class MdModelLoader {
     public static void init() {
-        ModelLoadingRegistry.INSTANCE.registerVariantProvider(VariantProvider::new);
+        ModelLoadingRegistry.INSTANCE.registerVariantProvider(rm -> new VariantProvider());
         ModelLoadingRegistry.INSTANCE.registerResourceProvider(rm -> new ResourceProvider());
 
         for (var pipe : MdBlocks.ALL_PIPES) {
-            ALL_PIPES.add(pipe.id);
+            ALL_PIPES.put(pipe.id, pipe.isTransparent());
         }
     }
 
-    private static final Set<String> ALL_PIPES = new HashSet<>();
+    private static final Map<String, Boolean> ALL_PIPES = new HashMap<>();
 
     private static class VariantProvider implements ModelVariantProvider {
-        private final ResourceManager resourceManager;
-
-        private VariantProvider(ResourceManager resourceManager) {
-            this.resourceManager = resourceManager;
-        }
-
         @Override
         @Nullable
-        public UnbakedModel loadModelVariant(ModelResourceLocation modelId, ModelProviderContext context) throws ModelProviderException {
+        public UnbakedModel loadModelVariant(ModelResourceLocation modelId, ModelProviderContext context) {
             if (!modelId.getNamespace().equals(MdId.MOD_ID)) {
                 return null;
             }
 
             var path = modelId.getPath();
+            Boolean transparent = ALL_PIPES.get(path);
 
-            if (ALL_PIPES.contains(path)) {
-                return new PipeUnbakedModel(path);
+            if (transparent != null) {
+                return new PipeUnbakedModel(path, transparent);
             }
 
             return null;

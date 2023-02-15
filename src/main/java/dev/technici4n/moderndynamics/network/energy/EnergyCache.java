@@ -122,7 +122,7 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
     /**
      * Dispatch a transfer operation among a list of targets. Will not modify the list.
      */
-    private static long transferForTargets(TransferOperation operation, List<EnergyStorage> targets, long maxAmount, Transaction tx) {
+    public static long transferForTargets(TransferOperation operation, List<EnergyStorage> targets, long maxAmount, Transaction tx) {
         int intMaxAmount = Ints.saturatedCast(maxAmount);
         // Build target list
         List<EnergyTarget> sortableTargets = new ArrayList<>(targets.size());
@@ -152,7 +152,7 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
         return transferredAmount;
     }
 
-    interface TransferOperation {
+    public interface TransferOperation {
         long transfer(EnergyStorage storage, long maxTransfer, TransactionContext transaction);
     }
 

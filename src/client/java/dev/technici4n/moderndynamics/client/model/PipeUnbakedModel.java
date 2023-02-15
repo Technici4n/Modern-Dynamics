@@ -40,11 +40,13 @@ public class PipeUnbakedModel implements UnbakedModel {
     private final Material baseTexture;
     private final ResourceLocation connector;
     private final ResourceLocation straightLine;
+    private final boolean transparent;
 
-    public PipeUnbakedModel(String pipeType) {
+    public PipeUnbakedModel(String pipeType, boolean transparent) {
         this.baseTexture = new Material(TextureAtlas.LOCATION_BLOCKS, MdId.of("pipe/" + pipeType + "/base"));
         this.connector = MdId.of("pipe/" + pipeType + "/connector");
         this.straightLine = MdId.of("pipe/" + pipeType + "/straight");
+        this.transparent = transparent;
     }
 
     public static BakedModel[] loadRotatedModels(ResourceLocation modelId, ModelBakery modelLoader) {
@@ -81,6 +83,7 @@ public class PipeUnbakedModel implements UnbakedModel {
                 spriteGetter.apply(baseTexture),
                 loadRotatedModels(connector, modelBakery),
                 loadRotatedModels(straightLine, modelBakery),
-                (AttachmentsBakedModel) modelBakery.bake(AttachmentsUnbakedModel.ID, BlockModelRotation.X0_Y0));
+                (AttachmentsBakedModel) modelBakery.bake(AttachmentsUnbakedModel.ID, BlockModelRotation.X0_Y0),
+                transparent);
     }
 }

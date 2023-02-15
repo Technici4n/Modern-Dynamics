@@ -55,14 +55,16 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
     private final BakedModel[] connectorModels;
     private final BakedModel[] straightLineModels;
     private final AttachmentsBakedModel attachments;
+    private final boolean transparent;
 
     public PipeBakedModel(TextureAtlasSprite baseSprite, BakedModel[] connectorModels, BakedModel[] straightLineModels,
-            AttachmentsBakedModel attachments) {
+            AttachmentsBakedModel attachments, boolean transparent) {
         this.baseSprite = baseSprite;
         this.connectorModels = connectorModels;
         this.straightLineModels = straightLineModels;
         this.attachments = attachments;
 
+        this.transparent = transparent;
         this.baseMeshes = new Mesh[1 << 6];
 
         var meshBuilder = RendererAccess.INSTANCE.getRenderer().meshBuilder();
@@ -173,47 +175,46 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
         qe.spriteColor(0, -1, -1, -1, -1);
         qe.emit();
         // Backward face
-        switch (side) {
-        case UP, DOWN -> qe.square(side.getOpposite(), left, 1 - top, right, 1 - bottom, 1 - depth);
-        default -> qe.square(side.getOpposite(), 1 - right, bottom, 1 - left, top, 1 - depth);
+        if (transparent) {
+            switch (side) {
+            case UP, DOWN -> qe.square(side.getOpposite(), left, 1 - top, right, 1 - bottom, 1 - depth);
+            default -> qe.square(side.getOpposite(), 1 - right, bottom, 1 - left, top, 1 - depth);
+            }
+            qe.spriteBake(0, baseSprite, MutableQuadView.BAKE_LOCK_UV);
+            qe.spriteColor(0, -1, -1, -1, -1);
+            qe.emit();
         }
-        qe.spriteBake(0, baseSprite, MutableQuadView.BAKE_LOCK_UV);
-        qe.spriteColor(0, -1, -1, -1, -1);
-        qe.emit();
     }
 
     private void drawPipe(PipeModelData data, RenderContext context) {
         int connectionsPipe = data.pipeConnections();
         int connectionsInventory = data.inventoryConnections();
+        int connections = connectionsInventory | connectionsPipe;
 
-        if (connectionsInventory == 0 && (connectionsPipe == 3 || connectionsPipe == 12 || connectionsPipe == 48)) {
+        // Also render connections to attachments
+        for (int i = 0; i < 6; ++i) {
+            var attachment = data.attachments()[i];
+            if (attachment != null) {
+                connections |= 1 << i;
+            }
+        }
+
+        // Render base connections
+        if (connections == 3 || connections == 12 || connections == 48) {
             // Straight line!
-            if (connectionsPipe == 3) {
+            if (connections == 3) {
                 context.fallbackConsumer().accept(straightLineModels[0]);
-            } else if (connectionsPipe == 12) {
+            } else if (connections == 12) {
                 context.fallbackConsumer().accept(straightLineModels[2]);
             } else {
                 context.fallbackConsumer().accept(straightLineModels[4]);
             }
         } else {
-            // Render base connections
-            {
-                int connections = connectionsInventory | connectionsPipe;
-
-                // Also render connections to attachments
-                for (int i = 0; i < 6; ++i) {
-                    var attachment = data.attachments()[i];
-                    if (attachment != null) {
-                        connections |= 1 << i;
-                    }
-                }
-
-                context.meshConsumer().accept(baseMeshes[connections]);
-            }
-
-            // Render connectors
-            appendBitmasked(context.fallbackConsumer(), connectionsInventory, connectorModels);
+            context.meshConsumer().accept(baseMeshes[connections]);
         }
+
+        // Render connectors
+        appendBitmasked(context.fallbackConsumer(), connectionsInventory, connectorModels);
 
         // Render attachments
         for (int i = 0; i < 6; ++i) {

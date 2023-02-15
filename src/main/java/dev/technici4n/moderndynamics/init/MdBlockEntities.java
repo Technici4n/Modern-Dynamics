@@ -21,6 +21,7 @@ package dev.technici4n.moderndynamics.init;
 import com.google.common.base.Preconditions;
 import dev.technici4n.moderndynamics.MdBlockEntity;
 import dev.technici4n.moderndynamics.network.energy.EnergyPipeTier;
+import dev.technici4n.moderndynamics.network.mienergy.MICableTier;
 import dev.technici4n.moderndynamics.pipe.*;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
@@ -38,6 +39,14 @@ public final class MdBlockEntities {
 
     public static final BlockEntityType<PipeBlockEntity> ITEM_PIPE = createItemPipe(MdBlocks.ITEM_PIPE);
     public static final BlockEntityType<PipeBlockEntity> FLUID_PIPE = register(FluidPipeBlockEntity::new, MdBlocks.FLUID_PIPE);
+
+    public static final BlockEntityType<PipeBlockEntity> LV_CABLE = createMIEnergyCable(MdBlocks.LV_CABLE, MICableTier.LV);
+    public static final BlockEntityType<PipeBlockEntity> MV_CABLE = createMIEnergyCable(MdBlocks.MV_CABLE, MICableTier.MV);
+    public static final BlockEntityType<PipeBlockEntity> HV_CABLE = createMIEnergyCable(MdBlocks.HV_CABLE, MICableTier.HV);
+    public static final BlockEntityType<PipeBlockEntity> EV_CABLE = createMIEnergyCable(MdBlocks.EV_CABLE, MICableTier.EV);
+    public static final BlockEntityType<PipeBlockEntity> SUPERCONDUCTOR_CABLE = createMIEnergyCable(MdBlocks.SUPERCONDUCTOR_CABLE,
+            MICableTier.SUPERCONDUCTOR);
+
     /*
      * public static final BlockEntityType<PipeBlockEntity> BASIC_ITEM_PIPE_OPAQUE = createItemPipe(MdBlocks.BASIC_ITEM_PIPE_OPAQUE);
      * public static final BlockEntityType<PipeBlockEntity> FAST_ITEM_PIPE = register(NyiPipeBlockEntity::new, MdBlocks.FAST_ITEM_PIPE);
@@ -99,6 +108,10 @@ public final class MdBlockEntities {
 
     private static BlockEntityType<PipeBlockEntity> createItemPipe(PipeBlock block) {
         return register(ItemPipeBlockEntity::new, block);
+    }
+
+    private static BlockEntityType<PipeBlockEntity> createMIEnergyCable(PipeBlock block, MICableTier tier) {
+        return register((type, pos, state) -> new MIEnergyCableBlockEntity(type, pos, state, tier), block);
     }
 
     private static BlockEntityType<PipeBlockEntity> createEnergyPipe(EnergyPipeTier tier, PipeBlock block) {

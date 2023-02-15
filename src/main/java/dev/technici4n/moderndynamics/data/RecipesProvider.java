@@ -19,12 +19,15 @@
 package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.init.MdItems;
+import dev.technici4n.moderndynamics.util.MdId;
 import java.util.function.Consumer;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
+import net.fabricmc.fabric.api.resource.conditions.v1.DefaultResourceConditions;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 
 public class RecipesProvider extends FabricRecipeProvider {
     public RecipesProvider(FabricDataGenerator dataGenerator) {
@@ -94,5 +97,45 @@ public class RecipesProvider extends FabricRecipeProvider {
                 .define('p', Items.PAPER)
                 .unlockedBy("has_lapis", has(Items.LAPIS_LAZULI))
                 .save(exporter);
+
+        var miExporter = withConditions(exporter, DefaultResourceConditions.allModsLoaded("modern_industrialization"));
+        generateMiCableRecipes("lv", "silver_cable", miExporter);
+        generateMiCableRecipes("mv", "cupronickel_cable", miExporter);
+        generateMiCableRecipes("hv", "electrum_cable", miExporter);
+        generateMiCableRecipes("ev", "platinum_cable", miExporter);
+        generateMiCableRecipes("superconductor", "superconductor_cable", miExporter);
+    }
+
+    private void generateMiCableRecipes(String cableName, String miCable, Consumer<FinishedRecipe> exporter) {
+        String mdCableItemId = MdId.of(cableName + "_cable").toString();
+        String miCableItemId = "modern_industrialization:" + miCable;
+
+        exporter.accept(new JsonFinishedRecipe(RecipeSerializer.SHAPELESS_RECIPE, "cable/%s_from_mi".formatted(cableName), """
+                {
+                    "ingredients": [
+                        {
+                            "item": "%s"
+                        }
+                    ],
+                    "result": {
+                        "item": "%s",
+                        "count": 4
+                    }
+                }
+                """.formatted(miCableItemId, mdCableItemId)));
+
+        exporter.accept(new JsonFinishedRecipe(RecipeSerializer.SHAPED_RECIPE, "cable/%s_to_mi".formatted(cableName), """
+                {
+                    "pattern": [ "cc", "cc" ],
+                    "key": {
+                        "c": {
+                            "item": "%s"
+                        }
+                    },
+                    "result": {
+                        "item": "%s"
+                    }
+                }
+                """.formatted(mdCableItemId, miCableItemId)));
     }
 }

@@ -1,6 +1,11 @@
 {
+    "block.moderndynamics.ev_cable": "EV EU Cable",
     "block.moderndynamics.fluid_pipe": "Fluid Pipe",
+    "block.moderndynamics.hv_cable": "HV EU Cable",
     "block.moderndynamics.item_pipe": "Item Pipe",
+    "block.moderndynamics.lv_cable": "LV EU Cable",
+    "block.moderndynamics.mv_cable": "MV EU Cable",
+    "block.moderndynamics.superconductor_cable": "Superconductor EU Cable",
     "gui.moderndynamics.rei.upgrade_category": "Modern Dynamics Upgrades",
     "gui.moderndynamics.setting.filter_damage.ignore_damage": "Ignore Damage",
     "gui.moderndynamics.setting.filter_damage.respect_damage": "Match Damage",

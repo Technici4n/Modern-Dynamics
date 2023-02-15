@@ -27,9 +27,21 @@ public class MdBlocks {
     public static final PipeBlock ITEM_PIPE = new PipeBlock("item_pipe");
     public static final PipeBlock FLUID_PIPE = new PipeBlock("fluid_pipe");
 
+    public static final PipeBlock LV_CABLE = new PipeBlock("lv_cable").setTransparent(false);
+    public static final PipeBlock MV_CABLE = new PipeBlock("mv_cable").setTransparent(false);
+    public static final PipeBlock HV_CABLE = new PipeBlock("hv_cable").setTransparent(false);
+    public static final PipeBlock EV_CABLE = new PipeBlock("ev_cable").setTransparent(false);
+    public static final PipeBlock SUPERCONDUCTOR_CABLE = new PipeBlock("superconductor_cable").setTransparent(false);
+
     public static final PipeBlock[] ALL_PIPES = new PipeBlock[] {
             ITEM_PIPE,
             FLUID_PIPE,
+            // MI energy cables
+            LV_CABLE,
+            MV_CABLE,
+            HV_CABLE,
+            EV_CABLE,
+            SUPERCONDUCTOR_CABLE,
     };
 
     /*
