@@ -115,6 +115,10 @@ processResources {
     }
 }
 
+loom {
+    splitEnvironmentSourceSets()
+}
+
 sourceSets {
     main {
         resources {
@@ -122,17 +126,15 @@ sourceSets {
         }
     }
     gametest {
-        compileClasspath += main.compileClasspath
-        runtimeClasspath += main.runtimeClasspath
-        compileClasspath += main.output
-        runtimeClasspath += main.output
+        compileClasspath += client.compileClasspath
+        runtimeClasspath += client.runtimeClasspath
+        compileClasspath += client.output
+        runtimeClasspath += client.output
     }
 }
 
 loom {
     accessWidenerPath = file("src/main/resources/moderndynamics.accesswidener")
-
-    splitEnvironmentSourceSets()
 
     mods {
         moderndynamics {
@@ -151,6 +153,7 @@ loom {
             ideConfigGenerated = true
             runDir "build/datagen"
         }
+
         // Use to run the tests
         gametest {
             server()
@@ -170,8 +173,7 @@ loom {
     }
 }
 assemble.dependsOn runDatagenClient
-// TODO: re-enable tests when we add one
-//test.dependsOn runGametest
+test.dependsOn runGametest
 
 tasks.withType(JavaCompile).configureEach {
     // Minecraft 1.18 (1.18-pre2) upwards uses Java 17.

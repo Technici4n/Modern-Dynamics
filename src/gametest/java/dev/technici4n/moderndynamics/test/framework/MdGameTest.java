@@ -16,7 +16,16 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.test;
+package dev.technici4n.moderndynamics.test.framework;
 
-public class CachedFilterTest {
+import java.lang.reflect.Method;
+import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+
+public class MdGameTest implements FabricGameTest {
+    @Override
+    public void invokeTestMethod(GameTestHelper context, Method method) {
+        var mdContext = new MdGameTestHelper(context.testInfo);
+        FabricGameTest.super.invokeTestMethod(mdContext, method);
+    }
 }

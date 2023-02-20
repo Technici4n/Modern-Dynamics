@@ -8,3 +8,6 @@ extendable method net/minecraft/client/gui/screens/inventory/AbstractContainerSc
 
 # access server resource manager
 accessible class net/minecraft/server/MinecraftServer$ReloadableResources
+
+# access game test info
+accessible field net/minecraft/gametest/framework/GameTestHelper testInfo Lnet/minecraft/gametest/framework/GameTestInfo;
