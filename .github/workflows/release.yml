@@ -38,4 +38,4 @@ jobs:
         env:
           MOD_VERSION: ${{ github.event.release.tag_name }}
           MODRINTH_API_KEY: ${{ secrets.MODRINTH_API_KEY }}
-        run: ./gradlew publishModrinth
+        run: ./gradlew modrinth
