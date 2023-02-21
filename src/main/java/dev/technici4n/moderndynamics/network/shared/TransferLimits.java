@@ -59,10 +59,14 @@ public class TransferLimits extends SnapshotParticipant<long[]> {
                     int i = dir.get3DDataValue();
                     long tickLimit = limitSupplier.getLimit(dir);
 
-                    // Buffer up to buffer limit
-                    long potentialBuffer = Math.min(available[i] + tickLimit * tickDiff, available[i]);
-                    // Pick max between (limited) buffer and raw tick limit
-                    available[i] = Math.max(potentialBuffer, tickLimit);
+                    if (tickLimit > 0) {
+                        // Buffer up to buffer limit
+                        long potentialBuffer = Math.min(available[i] + tickLimit * tickDiff, maxBuffer);
+                        // Pick max between (limited) buffer and raw tick limit
+                        available[i] = Math.max(potentialBuffer, tickLimit);
+                    } else {
+                        available[i] = 0;
+                    }
                 }
 
             }

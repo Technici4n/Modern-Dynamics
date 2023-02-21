@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.0-SNAPSHOT'
+    id 'fabric-loom' version '1.1-SNAPSHOT'
     id 'maven-publish'
     id 'com.diffplug.spotless' version '5.14.0'
     id 'com.matthewprenger.cursegradle' version '1.4.0'
@@ -125,12 +125,6 @@ sourceSets {
             srcDir "src/generated/resources"
         }
     }
-    gametest {
-        compileClasspath += client.compileClasspath
-        runtimeClasspath += client.runtimeClasspath
-        compileClasspath += client.output
-        runtimeClasspath += client.output
-    }
 }
 
 loom {
@@ -161,17 +155,10 @@ loom {
             vmArg "-Dfabric-api.gametest"
             vmArg "-Dfabric-api.gametest.report-file=${project.buildDir}/junit.xml"
             runDir "build/gametest"
-            source sourceSets.gametest
-        }
-
-        // Use to debug tests
-        gametestClient {
-            client()
-            name "Game Test Client"
-            source sourceSets.gametest
         }
     }
 }
+
 assemble.dependsOn runDatagenClient
 test.dependsOn runGametest
 
