@@ -13,7 +13,7 @@
   },
 
   "license": "MPLv2",
-  "icon": "assets/moderndynamics/icon.png",
+  "icon": "assets/moderndynamics/mdlogo.png",
   "accessWidener": "moderndynamics.accesswidener",
   "environment": "*",
   "entrypoints": {
