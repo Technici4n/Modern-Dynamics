@@ -41,9 +41,9 @@ public class EnergyHost extends NodeHost {
     private long energy;
     // Rate limiting
     // inserted INTO the neighbor inventories
-    private final TransferLimits<Void> insertLimit = new TransferLimits<>(this::getTransferLimit);
+    private final TransferLimits insertLimit = new TransferLimits(this::getTransferLimit, 0);
     // extracted FROM the neighbor inventories
-    private final TransferLimits<Void> extractLimit = new TransferLimits<>(this::getTransferLimit);
+    private final TransferLimits extractLimit = new TransferLimits(this::getTransferLimit, 0);
     // Caps
     private final EnergyStorage[] caps = new EnergyStorage[6];
 
@@ -157,7 +157,7 @@ public class EnergyHost extends NodeHost {
         energy = Math.max(0, Math.min(tag.getLong("energy"), getMaxEnergy()));
     }
 
-    private long getTransferLimit(Direction side, Void context) {
+    private long getTransferLimit(Direction side) {
         return tier.getMaxConnectionTransfer();
     }
 
@@ -171,7 +171,7 @@ public class EnergyHost extends NodeHost {
 
         @Override
         public long insert(long maxAmount, TransactionContext transaction) {
-            maxAmount = insertLimit.limit(directionId, maxAmount, null);
+            maxAmount = insertLimit.limit(directionId, maxAmount);
             if (maxAmount <= 0)
                 return 0;
 
@@ -182,7 +182,7 @@ public class EnergyHost extends NodeHost {
 
         @Override
         public long extract(long maxAmount, TransactionContext transaction) {
-            maxAmount = extractLimit.limit(directionId, maxAmount, null);
+            maxAmount = extractLimit.limit(directionId, maxAmount);
             if (maxAmount <= 0)
                 return 0;
 
@@ -207,7 +207,7 @@ public class EnergyHost extends NodeHost {
             if (node != null && node.getHost() == EnergyHost.this) {
                 // extractLimit because the network is receiving from an adjacent inventory,
                 // as if it was extracting from it
-                maxAmount = extractLimit.limit(directionId, maxAmount, null);
+                maxAmount = extractLimit.limit(directionId, maxAmount);
                 if (maxAmount <= 0)
                     return 0;
 
@@ -228,7 +228,7 @@ public class EnergyHost extends NodeHost {
             if (node != null && node.getHost() == EnergyHost.this) {
                 // insertLimit because the network is being extracted from an adjacent inventory,
                 // as if it was inserting into it
-                maxAmount = insertLimit.limit(directionId, maxAmount, null);
+                maxAmount = insertLimit.limit(directionId, maxAmount);
                 if (maxAmount <= 0)
                     return 0;
 

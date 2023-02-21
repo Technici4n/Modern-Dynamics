@@ -24,35 +24,51 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import net.minecraft.core.Direction;
-import org.jetbrains.annotations.Nullable;
 
-public class TransferLimits<T> extends SnapshotParticipant<long[]> {
+public class TransferLimits extends SnapshotParticipant<long[]> {
     // These numbers are somewhat arbitrary, we can always change them later...
+    // TODO: I don't like this, we should cap at bucket capacity...
     private static final long MAX_TICK_DIFF = 20;
     private static final long MAX_BUFFER_FACTOR = 50;
 
     private long lastUpdateTick = 0;
     private final long[] available = new long[6];
-    private final LimitSupplier<T> limitSupplier;
+    private final LimitSupplier limitSupplier;
+    private final long maxBuffer;
 
-    public TransferLimits(LimitSupplier<T> limitSupplier) {
+    public TransferLimits(LimitSupplier limitSupplier, long maxBuffer) {
         this.limitSupplier = limitSupplier;
+        this.maxBuffer = maxBuffer;
     }
 
     private void checkForNewTick() {
         long currentTick = TickHelper.getTickCounter();
 
         if (currentTick != lastUpdateTick) {
-            long tickDiff = lastUpdateTick != 0 ? currentTick - lastUpdateTick : 1;
-            // Add transfer for used ticks.
-            tickDiff = Math.min(tickDiff, MAX_TICK_DIFF); // 20 at most
-
-            if (tickDiff > 0) {
+            if (maxBuffer <= 0 || lastUpdateTick == 0) {
+                // No buffering (or first update ever): just reset available
                 for (var dir : Direction.values()) {
                     int i = dir.get3DDataValue();
-                    long cap = limitSupplier.getLimit(dir, null);
-                    available[i] = Math.min(available[i] + tickDiff * cap, MAX_BUFFER_FACTOR * cap);
+                    available[i] = limitSupplier.getLimit(dir);
                 }
+            } else {
+                // Buffering
+                long tickDiff = currentTick - lastUpdateTick;
+
+                for (var dir : Direction.values()) {
+                    int i = dir.get3DDataValue();
+                    long tickLimit = limitSupplier.getLimit(dir);
+
+                    if (tickLimit > 0) {
+                        // Buffer up to buffer limit
+                        long potentialBuffer = Math.min(available[i] + tickLimit * tickDiff, maxBuffer);
+                        // Pick max between (limited) buffer and raw tick limit
+                        available[i] = Math.max(potentialBuffer, tickLimit);
+                    } else {
+                        available[i] = 0;
+                    }
+                }
+
             }
 
             lastUpdateTick = currentTick;
@@ -62,12 +78,12 @@ public class TransferLimits<T> extends SnapshotParticipant<long[]> {
     /**
      * Limit the passed amount.
      */
-    public long limit(int side, long amount, T context) {
+    public long limit(int side, long amount) {
         StoragePreconditions.notNegative(amount);
         checkForNewTick();
 
         // Always check if transfer is still valid.
-        if (limitSupplier.getLimit(Direction.from3DDataValue(side), context) == 0) {
+        if (limitSupplier.getLimit(Direction.from3DDataValue(side)) == 0) {
             return 0;
         }
         // If ok, check what's available.
@@ -90,10 +106,10 @@ public class TransferLimits<T> extends SnapshotParticipant<long[]> {
     }
 
     @FunctionalInterface
-    public interface LimitSupplier<T> {
+    public interface LimitSupplier {
         /**
          * @return Transfer limit for direction and context, or "default" limit if context is null.
          */
-        long getLimit(Direction direction, @Nullable T context);
+        long getLimit(Direction direction);
     }
 }

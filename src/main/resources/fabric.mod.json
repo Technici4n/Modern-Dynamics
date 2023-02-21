@@ -34,6 +34,9 @@
     ],
     "emi": [
       "dev.technici4n.moderndynamics.client.compat.emi.MdEmiPlugin"
+    ],
+    "fabric-gametest": [
+      "dev.technici4n.moderndynamics.test.FluidTransferTest"
     ]
   },
   "mixins": [

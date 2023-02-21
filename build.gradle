@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.0-SNAPSHOT'
+    id 'fabric-loom' version '1.1-SNAPSHOT'
     id 'maven-publish'
     id 'com.diffplug.spotless' version '5.14.0'
     id 'com.matthewprenger.cursegradle' version '1.4.0'
@@ -115,24 +115,20 @@ processResources {
     }
 }
 
+loom {
+    splitEnvironmentSourceSets()
+}
+
 sourceSets {
     main {
         resources {
             srcDir "src/generated/resources"
         }
     }
-    gametest {
-        compileClasspath += main.compileClasspath
-        runtimeClasspath += main.runtimeClasspath
-        compileClasspath += main.output
-        runtimeClasspath += main.output
-    }
 }
 
 loom {
     accessWidenerPath = file("src/main/resources/moderndynamics.accesswidener")
-
-    splitEnvironmentSourceSets()
 
     mods {
         moderndynamics {
@@ -151,6 +147,7 @@ loom {
             ideConfigGenerated = true
             runDir "build/datagen"
         }
+
         // Use to run the tests
         gametest {
             server()
@@ -158,20 +155,12 @@ loom {
             vmArg "-Dfabric-api.gametest"
             vmArg "-Dfabric-api.gametest.report-file=${project.buildDir}/junit.xml"
             runDir "build/gametest"
-            source sourceSets.gametest
-        }
-
-        // Use to debug tests
-        gametestClient {
-            client()
-            name "Game Test Client"
-            source sourceSets.gametest
         }
     }
 }
+
 assemble.dependsOn runDatagenClient
-// TODO: re-enable tests when we add one
-//test.dependsOn runGametest
+test.dependsOn runGametest
 
 tasks.withType(JavaCompile).configureEach {
     // Minecraft 1.18 (1.18-pre2) upwards uses Java 17.

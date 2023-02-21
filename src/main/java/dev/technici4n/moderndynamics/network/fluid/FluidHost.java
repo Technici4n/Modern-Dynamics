@@ -33,12 +33,11 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.TransferUtil;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.FilteringStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
@@ -53,11 +52,13 @@ public class FluidHost extends NodeHost {
 
     private FluidVariant variant = FluidVariant.blank();
     private long amount = 0;
-    // Rate limiting
-    // inserted INTO the neighbor inventories
-    private final TransferLimits<FluidVariant> insertLimit = new TransferLimits<>(this::getNetworkToOutsideLimit);
-    // extracted FROM the neighbor inventories
-    private final TransferLimits<FluidVariant> extractLimit = new TransferLimits<>(this::getOutsideToNetworkLimit);
+    private final TransferLimits extractorLimit = new TransferLimits(side -> {
+        if (!(getAttachment(side) instanceof FluidAttachedIo io) || io.getType() != IoAttachmentType.EXTRACTOR) {
+            return 0;
+        }
+
+        return io.getFluidMaxIo();
+    }, FluidConstants.BUCKET);
     // Caps
     private final Storage<FluidVariant>[] caps = new Storage[6];
 
@@ -65,7 +66,18 @@ public class FluidHost extends NodeHost {
         super(pipe);
 
         for (int i = 0; i < 6; ++i) {
-            caps[i] = new NetworkFluidStorage(i);
+            var dir = Direction.from3DDataValue(i);
+            caps[i] = new FilteringStorage<>(this::getInternalNetworkStorage) {
+                @Override
+                protected boolean canInsert(FluidVariant resource) {
+                    return canMoveOutsideToNetwork(dir, resource);
+                }
+
+                @Override
+                protected boolean canExtract(FluidVariant resource) {
+                    return canMoveNetworkToOutside(dir, resource);
+                }
+            };
         }
     }
 
@@ -147,23 +159,7 @@ public class FluidHost extends NodeHost {
         }
     }
 
-    void addFluidStorages(List<Storage<FluidVariant>> out) {
-        gatherCapabilities(out, externalStorage -> {
-            // Make sure that network ticking logic doesn't extract from external storages without a servo
-            if (getAttachment(Direction.from3DDataValue(externalStorage.directionId)) instanceof FluidAttachedIo io) {
-                if (io.getType() == IoAttachmentType.EXTRACTOR) {
-                    return externalStorage; // servo: nothing to change
-                }
-            }
-            // in all other cases: make the storage insert-only.
-            return FilteringStorage.insertOnlyOf(externalStorage);
-        });
-    }
-
-    public void gatherCapabilities(@Nullable List<Storage<FluidVariant>> out,
-            @Nullable Function<ExternalFluidStorage, Storage<FluidVariant>> transformer) {
-        if (transformer == null)
-            transformer = s -> s;
+    public void gatherCapabilities(@Nullable List<ConnectedFluidStorage> out) {
         int oldConnections = inventoryConnections;
 
         for (int i = 0; i < 6; ++i) {
@@ -173,7 +169,25 @@ public class FluidHost extends NodeHost {
 
                 if (adjacentCap != null) {
                     if (out != null) {
-                        out.add(transformer.apply(new ExternalFluidStorage(adjacentCap, i)));
+                        var attachment = getAttachment(dir) instanceof FluidAttachedIo io ? io : null;
+                        if (attachment == null) {
+                            out.add(new ConnectedFluidStorage(adjacentCap, null, null));
+                        } else if (attachment.isEnabledViaRedstone(pipe)) {
+                            FilteringStorage<FluidVariant> filteredStorage = new FilteringStorage<>(adjacentCap) {
+                                @Override
+                                protected boolean canExtract(FluidVariant resource) {
+                                    return canMoveOutsideToNetwork(dir, resource);
+                                }
+
+                                @Override
+                                protected boolean canInsert(FluidVariant resource) {
+                                    return canMoveNetworkToOutside(dir, resource);
+                                }
+                            };
+                            var extractorRateLimit = attachment.getType() == IoAttachmentType.EXTRACTOR ? new ExtractorStorage(filteredStorage, i)
+                                    : null;
+                            out.add(new ConnectedFluidStorage(filteredStorage, attachment, extractorRateLimit));
+                        }
                     }
                 } else {
                     // Remove the direction from the bitmask
@@ -193,7 +207,7 @@ public class FluidHost extends NodeHost {
 
         // Compute new connections (excluding existing adjacent pipe connections, and the blacklist)
         inventoryConnections = (1 << 6) - 1 - (pipeConnections | pipe.connectionBlacklist);
-        gatherCapabilities(null, null);
+        gatherCapabilities(null);
 
         // Update render
         if (oldConnections != inventoryConnections) {
@@ -234,32 +248,18 @@ public class FluidHost extends NodeHost {
         amount = tag.getLong("amount");
     }
 
-    private long getNetworkToOutsideLimit(Direction side, @Nullable FluidVariant variant) {
+    private boolean canMoveNetworkToOutside(Direction side, FluidVariant variant) {
         if (getAttachment(side) instanceof FluidAttachedIo io) {
-            if ((variant != null && !io.matchesFilter(variant)) || !io.isEnabledViaRedstone(pipe)) {
-                return 0;
-            }
-            if (io.getType() == IoAttachmentType.EXTRACTOR)
-                return 0;
-            if (io.getType() == IoAttachmentType.ATTRACTOR) {
-                return io.getFluidMaxIo();
-            }
+            return io.matchesFilter(variant) && io.isEnabledViaRedstone(pipe) && io.getType() != IoAttachmentType.EXTRACTOR;
         }
-        return Constants.Fluids.BASE_IO;
+        return true;
     }
 
-    private long getOutsideToNetworkLimit(Direction side, @Nullable FluidVariant variant) {
+    private boolean canMoveOutsideToNetwork(Direction side, FluidVariant variant) {
         if (getAttachment(side) instanceof FluidAttachedIo io) {
-            if ((variant != null && !io.matchesFilter(variant)) || !io.isEnabledViaRedstone(pipe)) {
-                return 0;
-            }
-            if (io.getType() == IoAttachmentType.ATTRACTOR)
-                return 0;
-            else if (io.getType() == IoAttachmentType.EXTRACTOR) {
-                return io.getFluidMaxIo();
-            }
+            return io.matchesFilter(variant) && io.isEnabledViaRedstone(pipe) && io.getType() != IoAttachmentType.ATTRACTOR;
         }
-        return Constants.Fluids.BASE_IO;
+        return true;
     }
 
     private SingleSlotStorage<FluidVariant> getInternalNetworkStorage() {
@@ -272,34 +272,31 @@ public class FluidHost extends NodeHost {
         }
     }
 
-    private class ExternalFluidStorage implements Storage<FluidVariant> {
+    /**
+     * Wrapper of a storage that's behind an extractor. Only used for extraction. Used to rate limit the extractor.
+     */
+    private class ExtractorStorage implements Storage<FluidVariant> {
         private final int directionId;
         private final Storage<FluidVariant> delegate;
 
-        ExternalFluidStorage(Storage<FluidVariant> delegate, int directionId) {
+        ExtractorStorage(Storage<FluidVariant> delegate, int directionId) {
             this.delegate = delegate;
             this.directionId = directionId;
         }
 
         @Override
         public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            maxAmount = insertLimit.limit(directionId, maxAmount, resource);
-            if (maxAmount <= 0)
-                return 0;
-
-            long transferred = delegate.insert(resource, maxAmount, transaction);
-            insertLimit.use(directionId, transferred, transaction);
-            return transferred;
+            throw new UnsupportedOperationException("Should not be used to insert, only to extract!");
         }
 
         @Override
         public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            maxAmount = extractLimit.limit(directionId, maxAmount, resource);
+            maxAmount = extractorLimit.limit(directionId, maxAmount);
             if (maxAmount <= 0)
                 return 0;
 
             long transferred = delegate.extract(resource, maxAmount, transaction);
-            extractLimit.use(directionId, transferred, transaction);
+            extractorLimit.use(directionId, transferred, transaction);
             return transferred;
         }
 
@@ -317,12 +314,12 @@ public class FluidHost extends NodeHost {
 
             @Override
             public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-                maxAmount = extractLimit.limit(directionId, maxAmount, resource);
+                maxAmount = extractorLimit.limit(directionId, maxAmount);
                 if (maxAmount <= 0)
                     return 0;
 
                 long transferred = view.extract(resource, maxAmount, transaction);
-                extractLimit.use(directionId, transferred, transaction);
+                extractorLimit.use(directionId, transferred, transaction);
                 return transferred;
             }
 
@@ -350,71 +347,6 @@ public class FluidHost extends NodeHost {
             public StorageView<FluidVariant> getUnderlyingView() {
                 return view.getUnderlyingView();
             }
-        }
-    }
-
-    private class NetworkFluidStorage implements SingleSlotStorage<FluidVariant> {
-        private final int directionId;
-
-        private NetworkFluidStorage(int directionId) {
-            this.directionId = directionId;
-        }
-
-        @Override
-        public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            StoragePreconditions.notBlankNotNegative(resource, maxAmount);
-
-            // extractLimit because the network is receiving from an adjacent inventory,
-            // as if it was extracting from it
-            maxAmount = extractLimit.limit(directionId, maxAmount, resource);
-            if (maxAmount <= 0)
-                return 0;
-
-            long transferred = getInternalNetworkStorage().insert(resource, maxAmount, transaction);
-            extractLimit.use(directionId, transferred, transaction);
-
-            return transferred;
-        }
-
-        @Override
-        public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            StoragePreconditions.notBlankNotNegative(resource, maxAmount);
-
-            // insertLimit because the network is being extracted from an adjacent inventory,
-            // as if it was inserting into it
-            maxAmount = insertLimit.limit(directionId, maxAmount, resource);
-            if (maxAmount <= 0)
-                return 0;
-
-            long transferred = getInternalNetworkStorage().extract(resource, maxAmount, transaction);
-            insertLimit.use(directionId, transferred, transaction);
-
-            return transferred;
-        }
-
-        @Override
-        public boolean isResourceBlank() {
-            return getInternalNetworkStorage().isResourceBlank();
-        }
-
-        @Override
-        public FluidVariant getResource() {
-            return getInternalNetworkStorage().getResource();
-        }
-
-        @Override
-        public long getAmount() {
-            return getInternalNetworkStorage().getAmount();
-        }
-
-        @Override
-        public long getCapacity() {
-            return getInternalNetworkStorage().getCapacity();
-        }
-
-        @Override
-        public StorageView<FluidVariant> getUnderlyingView() {
-            return getInternalNetworkStorage().getUnderlyingView();
         }
     }
 }

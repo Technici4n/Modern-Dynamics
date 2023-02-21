@@ -20,6 +20,8 @@ package dev.technici4n.moderndynamics.network.fluid;
 
 import com.google.common.primitives.Ints;
 import dev.technici4n.moderndynamics.Constants;
+import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
+import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkCache;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import java.util.ArrayList;
@@ -27,6 +29,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
@@ -40,6 +45,8 @@ import net.minecraft.server.level.ServerLevel;
 
 public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
     private FluidCacheStorage fluidStorage = null;
+    private long attractorBuffer = 0;
+    private boolean allowNetworkIo = true;
 
     protected FluidCache(ServerLevel level, List<NetworkNode<FluidHost, FluidCache>> networkNodes) {
         super(level, networkNodes);
@@ -101,37 +108,39 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         combine();
 
         // Gather inventory connections
-        List<Storage<FluidVariant>> storages = new ArrayList<>();
-
+        List<ConnectedFluidStorage> targets = new ArrayList<>();
         for (var node : nodes) {
             if (node.getHost().isTicking()) {
-                node.getHost().addFluidStorages(storages);
+                node.getHost().gatherCapabilities(targets);
+            }
+        }
+
+        List<FluidAttachedIo> attractors = new ArrayList<>();
+        for (var conn : targets) {
+            if (conn.attachment() != null && conn.attachment().getType() == IoAttachmentType.ATTRACTOR) {
+                attractors.add(conn.attachment());
             }
         }
 
         boolean changedVariant = false;
+        allowNetworkIo = false;
 
         try (var tx = Transaction.openOuter()) {
             // Find fluid to extract
             if (fluidStorage.isResourceBlank()) {
-                var newVariant = FluidVariant.blank();
-                for (var storage : storages) {
-                    var toExtract = StorageUtil.findExtractableResource(storage, tx);
-                    if (toExtract != null) {
-                        newVariant = toExtract;
-                    }
-                }
+                var newVariant = findVariantForNetwork(targets, attractors, tx);
                 if (!newVariant.isBlank() && canChangeVariant()) {
                     fluidStorage.variant = newVariant;
                     changedVariant = true;
                 }
             }
+
             if (!fluidStorage.isResourceBlank()) {
-                // Extract
-                fluidStorage.amount += transferForTargets(Storage::extract, storages, fluidStorage.variant,
-                        fluidStorage.getCapacity() - fluidStorage.amount, tx);
-                // Insert
-                fluidStorage.amount -= transferForTargets(Storage::insert, storages, fluidStorage.variant, fluidStorage.amount, tx);
+                // Take from connected storages
+                extractFluid(targets, tx);
+                attractFluid(targets, attractors, tx);
+                // Push to connected storages
+                distributeFluid(targets, tx);
 
                 if (fluidStorage.amount == 0 && canChangeVariant()) {
                     fluidStorage.variant = FluidVariant.blank();
@@ -140,6 +149,8 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
             }
 
             tx.commit();
+        } finally {
+            allowNetworkIo = true;
         }
 
         // Always separate after a change of variant to ensure that the nodes properly update their stored fluid.
@@ -167,16 +178,95 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         return true;
     }
 
+    private FluidVariant findVariantForNetwork(List<ConnectedFluidStorage> targets, List<FluidAttachedIo> attractors, TransactionContext tx) {
+        // Look for fluid matching an extractor
+        for (var t : targets) {
+            if (t.attachment() != null && t.attachment().getType() == IoAttachmentType.EXTRACTOR) {
+                var toExtract = StorageUtil.findExtractableResource(t.storage(), fv -> t.attachment().matchesFilter(fv), tx);
+                if (toExtract != null) {
+                    return toExtract;
+                }
+            }
+        }
+
+        // Look for fluid matching an attractor
+        if (!attractors.isEmpty()) {
+            Predicate<FluidVariant> attractorFilter = fv -> {
+                for (var a : attractors) {
+                    if (a.matchesFilter(fv)) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            for (var t : targets) {
+                var toExtract = StorageUtil.findExtractableResource(t.storage(), attractorFilter, tx);
+                if (toExtract != null) {
+                    return toExtract;
+                }
+            }
+        }
+
+        return FluidVariant.blank();
+    }
+
+    /**
+     * Extract from connected storages that have an extractor.
+     */
+    private void extractFluid(List<ConnectedFluidStorage> targets, TransactionContext tx) {
+        fluidStorage.amount += transferForTargets(Storage::extract, targets, fluidStorage.variant,
+                fluidStorage.getCapacity() - fluidStorage.amount, tx, ConnectedFluidStorage::extractorFilteredStorage);
+    }
+
+    /**
+     * Attract, i.e. extract from connected storages if there's attractors on the network.
+     */
+    private void attractFluid(List<ConnectedFluidStorage> targets, List<FluidAttachedIo> attractors, TransactionContext tx) {
+        long attractorPower = 0;
+        for (var attractor : attractors) {
+            attractorPower += attractor.matchesFilter(fluidStorage.variant) ? attractor.getFluidMaxIo() : 0;
+        }
+        long maxAttract = attractorBuffer + attractorPower;
+        long attracted = transferForTargets(Storage::extract, targets, fluidStorage.variant,
+                Math.min(fluidStorage.getCapacity() - fluidStorage.amount, maxAttract),
+                tx, ConnectedFluidStorage::storage);
+        attractorBuffer = Math.min(maxAttract - attracted, FluidConstants.BUCKET);
+        fluidStorage.amount += attracted;
+    }
+
+    /**
+     * Distribute stored fluid among connected storages.
+     */
+    private void distributeFluid(List<ConnectedFluidStorage> targets, TransactionContext tx) {
+        // Insert into storages with attractors first
+        fluidStorage.amount -= transferForTargets(Storage::insert, targets, fluidStorage.variant,
+                fluidStorage.amount, tx, ConnectedFluidStorage.filterAttractors(true));
+        // Insert into others
+        fluidStorage.amount -= transferForTargets(Storage::insert, targets, fluidStorage.variant,
+                fluidStorage.amount, tx, ConnectedFluidStorage.filterAttractors(false));
+    }
+
     /**
      * Dispatch a transfer operation among a list of targets. Will not modify the list.
+     *
+     * @param storageGetter Can return null to skip the target
      */
-    private static long transferForTargets(TransferOperation operation, List<Storage<FluidVariant>> targets, FluidVariant variant, long maxAmount,
-            Transaction tx) {
+    private static long transferForTargets(TransferOperation operation, List<ConnectedFluidStorage> targets, FluidVariant variant, long maxAmount,
+            TransactionContext tx, Function<ConnectedFluidStorage, Storage<FluidVariant>> storageGetter) {
+        if (maxAmount == 0) {
+            return 0;
+        }
+
         int intMaxAmount = Ints.saturatedCast(maxAmount);
         // Build target list
         List<FluidTarget> sortableTargets = new ArrayList<>(targets.size());
         for (var target : targets) {
-            sortableTargets.add(new FluidTarget(target));
+            var storage = storageGetter.apply(target);
+
+            if (storage != null) {
+                sortableTargets.add(new FluidTarget(storage));
+            }
         }
         // Shuffle for better transfer on average
         Collections.shuffle(sortableTargets);
