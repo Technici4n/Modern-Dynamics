@@ -19,7 +19,9 @@
 package dev.technici4n.moderndynamics.test.framework;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
+import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import java.util.function.Consumer;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
@@ -52,6 +54,16 @@ public class PipeBuilder {
         }
 
         helper.fail("Failed to add attachment " + attachment + " to pipe", pipe.getBlockPos());
+        throw new UnsupportedOperationException();
+    }
+
+    public PipeBuilder configureFluidIo(Direction direction, Consumer<FluidAttachedIo> config) {
+        if (pipe.getAttachment(direction) instanceof FluidAttachedIo fluidIo) {
+            config.accept(fluidIo);
+            return this;
+        }
+
+        helper.fail("Failed to find fluid io from pipe", pipe.getBlockPos());
         throw new UnsupportedOperationException();
     }
 }

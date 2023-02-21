@@ -46,6 +46,7 @@ import net.minecraft.server.level.ServerLevel;
 public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
     private FluidCacheStorage fluidStorage = null;
     private long attractorBuffer = 0;
+    private boolean allowNetworkIo = true;
 
     protected FluidCache(ServerLevel level, List<NetworkNode<FluidHost, FluidCache>> networkNodes) {
         super(level, networkNodes);
@@ -122,6 +123,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         }
 
         boolean changedVariant = false;
+        allowNetworkIo = false;
 
         try (var tx = Transaction.openOuter()) {
             // Find fluid to extract
@@ -147,6 +149,8 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
             }
 
             tx.commit();
+        } finally {
+            allowNetworkIo = true;
         }
 
         // Always separate after a change of variant to ensure that the nodes properly update their stored fluid.
