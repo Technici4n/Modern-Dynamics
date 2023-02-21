@@ -160,7 +160,6 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
 
         // For the MVP, we separate again and then sync each fluid value.
         // TODO: smarter fluid syncing logic
-        // When this is removed, make sure to update the fluid variant in all the connected nodes.
         separate();
     }
 
@@ -328,6 +327,10 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         public long insert(FluidVariant insertedVariant, long maxAmount, TransactionContext transaction) {
             StoragePreconditions.notBlankNotNegative(insertedVariant, maxAmount);
 
+            if (!allowNetworkIo) {
+                return 0;
+            }
+
             if (insertedVariant.equals(variant) || (variant.isBlank() && canChangeVariant())) {
                 long insertedAmount = Math.min(maxAmount, getCapacity() - amount);
                 if (insertedAmount > 0) {
@@ -348,6 +351,10 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         @Override
         public long extract(FluidVariant extractedVariant, long maxAmount, TransactionContext transaction) {
             StoragePreconditions.notBlankNotNegative(extractedVariant, maxAmount);
+
+            if (!allowNetworkIo) {
+                return 0;
+            }
 
             if (extractedVariant.equals(variant)) {
                 long extractedAmount = Math.min(maxAmount, amount);
