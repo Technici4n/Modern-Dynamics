@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import net.fabricmc.fabric.api.renderer.v1.model.WrapperBakedModel;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
@@ -83,7 +84,7 @@ public class PipeUnbakedModel implements UnbakedModel {
                 spriteGetter.apply(baseTexture),
                 loadRotatedModels(connector, modelBakery),
                 loadRotatedModels(straightLine, modelBakery),
-                (AttachmentsBakedModel) modelBakery.bake(AttachmentsUnbakedModel.ID, BlockModelRotation.X0_Y0),
+                (AttachmentsBakedModel) WrapperBakedModel.unwrap(modelBakery.bake(AttachmentsUnbakedModel.ID, BlockModelRotation.X0_Y0)),
                 transparent);
     }
 }

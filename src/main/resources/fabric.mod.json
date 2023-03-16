@@ -44,8 +44,8 @@
   ],
   "depends": {
     "fabricloader": ">=0.14.9",
-    "fabric": ">=0.59.0",
-    "minecraft": "~1.19.1",
+    "fabric": ">=0.68.0",
+    "minecraft": ">=1.19.1 <=1.19.2",
     "java": ">=17",
     "team_reborn_energy": "*"
   }
