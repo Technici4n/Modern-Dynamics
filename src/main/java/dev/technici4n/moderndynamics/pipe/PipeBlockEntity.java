@@ -136,18 +136,20 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         for (var host : getHosts()) {
             host.readClientNbt(tag);
         }
-        var attachmentTags = tag.getList("attachments", Tag.TAG_COMPOUND);
-        var attachments = new AttachmentModelData[6];
-        for (var direction : Direction.values()) {
-            var attachmentTag = attachmentTags.getCompound(direction.get3DDataValue());
-            attachments[direction.get3DDataValue()] = AttachmentModelData.from(attachmentTag);
+
+        if (tag.getBoolean("#c")) { // remesh flag, a bit hacky but it should work ;)
+            var attachmentTags = tag.getList("attachments", Tag.TAG_COMPOUND);
+            var attachments = new AttachmentModelData[6];
+            for (var direction : Direction.values()) {
+                var attachmentTag = attachmentTags.getCompound(direction.get3DDataValue());
+                attachments[direction.get3DDataValue()] = AttachmentModelData.from(attachmentTag);
+            }
+
+            clientModelData = new PipeModelData(connections, inventoryConnections, attachments);
+            clientSideConnections = connections | inventoryConnections;
+
+            updateCachedShape(connections, inventoryConnections);
         }
-
-        clientModelData = new PipeModelData(connections, inventoryConnections, attachments);
-        clientSideConnections = connections | inventoryConnections;
-
-        updateCachedShape(connections, inventoryConnections);
-
     }
 
     @Override
