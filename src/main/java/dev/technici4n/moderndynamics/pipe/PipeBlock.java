@@ -59,7 +59,7 @@ public class PipeBlock extends Block implements EntityBlock, SimpleWaterloggedBl
     private boolean transparent = true;
 
     public PipeBlock(String id) {
-        super(Properties.of(Material.METAL).noOcclusion().isRedstoneConductor((state, world, pos) -> false));
+        super(Properties.of(Material.METAL).noOcclusion().isRedstoneConductor((state, world, pos) -> false).destroyTime(0.2f));
         this.id = id;
         this.registerDefaultState(this.defaultBlockState().setValue(WATERLOGGED, false));
     }
