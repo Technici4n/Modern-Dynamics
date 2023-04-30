@@ -38,10 +38,9 @@ public class ConfigSlot<T extends AttachedIo> extends Slot {
         return false;
     }
 
-    // This just disables vanilla's hover rectangle.
     @Override
     public boolean isActive() {
-        return isEnabled();
+        return configIdx < attachment.getFilterSize();
     }
 
     public T getAttachment() {
@@ -50,9 +49,5 @@ public class ConfigSlot<T extends AttachedIo> extends Slot {
 
     public int getConfigIdx() {
         return configIdx;
-    }
-
-    public boolean isEnabled() {
-        return configIdx < attachment.getFilterSize();
     }
 }
