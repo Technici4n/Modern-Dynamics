@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.init;
 
+import dev.technici4n.moderndynamics.extender.MachineExtenderBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.core.Registry;
@@ -32,6 +33,8 @@ public class MdBlocks {
     public static final PipeBlock HV_CABLE = new PipeBlock("hv_cable").setTransparent(false);
     public static final PipeBlock EV_CABLE = new PipeBlock("ev_cable").setTransparent(false);
     public static final PipeBlock SUPERCONDUCTOR_CABLE = new PipeBlock("superconductor_cable").setTransparent(false);
+
+    public static final MachineExtenderBlock MACHINE_EXTENDER = new MachineExtenderBlock();
 
     public static final PipeBlock[] ALL_PIPES = new PipeBlock[] {
             ITEM_PIPE,
@@ -106,6 +109,8 @@ public class MdBlocks {
         for (var block : ALL_PIPES) {
             Registry.register(Registry.BLOCK, MdId.of(block.id), block);
         }
+
+        Registry.register(Registry.BLOCK, MdId.of(MACHINE_EXTENDER.id), MACHINE_EXTENDER);
     }
 
 }

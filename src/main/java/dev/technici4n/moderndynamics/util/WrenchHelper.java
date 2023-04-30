@@ -18,8 +18,8 @@
  */
 package dev.technici4n.moderndynamics.util;
 
+import dev.technici4n.moderndynamics.MdBlock;
 import dev.technici4n.moderndynamics.init.MdTags;
-import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
@@ -47,7 +47,7 @@ public class WrenchHelper {
 
             var pos = hitResult.getBlockPos();
             var state = world.getBlockState(pos);
-            if (state.getBlock() instanceof PipeBlock) {
+            if (state.getBlock() instanceof MdBlock) {
                 var entity = world.getBlockEntity(pos);
                 world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
                 if (!player.isCreative()) {
