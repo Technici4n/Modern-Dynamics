@@ -42,7 +42,7 @@ class GhostIngredientHandler implements IGhostIngredientHandler<AttachedIoScreen
 
         if (gui instanceof ItemAttachedIoScreen ioScreen && ingredient instanceof ItemStack) {
             for (var s : ioScreen.getMenu().slots) {
-                if (s instanceof ItemConfigSlot slot && slot.isEnabled()) {
+                if (s instanceof ItemConfigSlot slot && slot.isActive()) {
                     targets.add((Target<I>) new ItemSlotTarget(slot, ioScreen));
                 }
             }
@@ -50,7 +50,7 @@ class GhostIngredientHandler implements IGhostIngredientHandler<AttachedIoScreen
 
         if (gui instanceof FluidAttachedIoScreen ioScreen && ingredient instanceof IJeiFluidIngredient) {
             for (var s : ioScreen.getMenu().slots) {
-                if (s instanceof FluidConfigSlot slot && slot.isEnabled()) {
+                if (s instanceof FluidConfigSlot slot && slot.isActive()) {
                     targets.add((Target<I>) new FluidSlotTarget(slot, ioScreen));
                 }
             }
@@ -83,7 +83,7 @@ class GhostIngredientHandler implements IGhostIngredientHandler<AttachedIoScreen
 
         @Override
         public void accept(ItemStack ingredient) {
-            if (slot.isEnabled()) {
+            if (slot.isActive()) {
                 var iv = ItemVariant.of(ingredient);
                 ioScreen.getMenu().setFilter(slot.getConfigIdx(), iv, true);
             }
@@ -106,7 +106,7 @@ class GhostIngredientHandler implements IGhostIngredientHandler<AttachedIoScreen
 
         @Override
         public void accept(IJeiFluidIngredient ingredient) {
-            if (slot.isEnabled()) {
+            if (slot.isActive()) {
                 var fv = FluidVariant.of(ingredient.getFluid(), ingredient.getTag().orElse(null));
                 ioScreen.getMenu().setFilter(slot.getConfigIdx(), fv, true);
             }

@@ -59,7 +59,7 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
 
     @Override
     public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
-        if (slotIndex >= 0 && getSlot(slotIndex) instanceof ItemConfigSlot configSlot && configSlot.isEnabled()) {
+        if (slotIndex >= 0 && getSlot(slotIndex) instanceof ItemConfigSlot configSlot && configSlot.isActive()) {
             attachment.setFilter(configSlot.getConfigIdx(), ItemVariant.of(getCarried()));
         } else {
             super.clicked(slotIndex, button, actionType, player);

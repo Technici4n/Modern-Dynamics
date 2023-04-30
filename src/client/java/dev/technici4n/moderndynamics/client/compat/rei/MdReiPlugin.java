@@ -105,7 +105,7 @@ public class MdReiPlugin implements REIClientPlugin {
 
                 if (context.getScreen() instanceof ItemAttachedIoScreen ioScreen) {
                     if (ioScreen.getHoveredSlot() instanceof ItemConfigSlot slot) {
-                        if (slot.isEnabled() && iv != null) {
+                        if (slot.isActive() && iv != null) {
                             ioScreen.getMenu().setFilter(slot.getConfigIdx(), iv, true);
                             return DraggedAcceptorResult.ACCEPTED;
                         }
@@ -114,7 +114,7 @@ public class MdReiPlugin implements REIClientPlugin {
 
                 if (context.getScreen() instanceof FluidAttachedIoScreen ioScreen) {
                     if (ioScreen.getHoveredSlot() instanceof FluidConfigSlot slot) {
-                        if (slot.isEnabled() && fv != null) {
+                        if (slot.isActive() && fv != null) {
                             ioScreen.getMenu().setFilter(slot.getConfigIdx(), fv, true);
                             return DraggedAcceptorResult.ACCEPTED;
                         }
@@ -131,13 +131,13 @@ public class MdReiPlugin implements REIClientPlugin {
 
                 if (context.getScreen() instanceof ItemAttachedIoScreen ioScreen && iv != null) {
                     return ioScreen.getMenu().slots.stream()
-                            .filter(s -> s instanceof ItemConfigSlot slot && slot.isEnabled())
+                            .filter(s -> s instanceof ItemConfigSlot slot && slot.isActive())
                             .map(s -> getSlotBounds(s, ioScreen));
                 }
 
                 if (context.getScreen() instanceof FluidAttachedIoScreen ioScreen && fv != null) {
                     return ioScreen.getMenu().slots.stream()
-                            .filter(s -> s instanceof FluidConfigSlot slot && slot.isEnabled())
+                            .filter(s -> s instanceof FluidConfigSlot slot && slot.isActive())
                             .map(s -> getSlotBounds(s, ioScreen));
                 }
 

@@ -48,7 +48,7 @@ class DragDropHandler implements EmiDragDropHandler<Screen> {
 
         if (gui instanceof ItemAttachedIoScreen ioScreen && ing.getKey() instanceof Item i) {
             for (var s : ioScreen.getMenu().slots) {
-                if (s instanceof ItemConfigSlot slot && slot.isEnabled()) {
+                if (s instanceof ItemConfigSlot slot && slot.isActive() && getSlotBounds(s, ioScreen).contains(mouseX, mouseY)) {
                     var iv = ItemVariant.of(i, ing.getNbt());
                     ioScreen.getMenu().setFilter(slot.getConfigIdx(), iv, true);
                     return true;
@@ -58,7 +58,7 @@ class DragDropHandler implements EmiDragDropHandler<Screen> {
 
         if (gui instanceof FluidAttachedIoScreen ioScreen && ing.getKey() instanceof Fluid f) {
             for (var s : ioScreen.getMenu().slots) {
-                if (s instanceof FluidConfigSlot slot && slot.isEnabled() && getSlotBounds(s, ioScreen).contains(mouseX, mouseY)) {
+                if (s instanceof FluidConfigSlot slot && slot.isActive() && getSlotBounds(s, ioScreen).contains(mouseX, mouseY)) {
                     var fv = FluidVariant.of(f, ing.getNbt());
                     ioScreen.getMenu().setFilter(slot.getConfigIdx(), fv, true);
                     return true;
@@ -76,7 +76,7 @@ class DragDropHandler implements EmiDragDropHandler<Screen> {
 
         if (gui instanceof ItemAttachedIoScreen ioScreen && ing.getKey() instanceof Item) {
             for (var s : ioScreen.getMenu().slots) {
-                if (s instanceof ItemConfigSlot slot && slot.isEnabled()) {
+                if (s instanceof ItemConfigSlot slot && slot.isActive()) {
                     targets.add(s);
                 }
             }
@@ -84,7 +84,7 @@ class DragDropHandler implements EmiDragDropHandler<Screen> {
 
         if (gui instanceof FluidAttachedIoScreen ioScreen && ing.getKey() instanceof Fluid) {
             for (var s : ioScreen.getMenu().slots) {
-                if (s instanceof FluidConfigSlot slot && slot.isEnabled()) {
+                if (s instanceof FluidConfigSlot slot && slot.isActive()) {
                     targets.add(s);
                 }
             }

@@ -143,7 +143,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
     @Override
     public void renderSlot(PoseStack poseStack, Slot slot) {
         // Skip disabled slots
-        if (slot instanceof ConfigSlot<?>configSlot && !configSlot.isEnabled()) {
+        if (slot instanceof ConfigSlot<?>configSlot && !configSlot.isActive()) {
             return;
         }
         if (slot instanceof FluidConfigSlot fluidConfigSlot) {
@@ -186,7 +186,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         // Draw each slot's background
         for (Slot slot : getMenu().slots) {
             if (slot instanceof ConfigSlot || slot instanceof UpgradeSlot) {
-                if (slot instanceof ConfigSlot<?>cfg && !cfg.isEnabled()) {
+                if (slot instanceof ConfigSlot<?>cfg && !cfg.isActive()) {
                     // Disabled slot
                     blit(poseStack, leftPos + slot.x - 1, topPos + slot.y - 1, 216, 162, 18, 18);
                 } else {
