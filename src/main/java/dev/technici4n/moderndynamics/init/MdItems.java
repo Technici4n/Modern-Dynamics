@@ -27,6 +27,7 @@ import dev.technici4n.moderndynamics.pipe.PipeItem;
 import dev.technici4n.moderndynamics.util.MdId;
 import dev.technici4n.moderndynamics.util.MdItemGroup;
 import net.minecraft.core.Registry;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 
 public class MdItems {
@@ -67,6 +68,8 @@ public class MdItems {
     public static final AttachmentItem EXTRACTOR = new IoAttachmentItem(MdAttachments.EXTRACTOR, IoAttachmentType.EXTRACTOR);
     public static final AttachmentItem FILTER = new IoAttachmentItem(MdAttachments.FILTER, IoAttachmentType.FILTER);
     public static final AttachmentItem INHIBITOR = new InhibitorAttachmentItem(MdAttachments.INHIBITOR);
+
+    public static final BlockItem MACHINE_EXTENDER = new BlockItem(MdBlocks.MACHINE_EXTENDER, new Item.Properties().tab(MdItemGroup.getInstance()));
 
     public static final Item WRENCH = new Item(new Item.Properties().stacksTo(1).tab(MdItemGroup.getInstance()));
     public static final DebugToolItem DEBUG_TOOL = new DebugToolItem();
@@ -119,6 +122,8 @@ public class MdItems {
         for (var attachmentItem : ALL_ATTACHMENTS) {
             Registry.register(Registry.ITEM, MdId.of(attachmentItem.attachment.id), attachmentItem);
         }
+
+        Registry.register(Registry.ITEM, MdId.of(MdBlocks.MACHINE_EXTENDER.id), MACHINE_EXTENDER);
 
         Registry.register(Registry.ITEM, MdId.of("wrench"), WRENCH);
         Registry.register(Registry.ITEM, MdId.of("debug_tool"), DEBUG_TOOL);

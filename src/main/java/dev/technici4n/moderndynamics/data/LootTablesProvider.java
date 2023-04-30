@@ -18,9 +18,10 @@
  */
 package dev.technici4n.moderndynamics.data;
 
-import dev.technici4n.moderndynamics.init.MdBlocks;
+import dev.technici4n.moderndynamics.MdBlock;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
+import net.minecraft.core.Registry;
 
 public class LootTablesProvider extends FabricBlockLootTableProvider {
     protected LootTablesProvider(FabricDataGenerator dataGenerator) {
@@ -29,8 +30,10 @@ public class LootTablesProvider extends FabricBlockLootTableProvider {
 
     @Override
     protected void generateBlockLootTables() {
-        for (var block : MdBlocks.ALL_PIPES) {
-            dropSelf(block);
+        for (var block : Registry.BLOCK) {
+            if (block instanceof MdBlock) {
+                dropSelf(block);
+            }
         }
     }
 }

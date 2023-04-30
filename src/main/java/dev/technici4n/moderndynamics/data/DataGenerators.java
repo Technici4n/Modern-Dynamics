@@ -24,7 +24,7 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 public class DataGenerators implements DataGeneratorEntrypoint {
     @Override
     public void onInitializeDataGenerator(FabricDataGenerator fabricDataGenerator) {
-        fabricDataGenerator.addProvider(ItemModelsProvider::new);
+        fabricDataGenerator.addProvider(ModelsProvider::new);
         fabricDataGenerator.addProvider(PipeModelsProvider::new);
 
         fabricDataGenerator.addProvider(AttachmentUpgradesProvider::new);

@@ -19,7 +19,10 @@
 package dev.technici4n.moderndynamics.init;
 
 import com.google.common.base.Preconditions;
+import dev.technici4n.moderndynamics.MdBlock;
 import dev.technici4n.moderndynamics.MdBlockEntity;
+import dev.technici4n.moderndynamics.compat.mi.MIProxy;
+import dev.technici4n.moderndynamics.extender.MachineExtenderBlockEntity;
 import dev.technici4n.moderndynamics.network.energy.EnergyPipeTier;
 import dev.technici4n.moderndynamics.network.mienergy.MICableTier;
 import dev.technici4n.moderndynamics.pipe.*;
@@ -37,7 +40,7 @@ import team.reborn.energy.api.EnergyStorage;
 
 public final class MdBlockEntities {
 
-    public static final BlockEntityType<PipeBlockEntity> ITEM_PIPE = createItemPipe(MdBlocks.ITEM_PIPE);
+    public static final BlockEntityType<PipeBlockEntity> ITEM_PIPE = register(ItemPipeBlockEntity::new, MdBlocks.ITEM_PIPE);
     public static final BlockEntityType<PipeBlockEntity> FLUID_PIPE = register(FluidPipeBlockEntity::new, MdBlocks.FLUID_PIPE);
 
     public static final BlockEntityType<PipeBlockEntity> LV_CABLE = createMIEnergyCable(MdBlocks.LV_CABLE, MICableTier.LV);
@@ -46,6 +49,18 @@ public final class MdBlockEntities {
     public static final BlockEntityType<PipeBlockEntity> EV_CABLE = createMIEnergyCable(MdBlocks.EV_CABLE, MICableTier.EV);
     public static final BlockEntityType<PipeBlockEntity> SUPERCONDUCTOR_CABLE = createMIEnergyCable(MdBlocks.SUPERCONDUCTOR_CABLE,
             MICableTier.SUPERCONDUCTOR);
+
+    public static final BlockEntityType<MachineExtenderBlockEntity> MACHINE_EXTENDER = registerRaw(MachineExtenderBlockEntity::new,
+            MdBlocks.MACHINE_EXTENDER);
+
+    static {
+        // Extender API forwarding
+        var type = MACHINE_EXTENDER;
+        MachineExtenderBlockEntity.forwardApi(type, ItemStorage.SIDED);
+        MachineExtenderBlockEntity.forwardApi(type, FluidStorage.SIDED);
+        MachineExtenderBlockEntity.forwardApi(type, EnergyStorage.SIDED);
+        MachineExtenderBlockEntity.forwardApi(type, MIProxy.INSTANCE.getLookup());
+    }
 
     /*
      * public static final BlockEntityType<PipeBlockEntity> BASIC_ITEM_PIPE_OPAQUE = createItemPipe(MdBlocks.BASIC_ITEM_PIPE_OPAQUE);
@@ -82,16 +97,22 @@ public final class MdBlockEntities {
         // init static
     }
 
-    /**
-     * Registers a {@link BlockEntityType} for a single block type and inherits the blocks registry id for the type.
-     */
-    private static <T extends PipeBlockEntity> BlockEntityType<T> register(BlockEntityConstructor<T> factory, PipeBlock block) {
+    private static <T extends MdBlockEntity> BlockEntityType<T> registerRaw(BlockEntityConstructor<T> factory, MdBlock block) {
         TypeFactory<T> typeFactory = new TypeFactory<>(factory);
         BlockEntityType<T> type = FabricBlockEntityTypeBuilder.create(typeFactory, block).build(null);
         typeFactory.type = type;
         Registry.register(Registry.BLOCK_ENTITY_TYPE, MdId.of(block.id), type);
         // noinspection unchecked
         block.setBlockEntityProvider((BlockEntityType<PipeBlockEntity>) type);
+
+        return type;
+    }
+
+    /**
+     * Registers a {@link BlockEntityType} for a single block type and inherits the blocks registry id for the type.
+     */
+    private static <T extends PipeBlockEntity> BlockEntityType<T> register(BlockEntityConstructor<T> factory, PipeBlock block) {
+        var type = registerRaw(factory, block);
 
         // Register item, fluid and energy API.
         registerLookup(ItemStorage.SIDED, type);
@@ -104,10 +125,6 @@ public final class MdBlockEntities {
     private static <A> void registerLookup(BlockApiLookup<A, Direction> lookup, BlockEntityType<? extends PipeBlockEntity> type) {
         var apiClass = lookup.apiClass();
         lookup.registerForBlockEntity((pipe, dir) -> apiClass.cast(pipe.getApiInstance(lookup, dir)), type);
-    }
-
-    private static BlockEntityType<PipeBlockEntity> createItemPipe(PipeBlock block) {
-        return register(ItemPipeBlockEntity::new, block);
     }
 
     private static BlockEntityType<PipeBlockEntity> createMIEnergyCable(PipeBlock block, MICableTier tier) {

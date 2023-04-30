@@ -19,6 +19,7 @@
 package dev.technici4n.moderndynamics.pipe;
 
 import com.google.common.base.Preconditions;
+import dev.technici4n.moderndynamics.MdBlock;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -50,17 +51,14 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class PipeBlock extends Block implements EntityBlock, SimpleWaterloggedBlock {
+public class PipeBlock extends MdBlock implements EntityBlock, SimpleWaterloggedBlock {
     private static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
-    public final String id;
     private PipeItem item;
-    private BlockEntityType<PipeBlockEntity> blockEntityType;
     private boolean transparent = true;
 
     public PipeBlock(String id) {
-        super(Properties.of(Material.METAL).noOcclusion().isRedstoneConductor((state, world, pos) -> false).destroyTime(0.2f));
-        this.id = id;
+        super(id, Properties.of(Material.METAL).noOcclusion().isRedstoneConductor((state, world, pos) -> false).destroyTime(0.2f));
         this.registerDefaultState(this.defaultBlockState().setValue(WATERLOGGED, false));
     }
 
@@ -72,21 +70,6 @@ public class PipeBlock extends Block implements EntityBlock, SimpleWaterloggedBl
     public void setItem(PipeItem item) {
         Preconditions.checkState(this.item == null, "Item has already been set on %s", this);
         this.item = item;
-    }
-
-    @Nullable
-    public BlockEntityType<PipeBlockEntity> getBlockEntityTypeNullable() {
-        return this.blockEntityType;
-    }
-
-    public BlockEntityType<PipeBlockEntity> getBlockEntityType() {
-        Preconditions.checkState(this.blockEntityType != null, "Block entity type has not been set on %s", this);
-        return this.blockEntityType;
-    }
-
-    public void setBlockEntityProvider(BlockEntityType<PipeBlockEntity> blockEntityType) {
-        Preconditions.checkState(this.blockEntityType == null, "blockEntityType has already been set on %s", this);
-        this.blockEntityType = blockEntityType;
     }
 
     public PipeBlock setTransparent(boolean transparent) {
@@ -186,12 +169,6 @@ public class PipeBlock extends Block implements EntityBlock, SimpleWaterloggedBl
             }
         }
         super.onRemove(state, world, pos, newState, moved);
-    }
-
-    @Nullable
-    @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return blockEntityType.create(pos, state);
     }
 
     @Nullable

@@ -98,6 +98,17 @@ public class RecipesProvider extends FabricRecipeProvider {
                 .unlockedBy("has_lapis", has(Items.LAPIS_LAZULI))
                 .save(exporter);
 
+        ShapedRecipeBuilder.shaped(MdItems.MACHINE_EXTENDER, 4)
+                .pattern("bbb")
+                .pattern("ibf")
+                .pattern("bbb")
+                .define('b', Items.IRON_BARS)
+                .define('i', MdItems.ITEM_PIPE)
+                .define('f', MdItems.FLUID_PIPE)
+                .unlockedBy("has_item_pipe", has(MdItems.ITEM_PIPE))
+                .unlockedBy("has_fluid_pipe", has(MdItems.FLUID_PIPE))
+                .save(exporter);
+
         var miExporter = withConditions(exporter, DefaultResourceConditions.allModsLoaded("modern_industrialization"));
         generateMiCableRecipes("lv", "silver_cable", miExporter);
         generateMiCableRecipes("mv", "cupronickel_cable", miExporter);
