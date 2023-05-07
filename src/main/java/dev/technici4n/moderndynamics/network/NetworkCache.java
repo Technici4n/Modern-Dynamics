@@ -19,6 +19,8 @@
 package dev.technici4n.moderndynamics.network;
 
 import java.util.*;
+import net.minecraft.CrashReport;
+import net.minecraft.ReportedException;
 import net.minecraft.server.level.ServerLevel;
 
 /**
@@ -66,7 +68,22 @@ public abstract class NetworkCache<H extends NodeHost, C extends NetworkCache<H,
         }
 
         // Actually tick.
-        doTick();
+        try {
+            doTick();
+        } catch (Throwable t) {
+            var report = CrashReport.forThrowable(t, "Ticking pipe network");
+
+            report.addCategory("Network details")
+                    .setDetail("Level", level.dimension().location())
+                    .setDetail("Number of nodes", nodes.size());
+
+            if (nodes.size() > 0) {
+                var nodeDetails = report.addCategory("Details of first node in the network");
+                nodes.get(0).getHost().pipe.fillCrashReportCategory(nodeDetails);
+            }
+
+            throw new ReportedException(report);
+        }
     }
 
     public final void scheduleHostUpdate(NodeHost host) {

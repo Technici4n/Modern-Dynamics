@@ -31,14 +31,14 @@ import net.minecraft.world.level.Level;
 public class SimulatedInsertionTargets {
     private static final Map<Coord, SimulatedInsertionTarget> TARGETS = new HashMap<>();
 
-    private record Coord(ServerLevel world, BlockPos pos, Direction direction) {
+    record Coord(ServerLevel world, BlockPos pos, Direction direction) {
     }
 
     public static SimulatedInsertionTarget getTarget(Level w, BlockPos pos, Direction side) {
         ServerLevel world = (ServerLevel) w;
         return TARGETS.computeIfAbsent(new Coord(world, pos, side), coord -> {
             var cache = BlockApiCache.create(ItemStorage.SIDED, world, pos);
-            return new SimulatedInsertionTarget(() -> cache.find(side));
+            return new SimulatedInsertionTarget(coord, () -> cache.find(side));
         });
     }
 
