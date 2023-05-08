@@ -110,10 +110,10 @@ public class RecipesProvider extends FabricRecipeProvider {
                 .save(exporter);
 
         var miExporter = withConditions(exporter, DefaultResourceConditions.allModsLoaded("modern_industrialization"));
-        generateMiCableRecipes("lv", "silver_cable", miExporter);
-        generateMiCableRecipes("mv", "cupronickel_cable", miExporter);
-        generateMiCableRecipes("hv", "electrum_cable", miExporter);
-        generateMiCableRecipes("ev", "platinum_cable", miExporter);
+        generateMiCableRecipes("lv", "tin_cable", miExporter);
+        generateMiCableRecipes("mv", "electrum_cable", miExporter);
+        generateMiCableRecipes("hv", "aluminum_cable", miExporter);
+        generateMiCableRecipes("ev", "annealed_copper_cable", miExporter);
         generateMiCableRecipes("superconductor", "superconductor_cable", miExporter);
     }
 
