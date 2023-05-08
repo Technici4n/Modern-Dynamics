@@ -1,0 +1,5 @@
+{
+  "addItemTransferFrequency": 1,
+  "item": "minecraft:repeater",
+  "slotLimit": 3
+}

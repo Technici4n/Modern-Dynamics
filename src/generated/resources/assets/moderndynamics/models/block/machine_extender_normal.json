@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "moderndynamics:block/machine_extender_column",
+    "side": "moderndynamics:block/machine_extender_side"
+  }
+}

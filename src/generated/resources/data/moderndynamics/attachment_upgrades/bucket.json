@@ -1,0 +1,5 @@
+{
+  "addFluidTransfer": 1,
+  "item": "minecraft:bucket",
+  "slotLimit": 3
+}

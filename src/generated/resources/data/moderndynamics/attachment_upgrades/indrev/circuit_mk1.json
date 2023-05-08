@@ -1,0 +1,14 @@
+{
+  "addFilterSlots": 2,
+  "addItemCount": 10,
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "indrev"
+      ]
+    }
+  ],
+  "item": "indrev:circuit_mk1",
+  "slotLimit": 6
+}

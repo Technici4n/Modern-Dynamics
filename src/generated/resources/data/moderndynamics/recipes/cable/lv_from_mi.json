@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "modern_industrialization"
+      ]
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "modern_industrialization:tin_cable"
+    }
+  ],
+  "result": {
+    "count": 4,
+    "item": "moderndynamics:lv_cable"
+  }
+}

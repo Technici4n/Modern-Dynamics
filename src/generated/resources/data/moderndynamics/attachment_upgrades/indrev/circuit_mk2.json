@@ -1,0 +1,15 @@
+{
+  "addFilterSlots": 2,
+  "addFluidTransfer": 1,
+  "addItemCount": 20,
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "indrev"
+      ]
+    }
+  ],
+  "item": "indrev:circuit_mk2",
+  "slotLimit": 6
+}

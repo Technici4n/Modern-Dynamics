@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "l": {
+      "item": "minecraft:lapis_lazuli"
+    }
+  },
+  "pattern": [
+    " i ",
+    "lii",
+    "il "
+  ],
+  "result": {
+    "item": "moderndynamics:wrench"
+  }
+}

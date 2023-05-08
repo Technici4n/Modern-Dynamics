@@ -1,0 +1,15 @@
+{
+  "addItemSpeed": 1,
+  "addItemTransferFrequency": 1,
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "techreborn"
+      ]
+    }
+  ],
+  "item": "techreborn:overclocker_upgrade",
+  "multiplyFluidTransfer": 1,
+  "slotLimit": 3
+}

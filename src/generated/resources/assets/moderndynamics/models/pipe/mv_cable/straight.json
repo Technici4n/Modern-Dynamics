@@ -1,0 +1,6 @@
+{
+  "parent": "moderndynamics:base/straight",
+  "textures": {
+    "0": "moderndynamics:pipe/mv_cable/straight"
+  }
+}

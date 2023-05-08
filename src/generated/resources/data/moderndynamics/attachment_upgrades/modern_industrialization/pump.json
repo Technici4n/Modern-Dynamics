@@ -1,0 +1,14 @@
+{
+  "addFluidTransfer": 1,
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "modern_industrialization"
+      ]
+    }
+  ],
+  "item": "modern_industrialization:pump",
+  "multiplyFluidTransfer": 1,
+  "slotLimit": 9
+}

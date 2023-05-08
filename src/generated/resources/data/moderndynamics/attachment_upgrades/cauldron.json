@@ -1,0 +1,5 @@
+{
+  "item": "minecraft:cauldron",
+  "multiplyFluidTransfer": 1,
+  "slotLimit": 1
+}

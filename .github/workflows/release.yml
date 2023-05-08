@@ -14,8 +14,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 17
-      - name: Generate assets
-        run: ./gradlew runData --no-daemon
       - name: Build with Gradle
         env:
           MOD_VERSION: ${{ github.event.release.tag_name }}

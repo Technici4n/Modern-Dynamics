@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "modern_industrialization"
+      ]
+    }
+  ],
+  "key": {
+    "c": {
+      "item": "moderndynamics:lv_cable"
+    }
+  },
+  "pattern": [
+    "cc",
+    "cc"
+  ],
+  "result": {
+    "item": "modern_industrialization:tin_cable"
+  }
+}

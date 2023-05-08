@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "m": {
+      "item": "minecraft:iron_ingot"
+    },
+    "n": {
+      "item": "minecraft:iron_nugget"
+    }
+  },
+  "pattern": [
+    "mnm"
+  ],
+  "result": {
+    "count": 4,
+    "item": "moderndynamics:inhibitor"
+  }
+}

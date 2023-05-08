@@ -1,0 +1,6 @@
+{
+  "parent": "moderndynamics:base/straight_transparent",
+  "textures": {
+    "0": "moderndynamics:pipe/item_pipe/straight"
+  }
+}
