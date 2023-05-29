@@ -48,7 +48,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
@@ -272,22 +271,15 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     }
 
     public void updateCachedShape(int pipeConnections, int inventoryConnections) {
-        int allConnections = pipeConnections | inventoryConnections;
+        int attachments = 0;
 
-        VoxelShape shape = PipeBoundingBoxes.CORE_SHAPE;
-
-        for (int i = 0; i < 6; ++i) {
-            var hasAttachment = hasAttachment(Direction.from3DDataValue(i));
-            if ((allConnections & (1 << i)) > 0 || hasAttachment) {
-                shape = Shapes.or(shape, PipeBoundingBoxes.PIPE_CONNECTIONS[i]);
-            }
-
-            if ((inventoryConnections & (1 << i)) > 0 || hasAttachment) {
-                shape = Shapes.or(shape, PipeBoundingBoxes.CONNECTOR_SHAPES[i]);
+        for (var direction : Direction.values()) {
+            if (hasAttachment(direction)) {
+                attachments |= 1 << direction.get3DDataValue();
             }
         }
 
-        cachedShape = shape.optimize();
+        cachedShape = PipeBoundingBoxes.getPipeShape(pipeConnections, inventoryConnections, attachments);
     }
 
     /**
@@ -444,7 +436,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
         for (int i = 0; i < 6; ++i) {
             var direction = Direction.from3DDataValue(i);
             if (hasAttachment(direction)
-                    && ShapeHelper.shapeContains(PipeBoundingBoxes.INVENTORY_CONNECTIONS[i], posInBlock)) {
+                    && ShapeHelper.shapeContains(PipeBoundingBoxes.CONNECTOR_SHAPES[i], posInBlock)) {
                 return direction;
             }
         }
