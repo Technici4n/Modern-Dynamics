@@ -99,7 +99,7 @@ public final class ModernDynamicsClient implements ClientModInitializer {
                     LevelRenderer.renderShape(
                             worldRenderContext.matrixStack(),
                             worldRenderContext.consumers().getBuffer(RenderType.lines()),
-                            PipeBoundingBoxes.INVENTORY_CONNECTIONS[hitSide.ordinal()],
+                            PipeBoundingBoxes.CONNECTOR_SHAPES[hitSide.ordinal()],
                             (double) pos.getX() - blockOutlineContext.cameraX(),
                             (double) pos.getY() - blockOutlineContext.cameraY(),
                             (double) pos.getZ() - blockOutlineContext.cameraZ(),
