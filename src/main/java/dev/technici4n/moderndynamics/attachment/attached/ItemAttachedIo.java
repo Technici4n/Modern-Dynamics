@@ -345,9 +345,13 @@ public class ItemAttachedIo extends AttachedIo {
         return roundRobinIndex;
     }
 
-    public void incrementRoundRobin() {
+    /**
+     * Ideally the increment size should correspond to the number of paths that were iterated through this time around.
+     * This will ensure uniform distribution even if some paths are blocked.
+     */
+    public void incrementRoundRobin(int incrementSize) {
         if (getRoutingMode() == RoutingMode.ROUND_ROBIN) {
-            roundRobinIndex++;
+            roundRobinIndex += incrementSize;
             setChangedCallback.run();
         }
     }

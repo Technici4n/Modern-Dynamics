@@ -41,6 +41,7 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -97,15 +98,15 @@ public class ItemHost extends NodeHost {
     /**
      * Storage used for external injections (e.g. via hoppers), does not respect routing mode.
      */
-    private Storage<ItemVariant> buildExternalNetworkInjectStorage(Direction side) {
+    private InsertionOnlyStorage<ItemVariant> buildExternalNetworkInjectStorage(Direction side) {
         double speedupFactor = getAttachment(side) instanceof ItemAttachedIo io ? io.getItemSpeedupFactor() : 1;
-        return (InsertStorage) (resource, maxAmount, transaction) -> {
+        return (resource, maxAmount, transaction) -> {
             NetworkNode<ItemHost, ItemCache> node = findNode();
             if (node != null) {
                 var cache = node.getNetworkCache();
                 var paths = cache.pathCache.getPaths(node, side.getOpposite());
                 // The node can be null if the pipe was just placed, and not initialized yet.
-                return cache.insertList(node, paths, resource, maxAmount, transaction, speedupFactor);
+                return cache.insertList(node, paths, resource, maxAmount, transaction, speedupFactor, null);
             } else {
                 return 0;
             }
@@ -115,14 +116,14 @@ public class ItemHost extends NodeHost {
     /**
      * Storage used by extractors. It respects routing mode.
      */
-    private Storage<ItemVariant> buildExtractorNetworkInjectStorage(Direction side, ItemAttachedIo extractor) {
+    private InsertionOnlyStorage<ItemVariant> buildExtractorNetworkInjectStorage(Direction side, ItemAttachedIo extractor,
+            @Nullable MaxParticipant maxIndexParticipant) {
         double speedupFactor = extractor.getItemSpeedupFactor();
         NetworkNode<ItemHost, ItemCache> node = findNode();
         var cache = node.getNetworkCache();
         var paths = rearrangePaths(cache.pathCache.getPaths(node, side.getOpposite()), extractor);
-        return (InsertStorage) (resource, maxAmount, transaction) -> {
-            // The node can be null if the pipe was just placed, and not initialized yet.
-            return cache.insertList(node, paths, resource, maxAmount, transaction, speedupFactor);
+        return (resource, maxAmount, transaction) -> {
+            return cache.insertList(node, paths, resource, maxAmount, transaction, speedupFactor, maxIndexParticipant);
         };
     }
 
@@ -181,9 +182,11 @@ public class ItemHost extends NodeHost {
     private void tickExtractor(Direction side, ItemAttachedIo extractor) {
         if (extractor.isStuffed()) {
             // Move from stuffed items to network
-            if (extractor.moveStuffedToStorage(buildExtractorNetworkInjectStorage(side, extractor),
+            var maxParticipant = new MaxParticipant();
+
+            if (extractor.moveStuffedToStorage(buildExtractorNetworkInjectStorage(side, extractor, maxParticipant),
                     extractor.getMaxItemsExtracted()) > 0) {
-                extractor.incrementRoundRobin();
+                extractor.incrementRoundRobin(maxParticipant.getMax());
                 pipe.setChanged();
                 if (!extractor.isStuffed()) {
                     pipe.sync();
@@ -193,13 +196,16 @@ public class ItemHost extends NodeHost {
             var adjStorage = getAdjacentStorage(side, false);
             if (adjStorage == null)
                 return;
+
+            var maxParticipant = new MaxParticipant();
+
             if (StorageUtil.move(
                     adjStorage,
-                    buildExtractorNetworkInjectStorage(side, extractor),
+                    buildExtractorNetworkInjectStorage(side, extractor, maxParticipant),
                     extractor::matchesItemFilter,
                     extractor.getMaxItemsExtracted(),
                     null) > 0) {
-                extractor.incrementRoundRobin();
+                extractor.incrementRoundRobin(maxParticipant.getMax());
             }
         }
     }
@@ -230,7 +236,10 @@ public class ItemHost extends NodeHost {
             long maxTransfer = attractor.getMaxItemsExtracted();
             long toTransfer = maxTransfer;
 
+            int nextPathIndex = 0;
             for (var path : paths) {
+                nextPathIndex++;
+
                 // Don't allow attractors to pull from other attractors
                 if (path.getEndAttachment(cache.level) instanceof ItemAttachedIo io && io.getType() == IoAttachmentType.ATTRACTOR) {
                     continue;
@@ -241,7 +250,7 @@ public class ItemHost extends NodeHost {
                     // Make sure to check the filter at the endpoint.
                     var endpointFilter = path.getEndFilter(cache.level);
 
-                    var insertStorage = (InsertStorage) (variant, maxAmount, tx) -> {
+                    InsertionOnlyStorage<ItemVariant> insertStorage = (variant, maxAmount, tx) -> {
                         return insertTarget.insert(variant, maxAmount, tx, (v, a) -> {
                             var reversedPath = path.reversed();
                             var travelingItem = reversedPath.makeTravelingItem(v, a, attractor.getItemSpeedupFactor());
@@ -260,7 +269,7 @@ public class ItemHost extends NodeHost {
             }
 
             if (toTransfer < maxTransfer) {
-                attractor.incrementRoundRobin();
+                attractor.incrementRoundRobin(nextPathIndex);
             }
         }
     }

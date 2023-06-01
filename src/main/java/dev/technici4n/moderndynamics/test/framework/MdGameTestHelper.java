@@ -23,10 +23,13 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.Objects;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInfo;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.material.Fluid;
 
 public class MdGameTestHelper extends GameTestHelper {
@@ -60,6 +63,23 @@ public class MdGameTestHelper extends GameTestHelper {
             }
         }
 
-        fail("Fluid not found");
+        fail("Fluid not found", pos);
+    }
+
+    /**
+     * Throw exception unless target block pos (relative) has at least some amount of some item.
+     */
+    public void checkItem(BlockPos pos, Item item, long minAmount) {
+        var storage = ItemStorage.SIDED.find(getLevel(), absolutePos(pos), Direction.UP);
+
+        if (storage != null) {
+            var storedAmount = storage.simulateExtract(ItemVariant.of(item), Long.MAX_VALUE, null);
+
+            if (storedAmount >= minAmount) {
+                return;
+            }
+        }
+
+        fail("Item not found", pos);
     }
 }

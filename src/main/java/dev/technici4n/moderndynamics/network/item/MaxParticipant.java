@@ -18,15 +18,30 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
-import java.util.Collections;
-import java.util.Iterator;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 
-public interface InsertStorage extends InsertionOnlyStorage<ItemVariant> {
+public class MaxParticipant extends SnapshotParticipant<Integer> {
+    private int max = 0;
+
+    public void addEntry(int amount, TransactionContext transaction) {
+        if (amount > max) {
+            updateSnapshots(transaction);
+            max = amount;
+        }
+    }
+
+    public int getMax() {
+        return max;
+    }
+
     @Override
-    default Iterator<StorageView<ItemVariant>> iterator() {
-        return Collections.emptyIterator();
+    protected Integer createSnapshot() {
+        return max;
+    }
+
+    @Override
+    protected void readSnapshot(Integer snapshot) {
+        max = snapshot;
     }
 }
