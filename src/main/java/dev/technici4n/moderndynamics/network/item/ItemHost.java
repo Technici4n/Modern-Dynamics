@@ -170,89 +170,97 @@ public class ItemHost extends NodeHost {
                     continue;
                 lastOperationTick[side.get3DDataValue()] = currentTick;
                 if (itemAttachedIo.getType() == IoAttachmentType.EXTRACTOR) {
-                    if (itemAttachedIo.isStuffed()) {
-                        // Move from stuffed items to network
-                        if (itemAttachedIo.moveStuffedToStorage(buildExtractorNetworkInjectStorage(side, itemAttachedIo),
-                                itemAttachedIo.getMaxItemsExtracted()) > 0) {
-                            itemAttachedIo.incrementRoundRobin();
-                            pipe.setChanged();
-                            if (!itemAttachedIo.isStuffed()) {
-                                pipe.sync();
-                            }
-                        }
-                    } else {
-                        var adjStorage = getAdjacentStorage(side, false);
-                        if (adjStorage == null)
-                            continue;
-                        if (StorageUtil.move(
-                                adjStorage,
-                                buildExtractorNetworkInjectStorage(side, itemAttachedIo),
-                                itemAttachedIo::matchesItemFilter,
-                                itemAttachedIo.getMaxItemsExtracted(),
-                                null) > 0) {
-                            itemAttachedIo.incrementRoundRobin();
-                        }
-                    }
+                    tickExtractor(side, itemAttachedIo);
                 } else if (itemAttachedIo.getType() == IoAttachmentType.ATTRACTOR) {
-                    if (itemAttachedIo.isStuffed()) {
-                        // Move from stuffed items to target
-                        var adjStorage = getAdjacentStorage(side, false);
-                        if (adjStorage == null)
-                            continue;
-                        if (itemAttachedIo.moveStuffedToStorage(adjStorage, itemAttachedIo.getMaxItemsExtracted()) > 0) {
-                            pipe.setChanged();
-                            if (!itemAttachedIo.isStuffed()) {
-                                pipe.sync();
-                            }
-                        }
-                    } else {
-                        var insertTarget = SimulatedInsertionTargets.getTarget(pipe.getLevel(), pipe.getBlockPos().relative(side),
-                                side.getOpposite());
-                        if (!insertTarget.hasStorage())
-                            continue;
-
-                        NetworkNode<ItemHost, ItemCache> thisNode = findNode();
-                        var cache = thisNode.getNetworkCache();
-                        var pathCache = cache.pathCache;
-                        var paths = rearrangePaths(pathCache.getPaths(thisNode, side.getOpposite()), itemAttachedIo);
-
-                        long maxTransfer = itemAttachedIo.getMaxItemsExtracted();
-                        long toTransfer = maxTransfer;
-
-                        for (var path : paths) {
-                            // Don't allow attractors to pull from other attractors
-                            if (path.getEndAttachment(cache.level) instanceof ItemAttachedIo io && io.getType() == IoAttachmentType.ATTRACTOR) {
-                                continue;
-                            }
-
-                            var extractTarget = ItemStorage.SIDED.find(pipe.getLevel(), path.targetPos, path.getTargetBlockSide());
-                            if (extractTarget != null) {
-                                // Make sure to check the filter at the endpoint.
-                                var endpointFilter = path.getEndFilter(cache.level);
-
-                                var insertStorage = (InsertStorage) (variant, maxAmount, tx) -> {
-                                    return insertTarget.insert(variant, maxAmount, tx, (v, a) -> {
-                                        var reversedPath = path.reversed();
-                                        var travelingItem = reversedPath.makeTravelingItem(v, a, itemAttachedIo.getItemSpeedupFactor());
-                                        reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
-                                    });
-                                };
-                                toTransfer -= StorageUtil.move(
-                                        extractTarget,
-                                        insertStorage,
-                                        v -> itemAttachedIo.matchesItemFilter(v) && endpointFilter.test(v),
-                                        toTransfer,
-                                        null);
-                                if (toTransfer == 0)
-                                    break;
-                            }
-                        }
-
-                        if (toTransfer < maxTransfer) {
-                            itemAttachedIo.incrementRoundRobin();
-                        }
-                    }
+                    tickAttractor(side, itemAttachedIo);
                 }
+            }
+        }
+    }
+
+    private void tickExtractor(Direction side, ItemAttachedIo extractor) {
+        if (extractor.isStuffed()) {
+            // Move from stuffed items to network
+            if (extractor.moveStuffedToStorage(buildExtractorNetworkInjectStorage(side, extractor),
+                    extractor.getMaxItemsExtracted()) > 0) {
+                extractor.incrementRoundRobin();
+                pipe.setChanged();
+                if (!extractor.isStuffed()) {
+                    pipe.sync();
+                }
+            }
+        } else {
+            var adjStorage = getAdjacentStorage(side, false);
+            if (adjStorage == null)
+                return;
+            if (StorageUtil.move(
+                    adjStorage,
+                    buildExtractorNetworkInjectStorage(side, extractor),
+                    extractor::matchesItemFilter,
+                    extractor.getMaxItemsExtracted(),
+                    null) > 0) {
+                extractor.incrementRoundRobin();
+            }
+        }
+    }
+
+    public void tickAttractor(Direction side, ItemAttachedIo attractor) {
+        if (attractor.isStuffed()) {
+            // Move from stuffed items to target
+            var adjStorage = getAdjacentStorage(side, false);
+            if (adjStorage == null)
+                return;
+            if (attractor.moveStuffedToStorage(adjStorage, attractor.getMaxItemsExtracted()) > 0) {
+                pipe.setChanged();
+                if (!attractor.isStuffed()) {
+                    pipe.sync();
+                }
+            }
+        } else {
+            var insertTarget = SimulatedInsertionTargets.getTarget(pipe.getLevel(), pipe.getBlockPos().relative(side),
+                    side.getOpposite());
+            if (!insertTarget.hasStorage())
+                return;
+
+            NetworkNode<ItemHost, ItemCache> thisNode = findNode();
+            var cache = thisNode.getNetworkCache();
+            var pathCache = cache.pathCache;
+            var paths = rearrangePaths(pathCache.getPaths(thisNode, side.getOpposite()), attractor);
+
+            long maxTransfer = attractor.getMaxItemsExtracted();
+            long toTransfer = maxTransfer;
+
+            for (var path : paths) {
+                // Don't allow attractors to pull from other attractors
+                if (path.getEndAttachment(cache.level) instanceof ItemAttachedIo io && io.getType() == IoAttachmentType.ATTRACTOR) {
+                    continue;
+                }
+
+                var extractTarget = ItemStorage.SIDED.find(pipe.getLevel(), path.targetPos, path.getTargetBlockSide());
+                if (extractTarget != null) {
+                    // Make sure to check the filter at the endpoint.
+                    var endpointFilter = path.getEndFilter(cache.level);
+
+                    var insertStorage = (InsertStorage) (variant, maxAmount, tx) -> {
+                        return insertTarget.insert(variant, maxAmount, tx, (v, a) -> {
+                            var reversedPath = path.reversed();
+                            var travelingItem = reversedPath.makeTravelingItem(v, a, attractor.getItemSpeedupFactor());
+                            reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
+                        });
+                    };
+                    toTransfer -= StorageUtil.move(
+                            extractTarget,
+                            insertStorage,
+                            v -> attractor.matchesItemFilter(v) && endpointFilter.test(v),
+                            toTransfer,
+                            null);
+                    if (toTransfer == 0)
+                        break;
+                }
+            }
+
+            if (toTransfer < maxTransfer) {
+                attractor.incrementRoundRobin();
             }
         }
     }
