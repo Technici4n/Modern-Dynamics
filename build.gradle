@@ -159,7 +159,6 @@ loom {
     }
 }
 
-assemble.dependsOn runDatagenClient
 test.dependsOn runGametest
 
 tasks.withType(JavaCompile).configureEach {
