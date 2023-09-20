@@ -116,7 +116,7 @@ public class MIEnergyHost extends NodeHost {
 
     @Override
     @Nullable
-    public Object getApiInstance(BlockApiLookup<?, Direction> lookup, Direction side) {
+    public Object getApiInstance(BlockApiLookup<?, Direction> lookup, @Nullable Direction side) {
         return null;
     }
 

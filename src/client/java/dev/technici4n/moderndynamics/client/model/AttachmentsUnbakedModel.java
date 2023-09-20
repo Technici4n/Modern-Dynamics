@@ -18,18 +18,15 @@
  */
 package dev.technici4n.moderndynamics.client.model;
 
-import com.mojang.datafixers.util.Pair;
 import dev.technici4n.moderndynamics.util.MdId;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.Material;
-import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
@@ -50,24 +47,20 @@ public class AttachmentsUnbakedModel implements UnbakedModel {
     }
 
     @Override
-    public Collection<Material> getMaterials(Function<ResourceLocation, UnbakedModel> unbakedModelGetter,
-            Set<Pair<String, String>> unresolvedTextureReferences) {
-        var allTextureDependencies = new ArrayList<Material>();
-        for (var dependentId : getDependencies()) {
-            allTextureDependencies
-                    .addAll(unbakedModelGetter.apply(dependentId).getMaterials(unbakedModelGetter, unresolvedTextureReferences));
+    public void resolveParents(Function<ResourceLocation, UnbakedModel> resolver) {
+        for (var subModel : attachmentModels.values()) {
+            resolver.apply(subModel).resolveParents(resolver);
         }
-        return allTextureDependencies;
     }
 
     @Nullable
     @Override
-    public BakedModel bake(ModelBakery loader, Function<Material, TextureAtlasSprite> textureGetter, ModelState rotationContainer,
+    public BakedModel bake(ModelBaker baker, Function<Material, TextureAtlasSprite> textureGetter, ModelState rotationContainer,
             ResourceLocation modelId) {
         var attachmentBakedModels = new HashMap<String, BakedModel[]>();
 
         for (var entry : attachmentModels.entrySet()) {
-            attachmentBakedModels.put(entry.getKey(), PipeUnbakedModel.loadRotatedModels(entry.getValue(), loader));
+            attachmentBakedModels.put(entry.getKey(), PipeUnbakedModel.loadRotatedModels(entry.getValue(), baker));
         }
 
         return new AttachmentsBakedModel(attachmentBakedModels);

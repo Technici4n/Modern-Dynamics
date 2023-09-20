@@ -1,5 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "key": {
     "e": {
       "item": "minecraft:ender_pearl"
@@ -21,5 +22,6 @@
   ],
   "result": {
     "item": "moderndynamics:attractor"
-  }
+  },
+  "show_notification": true
 }

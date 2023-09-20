@@ -25,7 +25,6 @@ import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.client.GeometryHelper;
 import dev.technici4n.moderndynamics.model.PipeModelData;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
@@ -35,7 +34,6 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -158,8 +156,7 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
     @Override
     public void emitBlockQuads(BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier,
             RenderContext context) {
-        var attachmentView = (RenderAttachedBlockView) blockView;
-        var pipeData = Objects.requireNonNullElse((PipeModelData) attachmentView.getBlockEntityRenderAttachment(pos), PipeModelData.DEFAULT);
+        var pipeData = blockView.getBlockEntityRenderData(pos) instanceof PipeModelData pipeModelData ? pipeModelData : PipeModelData.DEFAULT;
         drawPipe(pipeData, context);
     }
 
@@ -171,8 +168,8 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
     private void baseQuad(QuadEmitter qe, Direction side, float left, float bottom, float right, float top, float depth) {
         // Forward face
         qe.square(side, left, bottom, right, top, depth);
-        qe.spriteBake(0, baseSprite, MutableQuadView.BAKE_LOCK_UV);
-        qe.spriteColor(0, -1, -1, -1, -1);
+        qe.spriteBake(baseSprite, MutableQuadView.BAKE_LOCK_UV);
+        qe.color(-1, -1, -1, -1);
         qe.emit();
         // Backward face
         if (transparent) {
@@ -180,8 +177,8 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
             case UP, DOWN -> qe.square(side.getOpposite(), left, 1 - top, right, 1 - bottom, 1 - depth);
             default -> qe.square(side.getOpposite(), 1 - right, bottom, 1 - left, top, 1 - depth);
             }
-            qe.spriteBake(0, baseSprite, MutableQuadView.BAKE_LOCK_UV);
-            qe.spriteColor(0, -1, -1, -1, -1);
+            qe.spriteBake(baseSprite, MutableQuadView.BAKE_LOCK_UV);
+            qe.color(-1, -1, -1, -1);
             qe.emit();
         }
     }
@@ -210,7 +207,7 @@ public class PipeBakedModel implements BakedModel, FabricBakedModel {
                 context.fallbackConsumer().accept(straightLineModels[4]);
             }
         } else {
-            context.meshConsumer().accept(baseMeshes[connections]);
+            baseMeshes[connections].outputTo(context.getEmitter());
         }
 
         // Render connectors

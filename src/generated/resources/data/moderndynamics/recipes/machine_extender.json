@@ -1,5 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "key": {
     "b": {
       "item": "minecraft:iron_bars"
@@ -19,5 +20,6 @@
   "result": {
     "count": 4,
     "item": "moderndynamics:machine_extender"
-  }
+  },
+  "show_notification": true
 }

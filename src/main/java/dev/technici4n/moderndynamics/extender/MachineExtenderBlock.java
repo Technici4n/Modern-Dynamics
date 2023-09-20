@@ -27,13 +27,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MapColor;
 
 public class MachineExtenderBlock extends MdBlock {
     public static final BooleanProperty TOP = BooleanProperty.create("top");
 
     public MachineExtenderBlock() {
-        super("machine_extender", Properties.of(Material.METAL).destroyTime(0.2f));
+        super("machine_extender", Properties.of().mapColor(MapColor.METAL).destroyTime(0.2f));
 
         registerDefaultState(defaultBlockState().setValue(TOP, false));
     }

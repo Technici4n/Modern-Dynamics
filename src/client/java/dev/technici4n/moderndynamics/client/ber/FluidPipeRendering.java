@@ -68,14 +68,13 @@ public class FluidPipeRendering {
 
         Renderer renderer = RendererAccess.INSTANCE.getRenderer();
         Objects.requireNonNull(renderer, "Please install Indium if you are using Sodium!");
-        var meshBuilder = renderer.meshBuilder();
 
         QuadBuilder builder = (direction, x, y, z, X, Y, Z) -> {
             var emitter = renderer.meshBuilder().getEmitter();
             quad(emitter, direction, x, y, z, X, Y, Z);
-            emitter.spriteBake(0, sprite, MutableQuadView.BAKE_LOCK_UV);
-            emitter.spriteColor(0, -1, -1, -1, -1);
-            vc.putBulkData(ms.last(), emitter.toBakedQuad(0, sprite, false), r, g, b, FULL_LIGHT, OverlayTexture.NO_OVERLAY);
+            emitter.spriteBake(sprite, MutableQuadView.BAKE_LOCK_UV);
+            emitter.color(-1, -1, -1, -1);
+            vc.putBulkData(ms.last(), emitter.toBakedQuad(sprite), r, g, b, FULL_LIGHT, OverlayTexture.NO_OVERLAY);
         };
 
         /*

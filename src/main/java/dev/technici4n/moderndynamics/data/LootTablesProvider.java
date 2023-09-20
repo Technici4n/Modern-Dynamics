@@ -19,18 +19,18 @@
 package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.MdBlock;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 public class LootTablesProvider extends FabricBlockLootTableProvider {
-    protected LootTablesProvider(FabricDataGenerator dataGenerator) {
-        super(dataGenerator);
+    protected LootTablesProvider(FabricDataOutput dataOutput) {
+        super(dataOutput);
     }
 
     @Override
-    protected void generateBlockLootTables() {
-        for (var block : Registry.BLOCK) {
+    public void generate() {
+        for (var block : BuiltInRegistries.BLOCK) {
             if (block instanceof MdBlock) {
                 dropSelf(block);
             }

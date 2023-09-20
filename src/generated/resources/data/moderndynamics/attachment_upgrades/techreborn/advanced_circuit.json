@@ -1,8 +1,4 @@
 {
-  "addFilterSlots": 2,
-  "addFluidTransfer": 1,
-  "addItemCount": 10,
-  "enableAdvancedBehavior": true,
   "fabric:load_conditions": [
     {
       "condition": "fabric:all_mods_loaded",
@@ -11,6 +7,10 @@
       ]
     }
   ],
+  "addFilterSlots": 2,
+  "addFluidTransfer": 1,
+  "addItemCount": 10,
+  "enableAdvancedBehavior": true,
   "item": "techreborn:advanced_circuit",
   "slotLimit": 6
 }

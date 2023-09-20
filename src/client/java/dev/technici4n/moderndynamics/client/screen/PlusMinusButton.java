@@ -19,7 +19,7 @@
 package dev.technici4n.moderndynamics.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -28,14 +28,13 @@ public class PlusMinusButton extends Button {
     private final boolean minus;
 
     public PlusMinusButton(int x, int y, boolean minus, Runnable click) {
-        super(x, y, 14, 14, Component.empty(), btn -> click.run());
+        super(x, y, 14, 14, Component.empty(), btn -> click.run(), DEFAULT_NARRATION);
         this.minus = minus;
     }
 
     @Override
-    public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, ItemAttachedIoScreen.TEXTURE);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         var x = 216 + (minus ? 0 : width);
         var y = 120;
@@ -47,6 +46,6 @@ public class PlusMinusButton extends Button {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
-        this.blit(poseStack, this.x, this.y, x, y, width, height);
+        guiGraphics.blit(ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), x, y, width, height);
     }
 }

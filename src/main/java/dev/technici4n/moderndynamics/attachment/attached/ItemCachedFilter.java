@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Set;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -121,12 +121,12 @@ public final class ItemCachedFilter {
 
     private static String getModId(ItemVariant variant) {
         // This returns "minecraft" if the item is unregistered
-        return Registry.ITEM.getKey(variant.getItem()).getNamespace();
+        return BuiltInRegistries.ITEM.getKey(variant.getItem()).getNamespace();
     }
 
     private static String getModId(FluidVariant variant) {
         // This returns "minecraft" if the fluid is unregistered
-        return Registry.FLUID.getKey(variant.getFluid()).getNamespace();
+        return BuiltInRegistries.FLUID.getKey(variant.getFluid()).getNamespace();
     }
 
     private static boolean matchDamageIgnoreRest(@Nullable CompoundTag a, @Nullable CompoundTag b) {

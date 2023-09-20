@@ -1,5 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "key": {
     "g": {
       "item": "minecraft:glass"
@@ -14,5 +15,6 @@
   "result": {
     "count": 8,
     "item": "moderndynamics:item_pipe"
-  }
+  },
+  "show_notification": true
 }

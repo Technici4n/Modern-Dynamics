@@ -30,7 +30,6 @@ import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.ShapeHelper;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -55,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
  * Abstract base BE class for all pipes.
  * Subclasses must have a static list of {@link NodeHost}s that will be used for all the registration and saving logic.
  */
-public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAttachmentBlockEntity {
+public abstract class PipeBlockEntity extends MdBlockEntity {
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
@@ -155,7 +154,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
 
     @Override
     @Nullable
-    public Object getRenderAttachmentData() {
+    public Object getRenderData() {
         return clientModelData;
     }
 
@@ -236,7 +235,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity implements RenderAtt
     }
 
     @Nullable
-    public Object getApiInstance(BlockApiLookup<?, Direction> direction, Direction side) {
+    public Object getApiInstance(BlockApiLookup<?, Direction> direction, @Nullable Direction side) {
         for (var host : getHosts()) {
             var api = host.getApiInstance(direction, side);
             if (api != null) {

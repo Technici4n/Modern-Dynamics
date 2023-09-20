@@ -59,7 +59,7 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings loom.layered() {
         officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-1.18.2:2022.05.02@zip")
+        parchment("org.parchmentmc.data:parchment-1.20.1:2023.08.13@zip")
     }
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
@@ -77,8 +77,6 @@ dependencies {
     }
 
     if (project.runtime_itemlist_mod == "rei") {
-        // Manually override architectury TODO remove once REI's dependency is fixed
-        modRuntimeOnly "dev.architectury:architectury-fabric:6.2.43"
         modImplementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
             exclude(group: "net.fabricmc.fabric-api")
         }
@@ -89,11 +87,11 @@ dependencies {
     }
 
     if (project.runtime_itemlist_mod == "emi") {
-        modImplementation("dev.emi:emi:${project.emi_version}+${project.emi_minecraft_version}") {
+        modImplementation("dev.emi:emi-fabric:${project.emi_version}+${project.emi_minecraft_version}") {
             exclude group: "net.fabricmc.fabric-api"
         }
     } else {
-        modCompileOnly("dev.emi:emi:${project.emi_version}+${project.emi_minecraft_version}") {
+        modCompileOnly("dev.emi:emi-fabric:${project.emi_version}+${project.emi_minecraft_version}") {
             exclude group: "net.fabricmc.fabric-api"
         }
     }
@@ -274,8 +272,7 @@ if (System.getenv("CURSEFORGE_API_KEY") && !version.endsWith("-SNAPSHOT")) {
             changelogType = "markdown"
             delegate.changelog = changelog
 
-            addGameVersion "1.19.1"
-            addGameVersion "1.19.2"
+            addGameVersion "1.20.1"
             addGameVersion "Fabric"
             addGameVersion "Java 17"
 
@@ -304,7 +301,7 @@ if (System.getenv("MODRINTH_API_KEY") && !version.endsWith("-SNAPSHOT")) {
         delegate.changelog = changelog
         versionType = releaseChannel.toUpperCase()
         uploadFile = remapJar.archiveFile
-        gameVersions = ["1.19.1", "1.19.2"]
+        gameVersions = ["1.20.1"]
         loaders = ["fabric"]
         dependencies {
             required.project "fabric-api"

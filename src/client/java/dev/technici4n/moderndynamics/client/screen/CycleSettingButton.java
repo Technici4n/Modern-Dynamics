@@ -20,7 +20,6 @@ package dev.technici4n.moderndynamics.client.screen;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
@@ -34,7 +33,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -90,7 +89,7 @@ public class CycleSettingButton<T> extends Button {
 
     public CycleSettingButton(List<CycleSetting<T>> settings, T initialSetting, BiConsumer<T, Boolean> onChange) {
         super(0, 0, 20, 20, Component.empty(), button -> {
-        });
+        }, DEFAULT_NARRATION);
         this.settings = settings;
         setValue(initialSetting);
         this.onChange = onChange;
@@ -127,11 +126,8 @@ public class CycleSettingButton<T> extends Button {
     }
 
     @Override
-    public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        Minecraft minecraft = Minecraft.getInstance();
-        Font font = minecraft.font;
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, ItemAttachedIoScreen.TEXTURE);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         var setting = getCurrentSetting();
         var y = setting.spriteY();
@@ -143,7 +139,7 @@ public class CycleSettingButton<T> extends Button {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
-        this.blit(poseStack, this.x, this.y, setting.spriteX(), y, width, height);
+        guiGraphics.blit(ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), setting.spriteX(), y, width, height);
 
         if (this.isHovered) {
             var tooltip = new ArrayList<Component>();
@@ -151,7 +147,7 @@ public class CycleSettingButton<T> extends Button {
             if (advancedBehavior && !isActive()) {
                 tooltip.add(REQUIRES_ADVANCED_BEHAVIOR);
             }
-            Minecraft.getInstance().screen.renderTooltip(poseStack, tooltip, Optional.empty(), mouseX, mouseY);
+            guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltip, Optional.empty(), mouseX, mouseY);
         }
     }
 }

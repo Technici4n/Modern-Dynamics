@@ -18,7 +18,6 @@
  */
 package dev.technici4n.moderndynamics.client.compat.emi;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import dev.emi.emi.api.EmiDragDropHandler;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.technici4n.moderndynamics.client.screen.AttachedIoScreen;
@@ -30,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.world.inventory.Slot;
@@ -70,7 +69,7 @@ class DragDropHandler implements EmiDragDropHandler<Screen> {
     }
 
     @Override
-    public void render(Screen gui, EmiIngredient dragged, PoseStack matrices, int mouseX, int mouseY, float delta) {
+    public void render(Screen gui, EmiIngredient dragged, GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         var ing = dragged.getEmiStacks().get(0);
         List<Slot> targets = new ArrayList<>();
 
@@ -92,7 +91,7 @@ class DragDropHandler implements EmiDragDropHandler<Screen> {
 
         for (Slot s : targets) {
             var b = getSlotBounds(s, (AttachedIoScreen<?>) gui);
-            GuiComponent.fill(matrices, b.getX(), b.getY(), b.getX() + b.getWidth(), b.getY() + b.getHeight(), 0x8822BB33);
+            guiGraphics.fill(b.getX(), b.getY(), b.getX() + b.getWidth(), b.getY() + b.getHeight(), 0x8822BB33);
         }
     }
 }

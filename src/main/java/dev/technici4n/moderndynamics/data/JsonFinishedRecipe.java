@@ -21,7 +21,7 @@ package dev.technici4n.moderndynamics.data;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.technici4n.moderndynamics.util.MdId;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -46,7 +46,7 @@ public final class JsonFinishedRecipe implements FinishedRecipe {
     @Override
     public JsonObject serializeRecipe() {
         JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
-        jsonObject.addProperty("type", Registry.RECIPE_SERIALIZER.getKey(this.getType()).toString());
+        jsonObject.addProperty("type", BuiltInRegistries.RECIPE_SERIALIZER.getKey(this.getType()).toString());
         return jsonObject;
     }
 

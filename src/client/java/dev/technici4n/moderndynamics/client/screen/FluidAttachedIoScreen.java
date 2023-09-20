@@ -25,17 +25,18 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.math.Matrix4f;
 import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
 import java.util.Optional;
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.InventoryMenu;
+import org.joml.Matrix4f;
 
 public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu> {
     public FluidAttachedIoScreen(FluidAttachedIoMenu abstractContainerMenu, Inventory inventory, Component component) {
@@ -45,16 +46,16 @@ public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu>
     }
 
     @Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
-        super.render(poseStack, mouseX, mouseY, partialTick);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         if (getMenu().getCarried().isEmpty() && this.hoveredSlot instanceof FluidConfigSlot fluidSlot) {
             var variant = fluidSlot.getFilter();
             if (!variant.isBlank()) {
-                renderTooltip(poseStack, FluidVariantRendering.getTooltip(variant), Optional.empty(), mouseX, mouseY);
+                guiGraphics.renderTooltip(font, FluidVariantRendering.getTooltip(variant), Optional.empty(), mouseX, mouseY);
             }
         } else {
-            renderTooltip(poseStack, mouseX, mouseY);
+            renderTooltip(guiGraphics, mouseX, mouseY);
         }
     }
 

@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_ender_pearl": {
+    "has_lapis": {
       "conditions": {
         "items": [
           {
             "items": [
-              "minecraft:ender_pearl"
+              "minecraft:lapis_lazuli"
             ]
           }
         ]
@@ -15,20 +15,21 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:attractor"
+        "recipe": "moderndynamics:filter"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
   },
   "requirements": [
     [
-      "has_ender_pearl",
+      "has_lapis",
       "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
-      "moderndynamics:attractor"
+      "moderndynamics:filter"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

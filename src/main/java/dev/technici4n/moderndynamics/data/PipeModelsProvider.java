@@ -18,34 +18,44 @@
  */
 package dev.technici4n.moderndynamics.data;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.util.MdId;
-import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Locale;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 
 public class PipeModelsProvider implements DataProvider {
-    private final FabricDataGenerator gen;
+    private final FabricDataOutput dataOutput;
 
-    public PipeModelsProvider(FabricDataGenerator gen) {
-        this.gen = gen;
+    public PipeModelsProvider(FabricDataOutput dataOutput) {
+        this.dataOutput = dataOutput;
     }
 
     @Override
-    public void run(CachedOutput cache) throws IOException {
-        registerPipeModels(cache);
-        registerAttachments(cache);
+    public CompletableFuture<?> run(CachedOutput cache) {
+        var futures = new ArrayList<CompletableFuture<?>>();
+        BiConsumer<JsonElement, Path> saver = (obj, path) -> {
+            futures.add(DataProvider.saveStable(cache, obj, path));
+        };
+
+        registerPipeModels(saver);
+        registerAttachments(saver);
+
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
 
-    private void registerPipeModels(CachedOutput cache) throws IOException {
+    private void registerPipeModels(BiConsumer<JsonElement, Path> saver) {
         for (var pipe : MdBlocks.ALL_PIPES) {
-            registerPipeModel(cache, pipe);
+            registerPipeModel(pipe, saver);
         }
 
         /*
@@ -76,47 +86,45 @@ public class PipeModelsProvider implements DataProvider {
          */
     }
 
-    private void registerPipeModel(CachedOutput cache, PipeBlock pipe)
-            throws IOException {
-        var baseFolder = gen.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(gen.getModId(), pipe.id));
+    private void registerPipeModel(PipeBlock pipe, BiConsumer<JsonElement, Path> saver) {
+        var baseFolder = dataOutput.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(dataOutput.getModId(), pipe.id));
 
-        registerPipePart(cache, baseFolder, pipe, "connector");
-        registerPipePart(cache, baseFolder, pipe, "straight");
+        registerPipePart(baseFolder, pipe, "connector", saver);
+        registerPipePart(baseFolder, pipe, "straight", saver);
     }
 
     /**
      * Register a simple textures pipe part model, and return the id of the model.
      */
-    private void registerPipePart(CachedOutput cache, Path baseFolder, PipeBlock pipe, String kind)
-            throws IOException {
+    private void registerPipePart(Path baseFolder, PipeBlock pipe, String kind, BiConsumer<JsonElement, Path> saver) {
         var obj = new JsonObject();
         obj.addProperty("parent", MdId.of("base/%s%s".formatted(kind, pipe.isTransparent() ? "_transparent" : "")).toString());
         var textures = new JsonObject();
         obj.add("textures", textures);
         textures.addProperty("0", MdId.of("pipe/%s/%s".formatted(pipe.id, kind)).toString());
 
-        DataProvider.saveStable(cache, obj, baseFolder.resolve(kind + ".json"));
+        saver.accept(obj, baseFolder.resolve(kind + ".json"));
     }
 
-    private void registerAttachments(CachedOutput cache) throws IOException {
+    private void registerAttachments(BiConsumer<JsonElement, Path> saver) {
         // Register each model.
         for (var attachment : RenderedAttachment.getAllAttachments()) {
-            registerAttachment(cache, attachment, "attachment/" + attachment.id.toLowerCase(Locale.ROOT));
+            registerAttachment(attachment, "attachment/" + attachment.id.toLowerCase(Locale.ROOT), saver);
         }
     }
 
     /**
      * Register a simple attachment part model, and return the id of the model.
      */
-    private void registerAttachment(CachedOutput cache, RenderedAttachment attachment, String texture) throws IOException {
+    private void registerAttachment(RenderedAttachment attachment, String texture, BiConsumer<JsonElement, Path> saver) {
         var obj = new JsonObject();
         obj.addProperty("parent", MdId.of("base/connector_transparent").toString());
         var textures = new JsonObject();
         obj.add("textures", textures);
         textures.addProperty("0", MdId.of(texture).toString());
 
-        DataProvider.saveStable(cache, obj,
-                gen.getOutputFolder().resolve("assets/%s/models/attachment/%s.json".formatted(gen.getModId(), attachment.id)));
+        saver.accept(obj,
+                dataOutput.getOutputFolder().resolve("assets/%s/models/attachment/%s.json".formatted(dataOutput.getModId(), attachment.id)));
     }
 
     @Override

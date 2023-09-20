@@ -22,6 +22,7 @@ import dev.technici4n.moderndynamics.extender.MachineExtenderBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 public class MdBlocks {
 
@@ -107,10 +108,10 @@ public class MdBlocks {
 
     public static void init() {
         for (var block : ALL_PIPES) {
-            Registry.register(Registry.BLOCK, MdId.of(block.id), block);
+            Registry.register(BuiltInRegistries.BLOCK, MdId.of(block.id), block);
         }
 
-        Registry.register(Registry.BLOCK, MdId.of(MACHINE_EXTENDER.id), MACHINE_EXTENDER);
+        Registry.register(BuiltInRegistries.BLOCK, MdId.of(MACHINE_EXTENDER.id), MACHINE_EXTENDER);
     }
 
 }

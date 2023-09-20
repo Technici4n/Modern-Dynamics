@@ -27,7 +27,7 @@ import java.util.List;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -142,7 +142,7 @@ public abstract class NodeHost {
     }
 
     @Nullable
-    public abstract Object getApiInstance(BlockApiLookup<?, Direction> lookup, Direction side);
+    public abstract Object getApiInstance(BlockApiLookup<?, Direction> lookup, @Nullable Direction side);
 
     @SuppressWarnings("unchecked")
     @Nullable
@@ -211,7 +211,7 @@ public abstract class NodeHost {
             for (var attachment : attachments) {
                 var attachmentTag = new CompoundTag();
                 if (attachment != null) {
-                    var id = Registry.ITEM.getKey(attachment.getItem());
+                    var id = BuiltInRegistries.ITEM.getKey(attachment.getItem());
                     attachmentTag.putString("#i", id.toString());
                     attachment.writeConfigTag(attachmentTag);
                 }
@@ -230,7 +230,7 @@ public abstract class NodeHost {
 
                 if (i < attachmentTags.size()) {
                     var attachmentTag = attachmentTags.getCompound(i);
-                    var item = Registry.ITEM.get(new ResourceLocation(attachmentTag.getString("#i")));
+                    var item = BuiltInRegistries.ITEM.get(new ResourceLocation(attachmentTag.getString("#i")));
                     if ((item instanceof AttachmentItem attachmentItem)) {
                         this.attachments[i] = attachmentItem.createAttached(this, attachmentTag);
                     }

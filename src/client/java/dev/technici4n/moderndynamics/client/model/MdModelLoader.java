@@ -23,67 +23,51 @@ import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.HashMap;
 import java.util.Map;
-import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
-import net.fabricmc.fabric.api.client.model.ModelProviderContext;
-import net.fabricmc.fabric.api.client.model.ModelResourceProvider;
-import net.fabricmc.fabric.api.client.model.ModelVariantProvider;
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.fabricmc.fabric.api.client.model.loading.v1.DelegatingUnbakedModel;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
+import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Allows us to load our custom jsons.
  */
 public final class MdModelLoader {
     public static void init() {
-        ModelLoadingRegistry.INSTANCE.registerVariantProvider(rm -> new VariantProvider());
-        ModelLoadingRegistry.INSTANCE.registerResourceProvider(rm -> new ResourceProvider());
+        ModelLoadingPlugin.register(pluginCtx -> {
+            Map<String, UnbakedModel> pipeItemModels = new HashMap<>();
 
-        for (var pipe : MdBlocks.ALL_PIPES) {
-            ALL_PIPES.put(pipe.id, pipe.isTransparent());
-        }
-    }
+            for (var pipe : MdBlocks.ALL_PIPES) {
+                pipeItemModels.put("item/" + pipe.id, new DelegatingUnbakedModel(BlockModelShaper.stateToModelLocation(pipe.defaultBlockState())));
 
-    private static final Map<String, Boolean> ALL_PIPES = new HashMap<>();
-
-    private static class VariantProvider implements ModelVariantProvider {
-        @Override
-        @Nullable
-        public UnbakedModel loadModelVariant(ModelResourceLocation modelId, ModelProviderContext context) {
-            if (!modelId.getNamespace().equals(MdId.MOD_ID)) {
-                return null;
+                pluginCtx.registerBlockStateResolver(pipe, ctx -> {
+                    var model = new PipeUnbakedModel(pipe.id, pipe.isTransparent());
+                    for (var state : pipe.getStateDefinition().getPossibleStates()) {
+                        ctx.setModel(state, model);
+                    }
+                });
             }
 
-            var path = modelId.getPath();
-            Boolean transparent = ALL_PIPES.get(path);
-
-            if (transparent != null) {
-                return new PipeUnbakedModel(path, transparent);
-            }
-
-            return null;
-        }
-    }
-
-    private static class ResourceProvider implements ModelResourceProvider {
-        @Override
-        @Nullable
-        public UnbakedModel loadModelResource(ResourceLocation resourceId, ModelProviderContext context) {
-            if (!resourceId.getNamespace().equals(MdId.MOD_ID)) {
-                return null;
-            }
-
-            var path = resourceId.getPath();
-            if (path.equals(AttachmentsUnbakedModel.ID.getPath())) {
-                var modelMap = new HashMap<String, ResourceLocation>();
-                for (var id : RenderedAttachment.getAttachmentIds()) {
-                    modelMap.put(id, MdId.of("attachment/" + id));
+            pluginCtx.resolveModel().register(ctx -> {
+                if (!MdId.MOD_ID.equals(ctx.id().getNamespace())) {
+                    return null;
                 }
-                return new AttachmentsUnbakedModel(modelMap);
-            }
 
-            return null;
-        }
+                if (AttachmentsUnbakedModel.ID.getPath().equals(ctx.id().getPath())) {
+                    var modelMap = new HashMap<String, ResourceLocation>();
+                    for (var id : RenderedAttachment.getAttachmentIds()) {
+                        modelMap.put(id, MdId.of("attachment/" + id));
+                    }
+                    return new AttachmentsUnbakedModel(modelMap);
+                }
+
+                if (pipeItemModels.containsKey(ctx.id().getPath())) {
+                    return pipeItemModels.get(ctx.id().getPath());
+                }
+
+                return null;
+            });
+
+        });
     }
 }

@@ -6,7 +6,7 @@
         "items": [
           {
             "items": [
-              "minecraft:iron_ingot"
+              "minecraft:copper_ingot"
             ]
           }
         ]
@@ -15,7 +15,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:item_pipe"
+        "recipe": "moderndynamics:fluid_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -28,7 +28,8 @@
   ],
   "rewards": {
     "recipes": [
-      "moderndynamics:item_pipe"
+      "moderndynamics:fluid_pipe"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

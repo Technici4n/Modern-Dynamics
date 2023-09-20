@@ -18,7 +18,6 @@
  */
 package dev.technici4n.moderndynamics.pipe;
 
-import dev.technici4n.moderndynamics.util.MdItemGroup;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.BlockItem;
@@ -29,7 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class PipeItem extends BlockItem {
     public PipeItem(PipeBlock block) {
-        super(block, new Item.Properties().tab(MdItemGroup.getInstance()));
+        super(block, new Item.Properties());
         block.setItem(this);
     }
 

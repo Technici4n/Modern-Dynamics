@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_lapis": {
+    "has_ingot": {
       "conditions": {
         "items": [
           {
             "items": [
-              "minecraft:lapis_lazuli"
+              "minecraft:iron_ingot"
             ]
           }
         ]
@@ -15,20 +15,21 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:filter"
+        "recipe": "moderndynamics:item_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
   },
   "requirements": [
     [
-      "has_lapis",
+      "has_ingot",
       "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
-      "moderndynamics:filter"
+      "moderndynamics:item_pipe"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

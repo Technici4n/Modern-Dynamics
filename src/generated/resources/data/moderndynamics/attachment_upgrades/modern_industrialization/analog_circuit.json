@@ -1,6 +1,4 @@
 {
-  "addFilterSlots": 2,
-  "enableAdvancedBehavior": true,
   "fabric:load_conditions": [
     {
       "condition": "fabric:all_mods_loaded",
@@ -9,6 +7,8 @@
       ]
     }
   ],
+  "addFilterSlots": 2,
+  "enableAdvancedBehavior": true,
   "item": "modern_industrialization:analog_circuit",
   "slotLimit": 6
 }

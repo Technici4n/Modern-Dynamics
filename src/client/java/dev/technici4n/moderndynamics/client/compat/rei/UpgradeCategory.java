@@ -109,7 +109,7 @@ public class UpgradeCategory implements DisplayCategory<UpgradeDisplay> {
                 var renderedString = e.count() > 0 ? "" + e.count() : "";
                 widgets.add(Widgets.createLabel(new Point(baseX + countXOffset, countY), Component.literal(renderedString)).noShadow()
                         .color(0xFF404040, 0xFFBBBBBB));
-                widgets.add(Widgets.createDrawableWidget((helper, matrices, mouseX, mouseY, delta) -> {
+                widgets.add(Widgets.createDrawableWidget((guiGraphics, mouseX, mouseY, delta) -> {
                     if (tooltipRect.contains(mouseX, mouseY)) {
                         Tooltip.create(tooltip).queue();
                     }

@@ -168,7 +168,7 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
             return true;
 
         var pos = pipe.getBlockPos();
-        if (player.getLevel().getBlockEntity(pos) != pipe) {
+        if (player.level().getBlockEntity(pos) != pipe) {
             return false;
         }
         if (player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) > 64.0D) {

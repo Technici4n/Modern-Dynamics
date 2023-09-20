@@ -1,6 +1,4 @@
 {
-  "addItemSpeed": 1,
-  "addItemTransferFrequency": 1,
   "fabric:load_conditions": [
     {
       "condition": "fabric:all_mods_loaded",
@@ -9,6 +7,8 @@
       ]
     }
   ],
+  "addItemSpeed": 1,
+  "addItemTransferFrequency": 1,
   "item": "modern_industrialization:motor",
   "slotLimit": 5
 }

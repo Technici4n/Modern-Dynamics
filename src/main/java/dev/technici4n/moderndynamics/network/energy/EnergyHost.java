@@ -46,6 +46,7 @@ public class EnergyHost extends NodeHost {
     private final TransferLimits extractLimit = new TransferLimits(this::getTransferLimit, 0);
     // Caps
     private final EnergyStorage[] caps = new EnergyStorage[6];
+    private final EnergyStorage unsidedCap = new ReadOnlyNetworkStorage();
 
     public EnergyHost(PipeBlockEntity pipe, EnergyPipeTier tier) {
         super(pipe);
@@ -62,12 +63,15 @@ public class EnergyHost extends NodeHost {
     }
 
     @Override
-    public Object getApiInstance(BlockApiLookup<?, Direction> lookup, Direction side) {
-        if (lookup == EnergyStorage.SIDED && (pipe.connectionBlacklist & (1 << side.get3DDataValue())) == 0) {
-            return caps[side.get3DDataValue()];
-        } else {
-            return null;
+    public Object getApiInstance(BlockApiLookup<?, Direction> lookup, @Nullable Direction side) {
+        if (lookup == EnergyStorage.SIDED) {
+            if (side == null) {
+                return unsidedCap;
+            } else if ((pipe.connectionBlacklist & (1 << side.get3DDataValue())) == 0) {
+                return caps[side.get3DDataValue()];
+            }
         }
+        return null;
     }
 
     public long getEnergy() {
@@ -192,7 +196,33 @@ public class EnergyHost extends NodeHost {
         }
     }
 
-    private class NetworkEnergyStorage implements EnergyStorage {
+    private abstract class AbstractNetworkStorage implements EnergyStorage {
+        @Override
+        public final long getAmount() {
+            @Nullable
+            NetworkNode<EnergyHost, EnergyCache> node = findNode();
+
+            if (node != null && node.getHost() == EnergyHost.this) {
+                return node.getNetworkCache().getAmount();
+            }
+
+            return 0;
+        }
+
+        @Override
+        public final long getCapacity() {
+            @Nullable
+            NetworkNode<EnergyHost, EnergyCache> node = findNode();
+
+            if (node != null && node.getHost() == EnergyHost.this) {
+                return node.getNetworkCache().getCapacity();
+            }
+
+            return 0;
+        }
+    }
+
+    private class NetworkEnergyStorage extends AbstractNetworkStorage {
         private final int directionId;
 
         private NetworkEnergyStorage(int directionId) {
@@ -240,28 +270,16 @@ public class EnergyHost extends NodeHost {
 
             return 0;
         }
+    }
 
+    private class ReadOnlyNetworkStorage extends AbstractNetworkStorage {
         @Override
-        public long getAmount() {
-            @Nullable
-            NetworkNode<EnergyHost, EnergyCache> node = findNode();
-
-            if (node != null && node.getHost() == EnergyHost.this) {
-                return node.getNetworkCache().getAmount();
-            }
-
+        public long insert(long maxAmount, TransactionContext transaction) {
             return 0;
         }
 
         @Override
-        public long getCapacity() {
-            @Nullable
-            NetworkNode<EnergyHost, EnergyCache> node = findNode();
-
-            if (node != null && node.getHost() == EnergyHost.this) {
-                return node.getNetworkCache().getCapacity();
-            }
-
+        public long extract(long maxAmount, TransactionContext transaction) {
             return 0;
         }
     }

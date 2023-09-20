@@ -18,13 +18,13 @@
  */
 package dev.technici4n.moderndynamics.client.screen;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.FilterNbtMode;
 import dev.technici4n.moderndynamics.attachment.settings.OversendingMode;
 import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
 import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import java.util.List;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -124,7 +124,7 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
     }
 
     @Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (decMaxItemsInInventory != null && incMaxItemsInInventory != null) {
             decMaxItemsInInventory.active = menu.getMaxItemsInInventory() > 0;
             incMaxItemsInInventory.active = menu.getMaxItemsInInventory() < Integer.MAX_VALUE;
@@ -146,34 +146,34 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
             oversendingModeButton.setValue(menu.getOversendingMode());
         }
 
-        super.render(poseStack, mouseX, mouseY, partialTick);
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         // Render tooltips (except buttons, those are handled in the buttons themselves)
         if (maxItemsInInventoryTooltipRect != null && maxItemsInInventoryTooltipRect.contains(Math.round(mouseX), Math.round(mouseY))) {
-            renderTooltip(poseStack, Component.translatable("gui.moderndynamics.setting.max_items_in_inventory.tooltip"), mouseX, mouseY);
+            guiGraphics.renderTooltip(font, Component.translatable("gui.moderndynamics.setting.max_items_in_inventory.tooltip"), mouseX, mouseY);
         } else if (maxItemsExtractedTooltipRect != null && maxItemsExtractedTooltipRect.contains(Math.round(mouseX), Math.round(mouseY))) {
-            renderTooltip(poseStack, Component.translatable("gui.moderndynamics.setting.max_items_extracted.tooltip"), mouseX, mouseY);
+            guiGraphics.renderTooltip(font, Component.translatable("gui.moderndynamics.setting.max_items_extracted.tooltip"), mouseX, mouseY);
         } else {
-            this.renderTooltip(poseStack, mouseX, mouseY);
+            this.renderTooltip(guiGraphics, mouseX, mouseY);
         }
     }
 
     @Override
-    protected void renderBg(PoseStack matrices, float delta, int mouseX, int mouseY) {
-        super.renderBg(matrices, delta, mouseX, mouseY);
+    protected void renderBg(GuiGraphics guiGraphics, float delta, int mouseX, int mouseY) {
+        super.renderBg(guiGraphics, delta, mouseX, mouseY);
 
         // Render current settings for max total items
         if (menu.isSettingSupported(Setting.MAX_ITEMS_IN_INVENTORY)) {
-            renderMaxItemsInInventoryValue(matrices);
+            renderMaxItemsInInventoryValue(guiGraphics);
         }
 
         // Render current settings for max extraction amount
         if (menu.isSettingSupported(Setting.MAX_ITEMS_EXTRACTED)) {
-            renderMaxItemsExtractedValue(matrices);
+            renderMaxItemsExtractedValue(guiGraphics);
         }
     }
 
-    private void renderMaxItemsInInventoryValue(PoseStack matrices) {
+    private void renderMaxItemsInInventoryValue(GuiGraphics guiGraphics) {
         var text = getMaxItemsInInventoryText();
         var width = font.width(text);
         var rect = new Rect2i(
@@ -181,11 +181,11 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
                 topPos + 18,
                 width,
                 font.lineHeight);
-        font.draw(matrices, text, rect.getX(), rect.getY(), 0x404040);
+        guiGraphics.drawString(font, text, rect.getX(), rect.getY(), 0x404040, false);
         maxItemsInInventoryTooltipRect = rect;
     }
 
-    private void renderMaxItemsExtractedValue(PoseStack matrices) {
+    private void renderMaxItemsExtractedValue(GuiGraphics guiGraphics) {
         var text = String.valueOf(menu.getMaxItemsExtracted());
         var width = font.width(text);
         var rect = new Rect2i(
@@ -193,7 +193,7 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
                 topPos + 46,
                 width,
                 font.lineHeight);
-        font.draw(matrices, text, rect.getX(), rect.getY(), 0x404040);
+        guiGraphics.drawString(font, text, rect.getX(), rect.getY(), 0x404040, false);
         maxItemsExtractedTooltipRect = rect;
     }
 

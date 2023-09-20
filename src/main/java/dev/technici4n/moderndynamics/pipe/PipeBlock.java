@@ -43,8 +43,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -58,7 +58,7 @@ public class PipeBlock extends MdBlock implements EntityBlock, SimpleWaterlogged
     private boolean transparent = true;
 
     public PipeBlock(String id) {
-        super(id, Properties.of(Material.METAL).noOcclusion().isRedstoneConductor((state, world, pos) -> false).destroyTime(0.2f));
+        super(id, Properties.of().mapColor(MapColor.METAL).noOcclusion().isRedstoneConductor((state, world, pos) -> false).destroyTime(0.2f));
         this.registerDefaultState(this.defaultBlockState().setValue(WATERLOGGED, false));
     }
 
@@ -111,9 +111,9 @@ public class PipeBlock extends MdBlock implements EntityBlock, SimpleWaterlogged
     }
 
     @Override
-    public List<ItemStack> getDrops(BlockState state, LootContext.Builder builder) {
-        var drops = super.getDrops(state, builder);
-        if (builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof PipeBlockEntity pipe) {
+    public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        var drops = super.getDrops(state, params);
+        if (params.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof PipeBlockEntity pipe) {
             for (var host : pipe.getHosts()) {
                 host.addDrops(drops);
             }

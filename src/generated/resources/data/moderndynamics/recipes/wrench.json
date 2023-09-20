@@ -1,5 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "equipment",
   "key": {
     "i": {
       "item": "minecraft:iron_ingot"
@@ -15,5 +16,6 @@
   ],
   "result": {
     "item": "moderndynamics:wrench"
-  }
+  },
+  "show_notification": true
 }

@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import mezz.jei.api.fabric.ingredients.fluids.IJeiFluidIngredient;
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
+import mezz.jei.api.ingredients.ITypedIngredient;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.client.renderer.Rect2i;
@@ -37,10 +38,10 @@ import net.minecraft.world.item.ItemStack;
 class GhostIngredientHandler implements IGhostIngredientHandler<AttachedIoScreen> {
     @SuppressWarnings("unchecked")
     @Override
-    public <I> List<Target<I>> getTargets(AttachedIoScreen gui, I ingredient, boolean doStart) {
+    public <I> List<Target<I>> getTargetsTyped(AttachedIoScreen gui, ITypedIngredient<I> ingredient, boolean doStart) {
         var targets = new ArrayList<Target<I>>();
 
-        if (gui instanceof ItemAttachedIoScreen ioScreen && ingredient instanceof ItemStack) {
+        if (gui instanceof ItemAttachedIoScreen ioScreen && ingredient.getIngredient() instanceof ItemStack) {
             for (var s : ioScreen.getMenu().slots) {
                 if (s instanceof ItemConfigSlot slot && slot.isActive()) {
                     targets.add((Target<I>) new ItemSlotTarget(slot, ioScreen));

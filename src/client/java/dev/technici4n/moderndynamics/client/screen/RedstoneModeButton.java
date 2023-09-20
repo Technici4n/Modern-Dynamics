@@ -19,11 +19,11 @@
 package dev.technici4n.moderndynamics.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Rect2i;
@@ -36,7 +36,7 @@ public class RedstoneModeButton extends Button {
 
     public RedstoneModeButton(RedstoneMode mode, Supplier<RedstoneMode> getter, BiConsumer<RedstoneMode, Boolean> setter) {
         super(0, 0, 16, 16, mode.getTranslation(), button -> {
-        });
+        }, DEFAULT_NARRATION);
         this.mode = mode;
         this.getter = getter;
         this.setter = setter;
@@ -52,7 +52,7 @@ public class RedstoneModeButton extends Button {
     }
 
     @Override
-    public void renderButton(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         if (scissorRect == null) {
             return;
         }
@@ -64,7 +64,6 @@ public class RedstoneModeButton extends Button {
                 scissorRect.getHeight());
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, ItemAttachedIoScreen.TEXTURE);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         var x = 176;
         if (!isActive()) {
@@ -75,7 +74,7 @@ public class RedstoneModeButton extends Button {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
-        this.blit(poseStack, this.x, this.y, x, 180, width, height);
+        guiGraphics.blit(ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), x, 180, width, height);
 
         // Draw an icon appropriate for the mode of this button
         int iconX = 240;
@@ -84,11 +83,11 @@ public class RedstoneModeButton extends Button {
         case REQUIRES_LOW -> 240;
         case REQUIRES_HIGH -> 224;
         };
-        this.blit(poseStack, this.x, this.y, iconX, iconY, 16, 16);
+        guiGraphics.blit(ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), iconX, iconY, 16, 16);
         RenderSystem.disableScissor();
 
         if (this.isHovered) {
-            Minecraft.getInstance().screen.renderTooltip(poseStack, getMessage(), mouseX, mouseY);
+            guiGraphics.renderTooltip(Minecraft.getInstance().font, getMessage(), mouseX, mouseY);
         }
     }
 }

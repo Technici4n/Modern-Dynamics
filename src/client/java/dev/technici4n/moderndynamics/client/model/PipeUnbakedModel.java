@@ -18,23 +18,20 @@
  */
 package dev.technici4n.moderndynamics.client.model;
 
-import com.mojang.datafixers.util.Pair;
 import dev.technici4n.moderndynamics.util.MdId;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import net.fabricmc.fabric.api.renderer.v1.model.WrapperBakedModel;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.BlockModelRotation;
 import net.minecraft.client.resources.model.Material;
-import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.InventoryMenu;
 import org.jetbrains.annotations.Nullable;
 
 public class PipeUnbakedModel implements UnbakedModel {
@@ -44,18 +41,18 @@ public class PipeUnbakedModel implements UnbakedModel {
     private final boolean transparent;
 
     public PipeUnbakedModel(String pipeType, boolean transparent) {
-        this.baseTexture = new Material(TextureAtlas.LOCATION_BLOCKS, MdId.of("pipe/" + pipeType + "/base"));
+        this.baseTexture = new Material(InventoryMenu.BLOCK_ATLAS, MdId.of("pipe/" + pipeType + "/base"));
         this.connector = MdId.of("pipe/" + pipeType + "/connector");
         this.straightLine = MdId.of("pipe/" + pipeType + "/straight");
         this.transparent = transparent;
     }
 
-    public static BakedModel[] loadRotatedModels(ResourceLocation modelId, ModelBakery modelLoader) {
+    public static BakedModel[] loadRotatedModels(ResourceLocation modelId, ModelBaker baker) {
         // Load side models
         BakedModel[] models = new BakedModel[6];
 
         for (int i = 0; i < 6; ++i) {
-            models[i] = modelLoader.bake(modelId, MdModels.PIPE_BAKE_SETTINGS[i]);
+            models[i] = baker.bake(modelId, MdModels.PIPE_BAKE_SETTINGS[i]);
         }
 
         return models;
@@ -67,24 +64,21 @@ public class PipeUnbakedModel implements UnbakedModel {
     }
 
     @Override
-    public Collection<Material> getMaterials(Function<ResourceLocation, UnbakedModel> modelGetter, Set<Pair<String, String>> missingTextureErrors) {
-        List<Material> list = new ArrayList<>();
-        list.add(baseTexture);
-        list.addAll(modelGetter.apply(connector).getMaterials(modelGetter, missingTextureErrors));
-        list.addAll(modelGetter.apply(straightLine).getMaterials(modelGetter, missingTextureErrors));
-        list.addAll(modelGetter.apply(AttachmentsUnbakedModel.ID).getMaterials(modelGetter, missingTextureErrors));
-        return list;
+    public void resolveParents(Function<ResourceLocation, UnbakedModel> resolver) {
+        resolver.apply(connector).resolveParents(resolver);
+        resolver.apply(straightLine).resolveParents(resolver);
+        resolver.apply(AttachmentsUnbakedModel.ID).resolveParents(resolver);
     }
 
     @Nullable
     @Override
-    public BakedModel bake(ModelBakery modelBakery, Function<Material, TextureAtlasSprite> spriteGetter, ModelState transform,
+    public BakedModel bake(ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState transform,
             ResourceLocation location) {
         return new PipeBakedModel(
                 spriteGetter.apply(baseTexture),
-                loadRotatedModels(connector, modelBakery),
-                loadRotatedModels(straightLine, modelBakery),
-                (AttachmentsBakedModel) WrapperBakedModel.unwrap(modelBakery.bake(AttachmentsUnbakedModel.ID, BlockModelRotation.X0_Y0)),
+                loadRotatedModels(connector, baker),
+                loadRotatedModels(straightLine, baker),
+                (AttachmentsBakedModel) WrapperBakedModel.unwrap(baker.bake(AttachmentsUnbakedModel.ID, BlockModelRotation.X0_Y0)),
                 transparent);
     }
 }

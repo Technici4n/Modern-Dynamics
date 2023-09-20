@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_iron": {
+    "has_hopper": {
       "conditions": {
         "items": [
           {
             "items": [
-              "minecraft:iron_ingot"
+              "minecraft:hopper"
             ]
           }
         ]
@@ -15,20 +15,21 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:wrench"
+        "recipe": "moderndynamics:extractor"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
   },
   "requirements": [
     [
-      "has_iron",
+      "has_hopper",
       "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
-      "moderndynamics:wrench"
+      "moderndynamics:extractor"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

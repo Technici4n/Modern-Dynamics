@@ -19,7 +19,7 @@
 package dev.technici4n.moderndynamics.model;
 
 import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -31,14 +31,14 @@ import org.jetbrains.annotations.Nullable;
 public record AttachmentModelData(String modelId, Item item) {
     public CompoundTag write(CompoundTag tag) {
         tag.putString("model", modelId);
-        tag.putString("item", Registry.ITEM.getKey(item).toString());
+        tag.putString("item", BuiltInRegistries.ITEM.getKey(item).toString());
         return tag;
     }
 
     @Nullable
     public static AttachmentModelData from(CompoundTag tag) {
         var modelId = tag.getString("model");
-        var item = Registry.ITEM.get(new ResourceLocation(tag.getString("item")));
+        var item = BuiltInRegistries.ITEM.get(new ResourceLocation(tag.getString("item")));
         if (!modelId.isEmpty()) {
             return new AttachmentModelData(modelId, item);
         }

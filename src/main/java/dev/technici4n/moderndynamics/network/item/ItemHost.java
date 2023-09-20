@@ -82,8 +82,8 @@ public class ItemHost extends NodeHost {
 
     @Override
     @Nullable
-    public Object getApiInstance(BlockApiLookup<?, Direction> lookup, Direction side) {
-        if (lookup == ItemStorage.SIDED && allowItemConnection(side)) {
+    public Object getApiInstance(BlockApiLookup<?, Direction> lookup, @Nullable Direction side) {
+        if (lookup == ItemStorage.SIDED && side != null && allowItemConnection(side)) {
             return buildExternalNetworkInjectStorage(side);
         }
         return null;

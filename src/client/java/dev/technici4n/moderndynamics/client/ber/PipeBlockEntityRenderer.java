@@ -19,7 +19,7 @@
 package dev.technici4n.moderndynamics.client.ber;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.network.fluid.FluidHost;
 import dev.technici4n.moderndynamics.network.item.ItemHost;
@@ -28,11 +28,11 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.Random;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.phys.Vec3;
 
 public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEntity> {
@@ -78,7 +78,7 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
                     // Cool rotation
                     float rotAngle = (float) ((ClientTravelingItemSmoothing.getClientTick() + tickDelta) * item.speed()
                             + random.nextFloat() * 2 * Math.PI);
-                    matrices.mulPose(Vector3f.YP.rotation(rotAngle));
+                    matrices.mulPose(Axis.YP.rotation(rotAngle));
 
                     // Render multiple items depending on stack size
                     int renderCount = getRenderAmount(item.amount());
@@ -91,8 +91,8 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
                                 (this.random.nextFloat() * 2.0f - 1.0f) * 0.02f,
                                 (this.random.nextFloat() * 2.0f - 1.0f) * 0.02f,
                                 r * 0.1);
-                        Minecraft.getInstance().getItemRenderer().renderStatic(item.variant().toStack(), ItemTransforms.TransformType.GROUND, light,
-                                overlay, matrices, vertexConsumers, 0);
+                        Minecraft.getInstance().getItemRenderer().renderStatic(item.variant().toStack(), ItemDisplayContext.GROUND, light, overlay,
+                                matrices, vertexConsumers, pipe.getLevel(), 0);
                         matrices.popPose();
                     }
 

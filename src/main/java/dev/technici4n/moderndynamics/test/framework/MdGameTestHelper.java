@@ -25,6 +25,7 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -56,7 +57,7 @@ public class MdGameTestHelper extends GameTestHelper {
         var storage = FluidStorage.SIDED.find(getLevel(), absolutePos(pos), Direction.UP);
 
         if (storage != null) {
-            var storedAmount = storage.simulateExtract(FluidVariant.of(fluid), Long.MAX_VALUE, null);
+            var storedAmount = StorageUtil.simulateExtract(storage, FluidVariant.of(fluid), Long.MAX_VALUE, null);
 
             if (storedAmount >= minAmount) {
                 return;
@@ -73,7 +74,7 @@ public class MdGameTestHelper extends GameTestHelper {
         var storage = ItemStorage.SIDED.find(getLevel(), absolutePos(pos), Direction.UP);
 
         if (storage != null) {
-            var storedAmount = storage.simulateExtract(ItemVariant.of(item), Long.MAX_VALUE, null);
+            var storedAmount = StorageUtil.simulateExtract(storage, ItemVariant.of(item), Long.MAX_VALUE, null);
 
             if (storedAmount >= minAmount) {
                 return;

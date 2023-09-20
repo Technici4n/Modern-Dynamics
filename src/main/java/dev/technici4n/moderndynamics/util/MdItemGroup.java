@@ -19,21 +19,31 @@
 package dev.technici4n.moderndynamics.util;
 
 import dev.technici4n.moderndynamics.init.MdItems;
-import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 
 public final class MdItemGroup {
-    private static final CreativeModeTab INSTANCE = FabricItemGroupBuilder.create(MdId.of(MdId.MOD_ID))
+    public static final ResourceKey<CreativeModeTab> KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, MdId.of(MdId.MOD_ID));
+
+    private static final CreativeModeTab INSTANCE = FabricItemGroup.builder()
+            .title(Component.translatable("itemGroup.moderndynamics.moderndynamics"))
             .icon(() -> new ItemStack(MdItems.ITEM_PIPE))
+            .displayItems((params, output) -> {
+                for (var entry : BuiltInRegistries.ITEM.entrySet()) {
+                    if (MdId.MOD_ID.equals(entry.getKey().location().getNamespace()) && entry.getValue() != MdItems.DEBUG_TOOL) {
+                        output.accept(entry.getValue().getDefaultInstance());
+                    }
+                }
+            })
             .build();
 
-    public static CreativeModeTab getInstance() {
-        return INSTANCE;
-    }
-
     public static void init() {
-        // init static
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, KEY, INSTANCE);
     }
-
 }

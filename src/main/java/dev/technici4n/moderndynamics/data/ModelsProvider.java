@@ -21,7 +21,7 @@ package dev.technici4n.moderndynamics.data;
 import dev.technici4n.moderndynamics.extender.MachineExtenderBlock;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdItems;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 import net.minecraft.data.models.BlockModelGenerators;
 import net.minecraft.data.models.ItemModelGenerators;
@@ -35,8 +35,8 @@ import net.minecraft.data.models.model.TextureSlot;
 import net.minecraft.resources.ResourceLocation;
 
 public class ModelsProvider extends FabricModelProvider {
-    public ModelsProvider(FabricDataGenerator dataGenerator) {
-        super(dataGenerator);
+    public ModelsProvider(FabricDataOutput dataOutput) {
+        super(dataOutput);
     }
 
     @Override

@@ -43,5 +43,6 @@
     "recipes": [
       "moderndynamics:machine_extender"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

@@ -61,6 +61,7 @@ public class FluidHost extends NodeHost {
     }, FluidConstants.BUCKET);
     // Caps
     private final Storage<FluidVariant>[] caps = new Storage[6];
+    private final Storage<FluidVariant> unsidedCap;
 
     public FluidHost(PipeBlockEntity pipe) {
         super(pipe);
@@ -79,6 +80,27 @@ public class FluidHost extends NodeHost {
                 }
             };
         }
+        unsidedCap = new FilteringStorage<>(this::getInternalNetworkStorage) {
+            @Override
+            protected boolean canInsert(FluidVariant resource) {
+                return false;
+            }
+
+            @Override
+            protected boolean canExtract(FluidVariant resource) {
+                return false;
+            }
+
+            @Override
+            public boolean supportsInsertion() {
+                return false;
+            }
+
+            @Override
+            public boolean supportsExtraction() {
+                return false;
+            }
+        };
     }
 
     @Override
@@ -88,12 +110,15 @@ public class FluidHost extends NodeHost {
 
     @Override
     @Nullable
-    public Object getApiInstance(BlockApiLookup<?, Direction> lookup, Direction side) {
-        if (lookup == FluidStorage.SIDED && (pipe.connectionBlacklist & (1 << side.get3DDataValue())) == 0) {
-            return caps[side.get3DDataValue()];
-        } else {
-            return null;
+    public Object getApiInstance(BlockApiLookup<?, Direction> lookup, @Nullable Direction side) {
+        if (lookup == FluidStorage.SIDED) {
+            if (side == null) {
+                return unsidedCap;
+            } else if ((pipe.connectionBlacklist & (1 << side.get3DDataValue())) == 0) {
+                return caps[side.get3DDataValue()];
+            }
         }
+        return null;
     }
 
     public long getAmount() {

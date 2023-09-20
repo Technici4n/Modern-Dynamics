@@ -66,7 +66,7 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
     protected boolean trySetFilterOnShiftClick(int clickedSlot) {
         // Find resource that's not configured yet
         var fluidVariant = StorageUtil.findStoredResource(
-                ContainerItemContext.withInitial(slots.get(clickedSlot).getItem()).find(FluidStorage.ITEM),
+                ContainerItemContext.withConstant(slots.get(clickedSlot).getItem()).find(FluidStorage.ITEM),
                 fv -> {
                     for (var slot : slots) {
                         if (slot instanceof FluidConfigSlot fluidConfig) {

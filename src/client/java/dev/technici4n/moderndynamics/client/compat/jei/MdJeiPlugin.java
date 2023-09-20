@@ -25,19 +25,23 @@ import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.helpers.IPlatformFluidHelper;
+import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.runtime.IClickableIngredient;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.Nullable;
 
 @JeiPlugin
 public class MdJeiPlugin implements IModPlugin {
@@ -85,16 +89,33 @@ public class MdJeiPlugin implements IModPlugin {
             }
 
             @Override
-            public @Nullable Object getIngredientUnderMouse(AttachedIoScreen screen, double mouseX, double mouseY) {
+            public Optional<IClickableIngredient<?>> getClickableIngredientUnderMouse(AttachedIoScreen<?> screen, double mouseX, double mouseY) {
                 // Ensures that users can press R, U, etc... on fluid config slots.
                 if (screen.getHoveredSlot() instanceof FluidConfigSlot fluidConfig) {
                     var variant = fluidConfig.getFilter();
                     if (!variant.isBlank()) {
-                        return platformFluidHelper.create(variant.getFluid(), 1, variant.getNbt());
+                        var ing = registration.getJeiHelpers().getIngredientManager();
+                        return ing.createTypedIngredient(platformFluidHelper.create(variant.getFluid(), 1, variant.getNbt()))
+                                .map(slotArea(screen, fluidConfig));
                     }
                 }
 
-                return null;
+                return Optional.empty();
+            }
+
+            private static <T> Function<ITypedIngredient<T>, IClickableIngredient<T>> slotArea(AttachedIoScreen<?> screen, Slot slot) {
+                var area = new Rect2i(screen.getLeftPos() + slot.x, screen.getTopPos() + slot.y, 16, 16);
+                return ing -> new IClickableIngredient<>() {
+                    @Override
+                    public ITypedIngredient<T> getTypedIngredient() {
+                        return ing;
+                    }
+
+                    @Override
+                    public Rect2i getArea() {
+                        return area;
+                    }
+                };
             }
         });
 
