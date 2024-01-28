@@ -18,23 +18,41 @@
  */
 package dev.technici4n.moderndynamics.data;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class RecipesProvider extends RecipeProvider {
+
+    private final PackOutput packOutput;
+
     public RecipesProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
         super(packOutput, registries);
+        this.packOutput = packOutput;
     }
 
     @Override
@@ -112,44 +130,62 @@ public class RecipesProvider extends RecipeProvider {
                 .unlockedBy("has_fluid_pipe", has(MdItems.FLUID_PIPE))
                 .save(exporter);
 
-        var miExporter = exporter.withConditions(new ModLoadedCondition("modern_industrialization"));
-        generateMiCableRecipes("lv", "tin_cable", miExporter);
-        generateMiCableRecipes("mv", "electrum_cable", miExporter);
-        generateMiCableRecipes("hv", "aluminum_cable", miExporter);
-        generateMiCableRecipes("ev", "annealed_copper_cable", miExporter);
-        generateMiCableRecipes("superconductor", "superconductor_cable", miExporter);
+        generateMiCableRecipes("lv", "tin_cable");
+        generateMiCableRecipes("mv", "electrum_cable");
+        generateMiCableRecipes("hv", "aluminum_cable");
+        generateMiCableRecipes("ev", "annealed_copper_cable");
+        generateMiCableRecipes("superconductor", "superconductor_cable");
     }
 
-    private void generateMiCableRecipes(String cableName, String miCable, RecipeOutput exporter) {
+    private void generateMiCableRecipes(String cableName, String miCable) {
         String mdCableItemId = MdId.of(cableName + "_cable").toString();
         String miCableItemId = "modern_industrialization:" + miCable;
+        var condition = new ModLoadedCondition("modern_industrialization");
+        writeRawRecipe(MdId.of("cable/%s_from_mi".formatted(cableName)), Map.of(
+                "type", getRecipeTypeId(RecipeSerializer.SHAPELESS_RECIPE),
+                "ingredients", List.of(
+                        Map.of(
+                                "item", miCableItemId
+                        )
+                ),
+                "result", Map.of(
+                        "item", mdCableItemId,
+                        "count", 4
+                )
+        ), condition);
 
-        exporter.accept(MdId.of("cable/%s_from_mi".formatted(cableName)), new JsonFinishedRecipe(RecipeSerializer.SHAPELESS_RECIPE, """
-                {
-                    "ingredients": [
-                        {
-                            "item": "%s"
-                        }
-                    ],
-                    "result": {
-                        "item": "%s",
-                        "count": 4
-                    }
-                }
-                """.formatted(miCableItemId, mdCableItemId)), null);
+        writeRawRecipe(MdId.of("cable/%s_to_mi".formatted(cableName)), Map.of(
+                "type", getRecipeTypeId(RecipeSerializer.SHAPED_RECIPE),
+                "pattern", List.of("cc", "cc"),
+                "key", Map.of(
+                        "c", Map.of("item", mdCableItemId)
+                ),
+                "result", Map.of(
+                        "item", miCableItemId
+                )
+        ), condition);
+    }
 
-        exporter.accept(MdId.of("cable/%s_to_mi".formatted(cableName)), new JsonFinishedRecipe(RecipeSerializer.SHAPED_RECIPE, """
-                {
-                    "pattern": [ "cc", "cc" ],
-                    "key": {
-                        "c": {
-                            "item": "%s"
-                        }
-                    },
-                    "result": {
-                        "item": "%s"
-                    }
-                }
-                """.formatted(mdCableItemId, miCableItemId)), null);
+    private void writeRawRecipe(ResourceLocation id, Map<String, Object> recipe, ICondition... conditions) {
+        var path = recipePathProvider.json(id);
+        var outputFile = packOutput.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(path);
+
+        var gson = new Gson();
+        var jsonObject = (JsonObject) gson.toJsonTree(recipe);
+        ICondition.writeConditions(JsonOps.INSTANCE, jsonObject, Arrays.asList(conditions));
+
+        try {
+            Files.createDirectories(outputFile.getParent());
+            Files.writeString(outputFile, gson.toJson(jsonObject), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+    }
+
+    private static String getRecipeTypeId(RecipeSerializer<?> serializer) {
+        var serializerId = BuiltInRegistries.RECIPE_SERIALIZER.getKey(serializer);
+        Objects.requireNonNull(serializerId, "Serializer " + serializer + " is unregistered");
+        return serializerId.toString();
     }
 }
