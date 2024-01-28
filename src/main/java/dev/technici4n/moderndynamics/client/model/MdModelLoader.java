@@ -21,53 +21,72 @@ package dev.technici4n.moderndynamics.client.model;
 import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.util.MdId;
-import java.util.HashMap;
-import java.util.Map;
 import net.minecraft.client.renderer.block.BlockModelShaper;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.client.resources.model.ModelBaker;
+import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * Allows us to load our custom jsons.
  */
 public final class MdModelLoader {
     public static void init(IEventBus modEvents) {
-        modEvents.addListener(ModelEvent.RegisterGeometryLoaders.class, evt -> {
-            Map<String, UnbakedModel> pipeItemModels = new HashMap<>();
-// TODO NEOFORGE
-// TODO NEOFORGE            for (var pipe : MdBlocks.ALL_PIPES) {
-// TODO NEOFORGE                pipeItemModels.put("item/" + pipe.id, new DelegatingUnbakedModel(BlockModelShaper.stateToModelLocation(pipe.defaultBlockState())));
-// TODO NEOFORGE
-// TODO NEOFORGE                pluginCtx.registerBlockStateResolver(pipe, ctx -> {
-// TODO NEOFORGE                    var model = new PipeUnbakedModel(pipe.id, pipe.isTransparent());
-// TODO NEOFORGE                    for (var state : pipe.getStateDefinition().getPossibleStates()) {
-// TODO NEOFORGE                        ctx.setModel(state, model);
-// TODO NEOFORGE                    }
-// TODO NEOFORGE                });
-// TODO NEOFORGE            }
-// TODO NEOFORGE
-// TODO NEOFORGE            pluginCtx.resolveModel().register(ctx -> {
-// TODO NEOFORGE                if (!MdId.MOD_ID.equals(ctx.id().getNamespace())) {
-// TODO NEOFORGE                    return null;
-// TODO NEOFORGE                }
-// TODO NEOFORGE
-// TODO NEOFORGE                if (AttachmentsUnbakedModel.ID.getPath().equals(ctx.id().getPath())) {
-// TODO NEOFORGE                    var modelMap = new HashMap<String, ResourceLocation>();
-// TODO NEOFORGE                    for (var id : RenderedAttachment.getAttachmentIds()) {
-// TODO NEOFORGE                        modelMap.put(id, MdId.of("attachment/" + id));
-// TODO NEOFORGE                    }
-// TODO NEOFORGE                    return new AttachmentsUnbakedModel(modelMap);
-// TODO NEOFORGE                }
-// TODO NEOFORGE
-// TODO NEOFORGE                if (pipeItemModels.containsKey(ctx.id().getPath())) {
-// TODO NEOFORGE                    return pipeItemModels.get(ctx.id().getPath());
-// TODO NEOFORGE                }
-// TODO NEOFORGE
-// TODO NEOFORGE                return null;
-// TODO NEOFORGE            });
+        modEvents.addListener(FMLClientSetupEvent.class, evt -> {
+            for (var pipe : MdBlocks.ALL_PIPES) {
+                BuiltInModelHooks.addBuiltInModel(MdId.of("item/" + pipe.id), new DelegatingUnbakedModel(BlockModelShaper.stateToModelLocation(pipe.defaultBlockState())));
 
+                var model = new PipeUnbakedModel(pipe.id, pipe.isTransparent());
+                for (var state : pipe.getStateDefinition().getPossibleStates()) {
+                    var stateId = BlockModelShaper.stateToModelLocation(state);
+                    BuiltInModelHooks.addBuiltInModel(stateId, model);
+                }
+            }
+
+            var modelMap = new HashMap<String, ResourceLocation>();
+            for (var id : RenderedAttachment.getAttachmentIds()) {
+                modelMap.put(id, MdId.of("attachment/" + id));
+            }
+            BuiltInModelHooks.addBuiltInModel(
+                    AttachmentsUnbakedModel.ID,
+                    new AttachmentsUnbakedModel(modelMap)
+            );
         });
+    }
+}
+
+final class DelegatingUnbakedModel implements UnbakedModel {
+    private final ResourceLocation delegate;
+    private final List<ResourceLocation> dependencies;
+
+    public DelegatingUnbakedModel(ResourceLocation delegate) {
+        this.delegate = delegate;
+        this.dependencies = List.of(delegate);
+    }
+
+    @Override
+    public Collection<ResourceLocation> getDependencies() {
+        return dependencies;
+    }
+
+    @Override
+    public void resolveParents(Function<ResourceLocation, UnbakedModel> resolver) {
+    }
+
+    @Nullable
+    @Override
+    public BakedModel bake(ModelBaker pBaker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState state, ResourceLocation location) {
+        return pBaker.bake(delegate, state, spriteGetter);
     }
 }

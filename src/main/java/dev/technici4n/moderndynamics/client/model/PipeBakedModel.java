@@ -101,11 +101,6 @@ public class PipeBakedModel implements BakedModel {
     }
 
     @Override
-    public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand) {
-        return List.of();
-    }
-
-    @Override
     public boolean useAmbientOcclusion() {
         return false;
     }
@@ -142,6 +137,7 @@ public class PipeBakedModel implements BakedModel {
 
     // Pipes in item form only connect to NORTH and SOUTH.
     private static final PipeModelData ITEM_DATA = new PipeModelData((byte) 12, (byte) 12, new AttachedAttachment[6]);
+    private static final ModelData ITEM_MODEL_DATA = ModelData.builder().with(PipeModelData.PIPE_DATA, ITEM_DATA).build();
 
     private void appendBitmasked(Consumer<BakedModel> consumer, int mask, BakedModel[] models) {
         for (int i = 0; i < 6; ++i) {
@@ -149,6 +145,11 @@ public class PipeBakedModel implements BakedModel {
                 consumer.accept(models[i]);
             }
         }
+    }
+
+    @Override
+    public List<BakedQuad> getQuads(@Nullable BlockState pState, @Nullable Direction pDirection, RandomSource pRandom) {
+        return getQuads(pState, pDirection, pRandom, ITEM_MODEL_DATA, null);
     }
 
     @Override
