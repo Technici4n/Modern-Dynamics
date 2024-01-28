@@ -21,8 +21,7 @@ package dev.technici4n.moderndynamics.network.item;
 import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2LongLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -31,6 +30,7 @@ import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,8 +38,15 @@ import org.jetbrains.annotations.Nullable;
 public class SimulatedInsertionTarget {
     private final SimulatedInsertionTargets.Coord coord; // used for crash report info
     private final Supplier<@Nullable IItemHandler> storageFinder;
-    private final Object2IntMap<ItemVariant> awaitedStacks = new Object2IntLinkedOpenHashMap<>();
-    private final Participant participant = new Participant();
+    /**
+     * List of stacks that are already traveling, but for which the target slot is not known.
+     */
+    private final Object2IntMap<ItemVariant> pendingStacks = new Object2IntLinkedOpenHashMap<>();
+    /**
+     * List of stacks that are already traveling and that the target should accept,
+     * for each slot.
+     */
+    private final List<ItemStack> awaitedStacks = new ArrayList<>();
 
     public SimulatedInsertionTarget(SimulatedInsertionTargets.Coord coord, Supplier<@Nullable IItemHandler> storageFinder) {
         this.coord = coord;
@@ -76,66 +83,120 @@ public class SimulatedInsertionTarget {
             return 0;
         }
 
-        // TODO: Obviously we need to claim slots for the targets here...
+        // Try to plan for pending stacks to begin with...
+        var pendingIterator = pendingStacks.object2IntEntrySet().iterator();
+        while (pendingIterator.hasNext()) {
+            var entry = pendingIterator.next();
 
-        // Simulate insertion of all the awaited stacks
-// TODO        for (var entry : awaitedStacks.object2IntEntrySet()) {
-// TODO            if (targetStorage.insertItem(entry.getKey(), entry.getIntValue(), true) != entry.getIntValue()) {
-// TODO                // We have scheduled too many stacks already, let's not make it worse.
-// TODO                return 0;
-// TODO            }
-// TODO        }
-// TODO
-// TODO        // All good? Check how much can actually be inserted then.
-// TODO        maxAmount = targetStorage.insertItem(variant, maxAmount, true);
-// TODO
-// TODO        if (maxAmount == 0) {
-// TODO            return 0;
-// TODO        }
-// TODO
-// TODO        // Schedule stack to be sent on commit
-// TODO        startAwaiting(variant, maxAmount);
-// TODO        participant.pendingStacks.add(new PendingStack(variant, maxAmount, callback));
-
-        return maxAmount;
-    }
-
-    public void startAwaiting(ItemVariant variant, int amount) {
-        awaitedStacks.mergeInt(variant, amount, Integer::sum);
-    }
-
-    public void stopAwaiting(ItemVariant variant, int amount) {
-        int awaited = awaitedStacks.removeInt(variant);
-        if (awaited > amount) {
-            awaitedStacks.put(variant, awaited - amount);
+            int planned = planForStack(targetStorage, entry.getKey(), entry.getIntValue(), false);
+            if (planned == entry.getIntValue()) {
+                pendingIterator.remove();
+            } else {
+                entry.setValue(entry.getIntValue() - planned);
+            }
         }
+
+        // Plan for this additional stack
+        int inserted = planForStack(targetStorage, variant, maxAmount, simulate);
+
+        if (!simulate && inserted > 0) {
+            callback.startTravel(variant, inserted);
+        }
+
+        return inserted;
     }
 
     /**
-     * Stack that was accepted in {@link #insert} in a transaction that hasn't been committed yet.
+     * Try to plan for some stack to be inserted, return how much is anticipated to be insertable.
      */
-    private record PendingStack(ItemVariant variant, int amount, StartTravelCallback callback) {
+    private int planForStack(IItemHandler targetStorage, ItemVariant variant, int maxAmount, boolean simulate) {
+        // Extend pending list if necessary
+        int targetSlots = targetStorage.getSlots();
+        while (awaitedStacks.size() < targetSlots) {
+            awaitedStacks.add(ItemStack.EMPTY);
+        }
+
+        // Used to limit stack allocations
+        ItemStack leftover = null;
+
+        for (int i = 0; i < targetSlots; ++i) {
+            var pending = awaitedStacks.get(i);
+
+            if (pending.isEmpty()) {
+                // No pending stack, try to insert as much as we can.
+                if (leftover == null) {
+                    leftover = variant.toStack(maxAmount);
+                }
+
+                int toInsert = leftover.getCount();
+                leftover = targetStorage.insertItem(i, leftover, true);
+                int inserted = toInsert - leftover.getCount();
+
+                if (inserted > 0 && !simulate) {
+                    awaitedStacks.set(i, variant.toStack(inserted));
+                }
+            } else if (variant.matches(pending)) {
+                // Pending stack, try to insert more than what is scheduled.
+                if (leftover == null) {
+                    leftover = variant.toStack(maxAmount);
+                }
+
+                int insertCount = pending.getCount() + leftover.getCount();
+                int inserted = insertCount - targetStorage.insertItem(i, variant.toStack(insertCount), true).getCount();
+
+                int delta = inserted - pending.getCount();
+                if (delta > 0) {
+                    leftover.shrink(delta);
+                    if (!simulate) {
+                        pending.grow(delta);
+                    }
+                }
+            }
+
+            if (leftover != null && leftover.isEmpty()) {
+                break;
+            }
+        }
+
+        return leftover == null ? 0 : maxAmount - leftover.getCount();
     }
 
-    private class Participant {
-        private final List<PendingStack> pendingStacks = new ArrayList<>();
+    public void startAwaiting(ItemVariant variant, int amount) {
+        pendingStacks.mergeInt(variant, amount, Integer::sum);
+    }
 
-        protected Integer createSnapshot() {
-            return pendingStacks.size();
-        }
-
-        protected void readSnapshot(Integer snapshot) {
-            while (pendingStacks.size() > snapshot) {
-                var stack = pendingStacks.remove(pendingStacks.size() - 1);
-                stopAwaiting(stack.variant, stack.amount);
+    public void stopAwaiting(ItemVariant variant, int amount) {
+        // Remove from pending stacks first
+        int pending = pendingStacks.getInt(variant);
+        if (pending > 0) {
+            if (pending >= amount) {
+                pendingStacks.put(variant, pending - amount);
+                amount = 0;
+            } else {
+                pendingStacks.removeInt(variant);
+                amount -= pending;
             }
         }
 
-        protected void onFinalCommit() {
-            for (var pendingStack : pendingStacks) {
-                pendingStack.callback.startTravel(pendingStack.variant, pendingStack.amount);
+        // Then remove from awaited stacks (starting from the end because why not)
+        if (amount > 0) {
+            for (int slot = awaitedStacks.size(); slot-->0;) {
+                var awaited = awaitedStacks.get(slot);
+
+                if (variant.matches(awaited)) {
+                    if (awaited.getCount() > amount) {
+                        awaited.shrink(amount);
+                        amount = 0;
+                    } else {
+                        awaitedStacks.set(slot, ItemStack.EMPTY);
+                        amount -= awaited.getCount();
+                    }
+
+                    if (amount == 0) {
+                        break;
+                    }
+                }
             }
-            pendingStacks.clear();
         }
     }
 }
