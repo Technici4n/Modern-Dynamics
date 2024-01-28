@@ -73,7 +73,8 @@ public class FluidTransferTest {
         });
     }
 
-    @MdGameTest
+    // Disabled because NeoForge does not support transfers from/to cauldrons in levels
+    @MdGameTest(required = false)
     public void cauldronToCauldronAttractorExtractor(MdGameTestHelper helper) {
         var toFillPos = new BlockPos(0, 1, 0);
         var toEmptyPos = new BlockPos(3, 1, 0);

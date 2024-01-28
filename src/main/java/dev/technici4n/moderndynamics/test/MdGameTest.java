@@ -19,4 +19,6 @@ public @interface MdGameTest {
     int attempts() default 1;
 
     int requiredSuccesses() default 1;
+
+    boolean required() default true;
 }

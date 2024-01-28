@@ -1,12 +1,12 @@
 package dev.technici4n.moderndynamics.test;
 
 import dev.technici4n.moderndynamics.test.framework.MdGameTestHelper;
+import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.StructureUtils;
 import net.minecraft.gametest.framework.TestFunction;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,12 +27,12 @@ public class MdGameTests {
                 if (gametest != null) {
                     result.add(new TestFunction(
                             gametest.batch(),
-                            "moderndynamicsc." + testMethod.getName().toLowerCase(),
-                            "moderndynamics:empty",
+                            MdId.MOD_ID + "." + testMethod.getName().toLowerCase(),
+                            MdId.of("empty").toString(),
                             StructureUtils.getRotationForRotationSteps(gametest.rotationSteps()),
                             gametest.timeoutTicks(),
                             gametest.setupTicks(),
-                            true,
+                            gametest.required(),
                             gametest.requiredSuccesses(),
                             gametest.attempts(),
                             gameTestHelper -> {

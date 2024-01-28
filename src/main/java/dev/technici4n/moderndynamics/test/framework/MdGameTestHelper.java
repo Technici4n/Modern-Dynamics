@@ -23,15 +23,18 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.Objects;
 
 import dev.technici4n.moderndynamics.util.MdId;
+import dev.technici4n.moderndynamics.util.TransferUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInfo;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 public class MdGameTestHelper extends GameTestHelper {
 
@@ -73,13 +76,18 @@ public class MdGameTestHelper extends GameTestHelper {
     /**
      * Throw exception unless target block pos (relative) has at least some amount of some item.
      */
-    public void checkItem(BlockPos pos, Item item, long minAmount) {
+    public void checkItem(BlockPos pos, Item item, int minAmount) {
         var handler = getLevel().getCapability(Capabilities.ItemHandler.BLOCK, absolutePos(pos), Direction.UP);
 
         if (handler != null) {
-            var extracted = handler.extractItem(0, Integer.MAX_VALUE, true);
-
-            if (!extracted.isEmpty() && extracted.getCount() >= minAmount) {
+            int amountFound = 0;
+            for (int i = 0; i < handler.getSlots(); i++) {
+                var stack = handler.getStackInSlot(i);
+                if (stack.is(item)) {
+                    amountFound += stack.getCount();
+                }
+            }
+            if (amountFound >= minAmount) {
                 return;
             }
         }
