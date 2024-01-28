@@ -7,7 +7,6 @@
   ],
   "client": [
     "ModelBakeryMixin",
-    "StructureTemplateManagerMixin",
     "TextureAtlasMixin"
   ],
   "injectors": {
