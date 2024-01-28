@@ -1,1 +1,21 @@
-{"type":"minecraft:crafting_shaped","pattern":["cc","cc"],"key":{"c":{"item":"moderndynamics:ev_cable"}},"result":{"item":"modern_industrialization:annealed_copper_cable"},"neoforge:conditions":[{"modid":"modern_industrialization","type":"neoforge:mod_loaded"}]}
+{
+  "result": {
+    "item": "modern_industrialization:annealed_copper_cable"
+  },
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "cc",
+    "cc"
+  ],
+  "key": {
+    "c": {
+      "item": "moderndynamics:ev_cable"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "modid": "modern_industrialization",
+      "type": "neoforge:mod_loaded"
+    }
+  ]
+}

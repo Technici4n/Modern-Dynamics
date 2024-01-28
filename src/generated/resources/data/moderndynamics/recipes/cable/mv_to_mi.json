@@ -1,1 +1,21 @@
-{"type":"minecraft:crafting_shaped","pattern":["cc","cc"],"key":{"c":{"item":"moderndynamics:mv_cable"}},"result":{"item":"modern_industrialization:electrum_cable"},"neoforge:conditions":[{"modid":"modern_industrialization","type":"neoforge:mod_loaded"}]}
+{
+  "result": {
+    "item": "modern_industrialization:electrum_cable"
+  },
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "cc",
+    "cc"
+  ],
+  "key": {
+    "c": {
+      "item": "moderndynamics:mv_cable"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "modid": "modern_industrialization",
+      "type": "neoforge:mod_loaded"
+    }
+  ]
+}

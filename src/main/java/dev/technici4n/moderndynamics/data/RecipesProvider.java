@@ -20,6 +20,7 @@ package dev.technici4n.moderndynamics.data;
 
 import com.google.common.hash.HashCode;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import dev.technici4n.moderndynamics.init.MdItems;
@@ -49,7 +50,9 @@ import java.util.concurrent.CompletableFuture;
 
 public class RecipesProvider extends RecipeProvider {
 
-    private static final Gson GSON = new Gson();
+    private static final Gson GSON = new GsonBuilder()
+            .setPrettyPrinting()
+            .create();
     private final PackOutput packOutput;
 
     public RecipesProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
