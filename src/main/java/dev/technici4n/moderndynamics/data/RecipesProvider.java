@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.data;
 
+import com.google.common.hash.HashCode;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
@@ -25,6 +26,7 @@ import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.CachedOutput;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -39,7 +41,6 @@ import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -129,19 +130,28 @@ public class RecipesProvider extends RecipeProvider {
                 .unlockedBy("has_item_pipe", has(MdItems.ITEM_PIPE))
                 .unlockedBy("has_fluid_pipe", has(MdItems.FLUID_PIPE))
                 .save(exporter);
-
-        generateMiCableRecipes("lv", "tin_cable");
-        generateMiCableRecipes("mv", "electrum_cable");
-        generateMiCableRecipes("hv", "aluminum_cable");
-        generateMiCableRecipes("ev", "annealed_copper_cable");
-        generateMiCableRecipes("superconductor", "superconductor_cable");
     }
 
-    private void generateMiCableRecipes(String cableName, String miCable) {
+    @Override
+    public CompletableFuture<?> run(CachedOutput output) {
+        generateMiCableRecipes(output);
+
+        return super.run(output);
+    }
+
+    private void generateMiCableRecipes(CachedOutput output) {
+        generateMiCableRecipes("lv", "tin_cable", output);
+        generateMiCableRecipes("mv", "electrum_cable", output);
+        generateMiCableRecipes("hv", "aluminum_cable", output);
+        generateMiCableRecipes("ev", "annealed_copper_cable", output);
+        generateMiCableRecipes("superconductor", "superconductor_cable", output);
+    }
+
+    private void generateMiCableRecipes(String cableName, String miCable, CachedOutput output) {
         String mdCableItemId = MdId.of(cableName + "_cable").toString();
         String miCableItemId = "modern_industrialization:" + miCable;
         var condition = new ModLoadedCondition("modern_industrialization");
-        writeRawRecipe(MdId.of("cable/%s_from_mi".formatted(cableName)), Map.of(
+        writeRawRecipe(output, MdId.of("cable/%s_from_mi".formatted(cableName)), Map.of(
                 "type", getRecipeTypeId(RecipeSerializer.SHAPELESS_RECIPE),
                 "ingredients", List.of(
                         Map.of(
@@ -154,7 +164,7 @@ public class RecipesProvider extends RecipeProvider {
                 )
         ), condition);
 
-        writeRawRecipe(MdId.of("cable/%s_to_mi".formatted(cableName)), Map.of(
+        writeRawRecipe(output, MdId.of("cable/%s_to_mi".formatted(cableName)), Map.of(
                 "type", getRecipeTypeId(RecipeSerializer.SHAPED_RECIPE),
                 "pattern", List.of("cc", "cc"),
                 "key", Map.of(
@@ -166,7 +176,7 @@ public class RecipesProvider extends RecipeProvider {
         ), condition);
     }
 
-    private void writeRawRecipe(ResourceLocation id, Map<String, Object> recipe, ICondition... conditions) {
+    private void writeRawRecipe(CachedOutput output, ResourceLocation id, Map<String, Object> recipe, ICondition... conditions) {
         var path = recipePathProvider.json(id);
         var outputFile = packOutput.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(path);
 
@@ -174,13 +184,13 @@ public class RecipesProvider extends RecipeProvider {
         var jsonObject = (JsonObject) gson.toJsonTree(recipe);
         ICondition.writeConditions(JsonOps.INSTANCE, jsonObject, Arrays.asList(conditions));
 
+        var content = gson.toJson(jsonObject).getBytes(StandardCharsets.UTF_8);
+
         try {
-            Files.createDirectories(outputFile.getParent());
-            Files.writeString(outputFile, gson.toJson(jsonObject), StandardCharsets.UTF_8);
+            output.writeIfNeeded(outputFile, content, HashCode.fromBytes(content));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-
     }
 
     private static String getRecipeTypeId(RecipeSerializer<?> serializer) {
