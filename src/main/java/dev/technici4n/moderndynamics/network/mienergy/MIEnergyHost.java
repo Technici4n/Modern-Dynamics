@@ -23,14 +23,13 @@ import dev.technici4n.moderndynamics.compat.mi.MIProxy;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import java.util.List;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class MIEnergyHost extends NodeHost {
     private static final NetworkManager<MIEnergyHost, MIEnergyCache> MANAGER = NetworkManager.get(MIEnergyCache.class, MIEnergyCache::new);
@@ -65,7 +64,8 @@ public class MIEnergyHost extends NodeHost {
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
                 Direction dir = Direction.from3DDataValue(i);
-                IEnergyStorage adjacentCap = pipe.getLevel().getCapability(MIProxy.INSTANCE.getLookup(), pipe.getBlockPos().relative(dir), dir.getOpposite());
+                IEnergyStorage adjacentCap = pipe.getLevel().getCapability(MIProxy.INSTANCE.getLookup(), pipe.getBlockPos().relative(dir),
+                        dir.getOpposite());
 
                 if (adjacentCap != null && MIProxy.INSTANCE.canConnect(adjacentCap, tier)) {
                     if (out != null) {

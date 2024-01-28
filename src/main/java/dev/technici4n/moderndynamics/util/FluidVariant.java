@@ -1,5 +1,26 @@
+/*
+ * Modern Dynamics
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderndynamics.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -14,10 +35,6 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 public final class FluidVariant {
     private static final Logger LOG = LoggerFactory.getLogger(FluidVariant.class);
@@ -169,12 +186,14 @@ public final class FluidVariant {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
+        if (obj == this)
+            return true;
+        if (obj == null || obj.getClass() != this.getClass())
+            return false;
         var that = (FluidVariant) obj;
         return hashCode == that.hashCode
-               && Objects.equals(this.fluid, that.fluid)
-               && Objects.equals(this.nbt, that.nbt);
+                && Objects.equals(this.fluid, that.fluid)
+                && Objects.equals(this.nbt, that.nbt);
     }
 
     @Override
@@ -185,8 +204,8 @@ public final class FluidVariant {
     @Override
     public String toString() {
         return "FluidVariant[" +
-               "fluid=" + fluid + ", " +
-               "nbt=" + nbt + ']';
+                "fluid=" + fluid + ", " +
+                "nbt=" + nbt + ']';
     }
 
 }

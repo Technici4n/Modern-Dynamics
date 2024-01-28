@@ -30,6 +30,7 @@ import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.shared.TransferLimits;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.FluidVariant;
+import java.util.List;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
@@ -42,8 +43,6 @@ import net.neoforged.neoforge.fluids.capability.templates.EmptyFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class FluidHost extends NodeHost {
     private static final NetworkManager<FluidHost, FluidCache> MANAGER = NetworkManager.get(FluidCache.class, FluidCache::new);
@@ -161,7 +160,7 @@ public class FluidHost extends NodeHost {
     @Override
     public void onConnectionRejectedTo(Direction direction, NodeHost other) {
         if (getAttachment(direction) instanceof AttachedIo
-            || other.getAttachment(direction.getOpposite()) instanceof AttachedIo) {
+                || other.getAttachment(direction.getOpposite()) instanceof AttachedIo) {
             // rejected because of attachment: nothing to do
             return;
         }
@@ -178,7 +177,8 @@ public class FluidHost extends NodeHost {
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
                 Direction dir = Direction.from3DDataValue(i);
-                IFluidHandler adjacentCap = pipe.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, pipe.getBlockPos().relative(dir), dir.getOpposite());
+                IFluidHandler adjacentCap = pipe.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, pipe.getBlockPos().relative(dir),
+                        dir.getOpposite());
 
                 if (adjacentCap != null) {
                     if (out != null) {

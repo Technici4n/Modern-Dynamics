@@ -19,11 +19,10 @@
 package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.attachment.upgrade.UpgradeTypeBuilder;
+import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-
-import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;

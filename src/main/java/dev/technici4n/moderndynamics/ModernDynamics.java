@@ -20,8 +20,6 @@ package dev.technici4n.moderndynamics;
 
 import dev.technici4n.moderndynamics.attachment.upgrade.AttachmentUpgradesLoader;
 import dev.technici4n.moderndynamics.client.ModernDynamicsClient;
-import dev.technici4n.moderndynamics.network.item.SimulatedInsertionTargets;
-import dev.technici4n.moderndynamics.packets.MdPackets;
 import dev.technici4n.moderndynamics.init.MdAttachments;
 import dev.technici4n.moderndynamics.init.MdBlockEntities;
 import dev.technici4n.moderndynamics.init.MdBlocks;
@@ -29,7 +27,8 @@ import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.TickHelper;
-import dev.technici4n.moderndynamics.packets.SetAttachmentUpgrades;
+import dev.technici4n.moderndynamics.network.item.SimulatedInsertionTargets;
+import dev.technici4n.moderndynamics.packets.MdPackets;
 import dev.technici4n.moderndynamics.util.MdId;
 import dev.technici4n.moderndynamics.util.MdItemGroup;
 import dev.technici4n.moderndynamics.util.WrenchHelper;

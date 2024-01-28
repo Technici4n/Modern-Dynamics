@@ -19,9 +19,9 @@
 package dev.technici4n.moderndynamics.network.item;
 
 import dev.technici4n.moderndynamics.Constants;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.concurrent.atomic.AtomicInteger;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.nbt.CompoundTag;
 
 public class TravelingItem {

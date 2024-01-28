@@ -61,7 +61,7 @@ public final class JsonFinishedRecipe implements Recipe<Container> {
         // jsonObject.addProperty("type", BuiltInRegistries.RECIPE_SERIALIZER.getKey(this.getType()).toString());
         // return jsonObject;
 //        return serializer;
-throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
 
     }
 

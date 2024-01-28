@@ -1,3 +1,21 @@
+/*
+ * Modern Dynamics
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderndynamics.thirdparty.fabric;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -115,41 +133,41 @@ public interface QuadEmitter extends MutableQuadView {
 
         nominalFace(nominalFace);
         switch (nominalFace) {
-            case UP:
-                depth = 1 - depth;
-                top = 1 - top;
-                bottom = 1 - bottom;
+        case UP:
+            depth = 1 - depth;
+            top = 1 - top;
+            bottom = 1 - bottom;
 
-            case DOWN:
-                pos(0, left, depth, top);
-                pos(1, left, depth, bottom);
-                pos(2, right, depth, bottom);
-                pos(3, right, depth, top);
-                break;
+        case DOWN:
+            pos(0, left, depth, top);
+            pos(1, left, depth, bottom);
+            pos(2, right, depth, bottom);
+            pos(3, right, depth, top);
+            break;
 
-            case EAST:
-                depth = 1 - depth;
-                left = 1 - left;
-                right = 1 - right;
+        case EAST:
+            depth = 1 - depth;
+            left = 1 - left;
+            right = 1 - right;
 
-            case WEST:
-                pos(0, depth, top, left);
-                pos(1, depth, bottom, left);
-                pos(2, depth, bottom, right);
-                pos(3, depth, top, right);
-                break;
+        case WEST:
+            pos(0, depth, top, left);
+            pos(1, depth, bottom, left);
+            pos(2, depth, bottom, right);
+            pos(3, depth, top, right);
+            break;
 
-            case SOUTH:
-                depth = 1 - depth;
-                left = 1 - left;
-                right = 1 - right;
+        case SOUTH:
+            depth = 1 - depth;
+            left = 1 - left;
+            right = 1 - right;
 
-            case NORTH:
-                pos(0, 1 - left, top, depth);
-                pos(1, 1 - left, bottom, depth);
-                pos(2, 1 - right, bottom, depth);
-                pos(3, 1 - right, top, depth);
-                break;
+        case NORTH:
+            pos(0, 1 - left, top, depth);
+            pos(1, 1 - left, bottom, depth);
+            pos(2, 1 - right, bottom, depth);
+            pos(3, 1 - right, top, depth);
+            break;
         }
 
         return this;

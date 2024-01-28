@@ -115,7 +115,8 @@ public class EnergyHost extends NodeHost {
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
                 Direction dir = Direction.from3DDataValue(i);
-                IEnergyStorage adjacentCap = pipe.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, pipe.getBlockPos().relative(dir), dir.getOpposite());
+                IEnergyStorage adjacentCap = pipe.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, pipe.getBlockPos().relative(dir),
+                        dir.getOpposite());
 
                 if (adjacentCap != null) {
                     if (out != null) {

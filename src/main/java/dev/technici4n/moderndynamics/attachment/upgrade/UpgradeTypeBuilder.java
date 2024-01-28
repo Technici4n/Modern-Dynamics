@@ -19,15 +19,12 @@
 package dev.technici4n.moderndynamics.attachment.upgrade;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.List;
-
-import com.mojang.serialization.JsonOps;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
-import net.neoforged.neoforge.common.conditions.AndCondition;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 

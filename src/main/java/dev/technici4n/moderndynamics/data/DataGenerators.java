@@ -21,7 +21,6 @@ package dev.technici4n.moderndynamics.data;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 @Mod.EventBusSubscriber(modid = MdId.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)

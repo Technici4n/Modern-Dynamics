@@ -24,16 +24,14 @@ import static dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes.CORE_START;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.client.GeometryHelper;
 import dev.technici4n.moderndynamics.model.PipeModelData;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
-
 import dev.technici4n.moderndynamics.thirdparty.fabric.Mesh;
 import dev.technici4n.moderndynamics.thirdparty.fabric.MeshBuilderImpl;
 import dev.technici4n.moderndynamics.thirdparty.fabric.ModelHelper;
 import dev.technici4n.moderndynamics.thirdparty.fabric.MutableQuadView;
 import dev.technici4n.moderndynamics.thirdparty.fabric.QuadEmitter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
@@ -42,7 +40,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
 import net.neoforged.neoforge.client.model.data.ModelData;
@@ -153,7 +150,8 @@ public class PipeBakedModel implements BakedModel {
     }
 
     @Override
-    public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, @NotNull ModelData data, @Nullable RenderType renderType) {
+    public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand,
+            @NotNull ModelData data, @Nullable RenderType renderType) {
         var pipeData = data.get(PipeModelData.PIPE_DATA);
         if (pipeData == null) {
             pipeData = PipeModelData.DEFAULT;

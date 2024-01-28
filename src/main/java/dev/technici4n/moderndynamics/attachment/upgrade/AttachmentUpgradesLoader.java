@@ -34,7 +34,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.GsonHelper;
@@ -111,7 +110,7 @@ public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<Lis
         NeoForge.EVENT_BUS.addListener(OnDatapackSyncEvent.class, e -> {
             var server = ServerLifecycleHooks.getCurrentServer();
             var player = e.getPlayer();
-            if (player != null){
+            if (player != null) {
                 LoadedUpgrades.trySet(LOADED_UPGRADES.remove(server.getResourceManager()));
                 LoadedUpgrades.syncToClient(player);
             } else {

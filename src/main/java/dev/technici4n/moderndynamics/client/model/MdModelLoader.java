@@ -21,6 +21,10 @@ package dev.technici4n.moderndynamics.client.model;
 import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.util.MdId;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.function.Function;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
@@ -33,11 +37,6 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.function.Function;
-
 /**
  * Allows us to load our custom jsons.
  */
@@ -45,7 +44,8 @@ public final class MdModelLoader {
     public static void init(IEventBus modEvents) {
         modEvents.addListener(FMLClientSetupEvent.class, evt -> {
             for (var pipe : MdBlocks.ALL_PIPES) {
-                BuiltInModelHooks.addBuiltInModel(MdId.of("item/" + pipe.id), new DelegatingUnbakedModel(BlockModelShaper.stateToModelLocation(pipe.defaultBlockState())));
+                BuiltInModelHooks.addBuiltInModel(MdId.of("item/" + pipe.id),
+                        new DelegatingUnbakedModel(BlockModelShaper.stateToModelLocation(pipe.defaultBlockState())));
 
                 var model = new PipeUnbakedModel(pipe.id, pipe.isTransparent());
                 for (var state : pipe.getStateDefinition().getPossibleStates()) {
@@ -60,8 +60,7 @@ public final class MdModelLoader {
             }
             BuiltInModelHooks.addBuiltInModel(
                     AttachmentsUnbakedModel.ID,
-                    new AttachmentsUnbakedModel(modelMap)
-            );
+                    new AttachmentsUnbakedModel(modelMap));
         });
     }
 }

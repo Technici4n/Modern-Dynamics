@@ -28,9 +28,8 @@ import dev.technici4n.moderndynamics.attachment.upgrade.LoadedUpgrades;
 import dev.technici4n.moderndynamics.client.screen.AttachedIoScreen;
 import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
 import dev.technici4n.moderndynamics.init.MdItems;
-import net.neoforged.neoforge.fluids.FluidType;
-
 import java.util.List;
+import net.neoforged.neoforge.fluids.FluidType;
 
 public class MdEmiPlugin implements EmiPlugin {
     @Override

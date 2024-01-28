@@ -59,7 +59,7 @@ public class TransferLimits {
 
                     if (tickLimit > 0) {
                         // Buffer up to buffer limit
-                        int potentialBuffer = Math.min(Ints.saturatedCast( available[i] + tickLimit * tickDiff), maxBuffer);
+                        int potentialBuffer = Math.min(Ints.saturatedCast(available[i] + tickLimit * tickDiff), maxBuffer);
                         // Pick max between (limited) buffer and raw tick limit
                         available[i] = Math.max(potentialBuffer, tickLimit);
                     } else {
@@ -77,7 +77,7 @@ public class TransferLimits {
      * Limit the passed amount.
      */
     public int limit(int side, int amount) {
-        Preconditions.checkArgument(amount  >= 0);
+        Preconditions.checkArgument(amount >= 0);
         checkForNewTick();
 
         // Always check if transfer is still valid.

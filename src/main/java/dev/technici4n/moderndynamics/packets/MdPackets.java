@@ -18,7 +18,6 @@
  */
 package dev.technici4n.moderndynamics.packets;
 
-import dev.technici4n.moderndynamics.MdProxy;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
@@ -33,8 +32,7 @@ import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import dev.technici4n.moderndynamics.util.FluidVariant;
 import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.MdId;
-import io.netty.buffer.Unpooled;
-import net.minecraft.network.FriendlyByteBuf;
+import java.util.function.BiConsumer;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -43,73 +41,77 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPlayPayloadHandler;
 import net.neoforged.neoforge.network.registration.IPayloadRegistrar;
 
-import java.util.function.BiConsumer;
-
 public class MdPackets {
 
     public static void sendSetFilter(int syncId, int filterSlot, ItemVariant variant) {
         PacketDistributor.SERVER.noArg().send(new SetItemVariant(
-                syncId, filterSlot, variant
-        ));
+                syncId, filterSlot, variant));
     }
 
     public static void sendSetFilter(int syncId, int filterSlot, FluidVariant variant) {
         PacketDistributor.SERVER.noArg().send(new SetFluidVariant(
-                syncId, filterSlot, variant
-        ));
+                syncId, filterSlot, variant));
     }
 
     private static final ResourceLocation SET_FILTER_MODE = MdId.of("set_filter_mode");
-    private static final SetEnumHandler<FilterInversionMode> SET_FILTER_MODE_HANDLER = createSetEnumHandler(AttachedIoMenu.class, AttachedIoMenu::setFilterMode);
+    private static final SetEnumHandler<FilterInversionMode> SET_FILTER_MODE_HANDLER = createSetEnumHandler(AttachedIoMenu.class,
+            AttachedIoMenu::setFilterMode);
 
     public static void sendSetFilterMode(int syncId, FilterInversionMode filterMode) {
         sendSetEnum(syncId, SET_FILTER_MODE, filterMode);
     }
 
     private static final ResourceLocation SET_FILTER_DAMAGE = MdId.of("set_filter_damage");
-    private static final SetEnumHandler<FilterDamageMode> SET_FILTER_DAMAGE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class, ItemAttachedIoMenu::setFilterDamage);
+    private static final SetEnumHandler<FilterDamageMode> SET_FILTER_DAMAGE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
+            ItemAttachedIoMenu::setFilterDamage);
 
     public static void sendSetFilterDamage(int syncId, FilterDamageMode value) {
         sendSetEnum(syncId, SET_FILTER_DAMAGE, value);
     }
 
     private static final ResourceLocation SET_FILTER_NBT = MdId.of("set_filter_nbt");
-    private static final SetEnumHandler<FilterNbtMode> SET_FILTER_NBT_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class, ItemAttachedIoMenu::setFilterNbt);
+    private static final SetEnumHandler<FilterNbtMode> SET_FILTER_NBT_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
+            ItemAttachedIoMenu::setFilterNbt);
 
     public static void sendSetFilterNbt(int syncId, FilterNbtMode value) {
         sendSetEnum(syncId, SET_FILTER_NBT, value);
     }
 
     private static final ResourceLocation SET_FILTER_MOD = MdId.of("set_filter_mod");
-    private static final SetEnumHandler<FilterModMode> SET_FILTER_MOD_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class, ItemAttachedIoMenu::setFilterMod);
+    private static final SetEnumHandler<FilterModMode> SET_FILTER_MOD_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
+            ItemAttachedIoMenu::setFilterMod);
 
     public static void sendSetFilterMod(int syncId, FilterModMode value) {
         sendSetEnum(syncId, SET_FILTER_MOD, value);
     }
 
     private static final ResourceLocation SET_FILTER_SIMILAR = MdId.of("set_filter_similar");
-    private static final SetEnumHandler<FilterSimilarMode> SET_FILTER_SIMILAR_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class, ItemAttachedIoMenu::setFilterSimilar);
+    private static final SetEnumHandler<FilterSimilarMode> SET_FILTER_SIMILAR_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
+            ItemAttachedIoMenu::setFilterSimilar);
 
     public static void sendSetFilterSimilar(int syncId, FilterSimilarMode value) {
         sendSetEnum(syncId, SET_FILTER_SIMILAR, value);
     }
 
     private static final ResourceLocation SET_ROUTING_MODE = MdId.of("set_routing_mode");
-    private static final SetEnumHandler<RoutingMode> SET_ROUTING_MODE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class, ItemAttachedIoMenu::setRoutingMode);
+    private static final SetEnumHandler<RoutingMode> SET_ROUTING_MODE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
+            ItemAttachedIoMenu::setRoutingMode);
 
     public static void sendSetRoutingMode(int syncId, RoutingMode value) {
         sendSetEnum(syncId, SET_ROUTING_MODE, value);
     }
 
     private static final ResourceLocation SET_OVERSENDING_MODE = MdId.of("set_oversending_mode");
-    private static final SetEnumHandler<OversendingMode> SET_OVERSENDING_MODE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class, ItemAttachedIoMenu::setOversendingMode);
+    private static final SetEnumHandler<OversendingMode> SET_OVERSENDING_MODE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
+            ItemAttachedIoMenu::setOversendingMode);
 
     public static void sendSetOversendingMode(int syncId, OversendingMode value) {
         sendSetEnum(syncId, SET_OVERSENDING_MODE, value);
     }
 
     private static final ResourceLocation SET_REDSTONE_MODE = MdId.of("set_redstone_mode");
-    private static final SetEnumHandler<RedstoneMode> SET_REDSTONE_MODE_HANDLER = createSetEnumHandler(AttachedIoMenu.class, AttachedIoMenu::setRedstoneMode);
+    private static final SetEnumHandler<RedstoneMode> SET_REDSTONE_MODE_HANDLER = createSetEnumHandler(AttachedIoMenu.class,
+            AttachedIoMenu::setRedstoneMode);
 
     public static void sendSetRedstoneMode(int syncId, RedstoneMode value) {
         sendSetEnum(syncId, SET_REDSTONE_MODE, value);
@@ -133,7 +135,8 @@ public class MdPackets {
         PacketDistributor.SERVER.noArg().send(new SetEnum<>(packetId, syncId, enumValue));
     }
 
-    private static <T extends Enum<T>, M extends AbstractContainerMenu> SetEnumHandler<T> createSetEnumHandler(Class<M> menuClass, EnumSetter<T, M> setter) {
+    private static <T extends Enum<T>, M extends AbstractContainerMenu> SetEnumHandler<T> createSetEnumHandler(Class<M> menuClass,
+            EnumSetter<T, M> setter) {
         return (player, syncId, value) -> {
             AbstractContainerMenu handler = player.containerMenu;
             if (handler.containerId == syncId) {
@@ -175,7 +178,8 @@ public class MdPackets {
         registerSetInt(registrar, MdPackets.SET_MAX_ITEMS_EXTRACTED, MdPackets.SET_MAX_ITEMS_EXTRACTED_HANDLER);
     }
 
-    private static <T extends Enum<T>> void registerSetEnum(IPayloadRegistrar registrar, ResourceLocation id, Class<T> enumClass, SetEnumHandler<T> handler) {
+    private static <T extends Enum<T>> void registerSetEnum(IPayloadRegistrar registrar, ResourceLocation id, Class<T> enumClass,
+            SetEnumHandler<T> handler) {
         registrar.play(id, SetEnum.makeReader(id, enumClass), handler((player, payload) -> {
             handler.handleSetEnum(player, payload.syncId(), payload.value());
         }));

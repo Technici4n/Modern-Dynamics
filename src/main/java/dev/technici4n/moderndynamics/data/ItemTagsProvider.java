@@ -21,11 +21,10 @@ package dev.technici4n.moderndynamics.data;
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.init.MdTags;
 import dev.technici4n.moderndynamics.util.MdId;
+import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
-
-import java.util.concurrent.CompletableFuture;
 
 public class ItemTagsProvider extends net.minecraft.data.tags.ItemTagsProvider {
     public ItemTagsProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries, ExistingFileHelper existingFileHelper) {

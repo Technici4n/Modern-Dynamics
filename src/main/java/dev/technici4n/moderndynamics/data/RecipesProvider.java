@@ -25,6 +25,14 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.util.MdId;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
@@ -38,15 +46,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
-
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 public class RecipesProvider extends RecipeProvider {
 
@@ -159,25 +158,20 @@ public class RecipesProvider extends RecipeProvider {
                 "type", getRecipeTypeId(RecipeSerializer.SHAPELESS_RECIPE),
                 "ingredients", List.of(
                         Map.of(
-                                "item", miCableItemId
-                        )
-                ),
+                                "item", miCableItemId)),
                 "result", Map.of(
                         "item", mdCableItemId,
-                        "count", 4
-                )
-        ), condition);
+                        "count", 4)),
+                condition);
 
         writeRawRecipe(output, MdId.of("cable/%s_to_mi".formatted(cableName)), Map.of(
                 "type", getRecipeTypeId(RecipeSerializer.SHAPED_RECIPE),
                 "pattern", List.of("cc", "cc"),
                 "key", Map.of(
-                        "c", Map.of("item", mdCableItemId)
-                ),
+                        "c", Map.of("item", mdCableItemId)),
                 "result", Map.of(
-                        "item", miCableItemId
-                )
-        ), condition);
+                        "item", miCableItemId)),
+                condition);
     }
 
     private void writeRawRecipe(CachedOutput output, ResourceLocation id, Map<String, Object> recipe, ICondition... conditions) {

@@ -19,6 +19,8 @@
 package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.util.MdId;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import net.minecraft.client.renderer.texture.atlas.SpriteSource;
 import net.minecraft.client.renderer.texture.atlas.SpriteSources;
 import net.minecraft.client.renderer.texture.atlas.sources.DirectoryLister;
@@ -29,9 +31,6 @@ import net.minecraft.server.packs.PackType;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.common.data.JsonCodecProvider;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 public class SpriteSourceProvider extends JsonCodecProvider<List<SpriteSource>> {
     public SpriteSourceProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries, ExistingFileHelper existingFileHelper) {
         super(packOutput,
@@ -41,16 +40,14 @@ public class SpriteSourceProvider extends JsonCodecProvider<List<SpriteSource>> 
                 SpriteSources.FILE_CODEC,
                 registries,
                 MdId.MOD_ID,
-                existingFileHelper
-        );
+                existingFileHelper);
     }
 
     @Override
     protected void gather() {
         unconditional(
                 new ResourceLocation("minecraft", "blocks"),
-                List.of(new DirectoryLister("pipe", "pipe/"), new DirectoryLister("attachment", "attachment/"))
-        );
+                List.of(new DirectoryLister("pipe", "pipe/"), new DirectoryLister("attachment", "attachment/")));
     }
 
     @Override

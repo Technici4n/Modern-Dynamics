@@ -24,6 +24,7 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkCache;
 import dev.technici4n.moderndynamics.network.NetworkNode;
+import dev.technici4n.moderndynamics.util.FluidVariant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -31,7 +32,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import dev.technici4n.moderndynamics.util.FluidVariant;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
@@ -241,7 +241,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
      * @param storageGetter Can return null to skip the target
      */
     private static int transferForTargets(TransferOperation operation, List<ConnectedFluidStorage> targets, FluidVariant variant, int maxAmount,
-             Function<ConnectedFluidStorage, IFluidHandler> storageGetter) {
+            Function<ConnectedFluidStorage, IFluidHandler> storageGetter) {
         if (maxAmount == 0) {
             return 0;
         }
@@ -441,7 +441,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
     }
 
     private static int drain(IFluidHandler handler, FluidVariant variant, int maxAmount, IFluidHandler.FluidAction action) {
-        var  stack = variant.toStack(maxAmount);
+        var stack = variant.toStack(maxAmount);
         var result = handler.drain(stack, action);
         return result.getAmount();
     }

@@ -33,7 +33,8 @@ public class MachineExtenderBlockEntity extends MdBlockEntity {
     private static int registeredApis = 0;
 
     @SuppressWarnings("unchecked")
-    public static <A> void forwardApi(RegisterCapabilitiesEvent evt, BlockEntityType<MachineExtenderBlockEntity> bet, BlockCapability<A, Direction> lookup) {
+    public static <A> void forwardApi(RegisterCapabilitiesEvent evt, BlockEntityType<MachineExtenderBlockEntity> bet,
+            BlockCapability<A, Direction> lookup) {
         int apiId = registeredApis++;
 
         evt.registerBlockEntity(lookup, bet, (sideExtender, direction) -> {

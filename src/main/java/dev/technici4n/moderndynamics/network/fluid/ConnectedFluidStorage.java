@@ -20,10 +20,9 @@ package dev.technici4n.moderndynamics.network.fluid;
 
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
+import java.util.function.Function;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Function;
 
 public record ConnectedFluidStorage(
         IFluidHandler storage,

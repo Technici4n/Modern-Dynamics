@@ -33,7 +33,8 @@ public class MIAvailableProxy implements MIProxy {
     static {
         try {
             // noinspection unchecked,rawtypes
-            LOOKUP = (BlockCapability<? extends IEnergyStorage, Direction>) Class.forName("aztech.modern_industrialization.api.energy.EnergyApi").getField("SIDED").get(null);
+            LOOKUP = (BlockCapability<? extends IEnergyStorage, Direction>) Class.forName("aztech.modern_industrialization.api.energy.EnergyApi")
+                    .getField("SIDED").get(null);
 
             var miEnergyStorage = Class.forName("aztech.modern_industrialization.api.energy.MIEnergyStorage");
             var rawMethod = MethodHandles.lookup().findVirtual(miEnergyStorage, "canConnect", MethodType.methodType(boolean.class, String.class));

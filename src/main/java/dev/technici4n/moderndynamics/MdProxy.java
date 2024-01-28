@@ -18,20 +18,18 @@
  */
 package dev.technici4n.moderndynamics;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.loading.FMLLoader;
 
 public class MdProxy {
     public static final MdProxy INSTANCE = switch (FMLLoader.getDist()) {
-        case DEDICATED_SERVER-> new MdProxy();
-        case CLIENT -> {
-            try {
-                yield (MdProxy) Class.forName("dev.technici4n.moderndynamics.client.ClientProxy").getConstructor().newInstance();
-            } catch (Exception exception) {
-                throw new RuntimeException("Failed to instantiate Modern Dynamics client proxy.", exception);
-            }
+    case DEDICATED_SERVER -> new MdProxy();
+    case CLIENT -> {
+        try {
+            yield (MdProxy) Class.forName("dev.technici4n.moderndynamics.client.ClientProxy").getConstructor().newInstance();
+        } catch (Exception exception) {
+            throw new RuntimeException("Failed to instantiate Modern Dynamics client proxy.", exception);
         }
+    }
     };
 
     public boolean isShiftDown() {

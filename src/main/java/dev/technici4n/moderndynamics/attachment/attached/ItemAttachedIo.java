@@ -32,14 +32,13 @@ import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import dev.technici4n.moderndynamics.model.AttachmentModelData;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
+import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
+import dev.technici4n.moderndynamics.util.ItemVariant;
+import dev.technici4n.moderndynamics.util.TransferUtil;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
-import dev.technici4n.moderndynamics.util.ItemVariant;
-import dev.technici4n.moderndynamics.util.TransferUtil;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -397,7 +396,6 @@ public class ItemAttachedIo extends AttachedIo {
                 }
             }
         }
-
 
         return totalMoved;
     }

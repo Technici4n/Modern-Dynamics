@@ -18,13 +18,12 @@
  */
 package dev.technici4n.moderndynamics.attachment.upgrade;
 
+import dev.technici4n.moderndynamics.packets.SetAttachmentUpgrades;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-
-import dev.technici4n.moderndynamics.packets.SetAttachmentUpgrades;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;

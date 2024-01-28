@@ -20,10 +20,9 @@ package dev.technici4n.moderndynamics.gui.menu;
 
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
-import dev.technici4n.moderndynamics.packets.MdPackets;
 import dev.technici4n.moderndynamics.init.MdMenus;
+import dev.technici4n.moderndynamics.packets.MdPackets;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import java.util.Objects;
 import dev.technici4n.moderndynamics.util.FluidVariant;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
@@ -59,6 +58,7 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
             super.clicked(slotIndex, button, actionType, player);
         }
     }
+
     private boolean matchesAnyFilter(FluidStack stack) {
         for (var slot : slots) {
             if (slot instanceof FluidConfigSlot fluidConfig) {

@@ -25,7 +25,8 @@ import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 
 public class MIAbsentProxy implements MIProxy {
-    private static final BlockCapability<? extends IEnergyStorage, Direction> MISSING_LOOKUP = BlockCapability.createSided(MdId.of("mi_energy_missing"),
+    private static final BlockCapability<? extends IEnergyStorage, Direction> MISSING_LOOKUP = BlockCapability.createSided(
+            MdId.of("mi_energy_missing"),
             IEnergyStorage.class);
 
     @Override

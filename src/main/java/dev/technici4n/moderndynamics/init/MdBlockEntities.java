@@ -27,23 +27,18 @@ import dev.technici4n.moderndynamics.network.energy.EnergyPipeTier;
 import dev.technici4n.moderndynamics.network.mienergy.MICableTier;
 import dev.technici4n.moderndynamics.pipe.*;
 import dev.technici4n.moderndynamics.util.MdId;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.entity.DispenserBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.capabilities.ICapabilityProvider;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
 
 public final class MdBlockEntities {
 
@@ -60,7 +55,6 @@ public final class MdBlockEntities {
 
     public static final BlockEntityType<MachineExtenderBlockEntity> MACHINE_EXTENDER = registerRaw(MachineExtenderBlockEntity::new,
             MdBlocks.MACHINE_EXTENDER);
-
 
     public static void registerCapabilities(RegisterCapabilitiesEvent evt) {
         // Extender API forwarding
@@ -135,7 +129,8 @@ public final class MdBlockEntities {
         return type;
     }
 
-    private static <A> void registerLookup(RegisterCapabilitiesEvent evt, BlockCapability<A, Direction> lookup, BlockEntityType<? extends PipeBlockEntity> type) {
+    private static <A> void registerLookup(RegisterCapabilitiesEvent evt, BlockCapability<A, Direction> lookup,
+            BlockEntityType<? extends PipeBlockEntity> type) {
         var apiClass = lookup.typeClass();
         evt.registerBlockEntity(lookup, type, (pipe, dir) -> apiClass.cast(pipe.getApiInstance(lookup, dir)));
     }

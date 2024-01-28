@@ -19,14 +19,13 @@
 package dev.technici4n.moderndynamics.network.item;
 
 import com.google.common.base.Preconditions;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
@@ -180,7 +179,7 @@ public class SimulatedInsertionTarget {
 
         // Then remove from awaited stacks (starting from the end because why not)
         if (amount > 0) {
-            for (int slot = awaitedStacks.size(); slot-->0;) {
+            for (int slot = awaitedStacks.size(); slot-- > 0;) {
                 var awaited = awaitedStacks.get(slot);
 
                 if (variant.matches(awaited)) {

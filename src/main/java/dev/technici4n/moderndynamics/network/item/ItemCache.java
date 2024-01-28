@@ -22,8 +22,8 @@ import com.google.common.base.Preconditions;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkCache;
 import dev.technici4n.moderndynamics.network.NetworkNode;
-import java.util.List;
 import dev.technici4n.moderndynamics.util.ItemVariant;
+import java.util.List;
 import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.Nullable;
 

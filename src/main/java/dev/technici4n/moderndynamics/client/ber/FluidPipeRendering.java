@@ -26,14 +26,11 @@ import dev.technici4n.moderndynamics.thirdparty.fabric.MutableQuadView;
 import dev.technici4n.moderndynamics.thirdparty.fabric.QuadEmitter;
 import dev.technici4n.moderndynamics.util.FluidRenderUtil;
 import dev.technici4n.moderndynamics.util.FluidVariant;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.neoforged.neoforge.fluids.FluidType;
 
 public class FluidPipeRendering {
     private static final float PIPE_W = 6.0F / 16.0F;

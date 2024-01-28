@@ -1,3 +1,21 @@
+/*
+ * Modern Dynamics
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderndynamics.thirdparty.fabric;
 /*
  * Copyright (c) 2016, 2017, 2018, 2019 FabricMC
@@ -15,14 +33,14 @@ package dev.technici4n.moderndynamics.thirdparty.fabric;
  * limitations under the License.
  */
 
+import static net.minecraft.util.Mth.equal;
+
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.Direction.AxisDirection;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
-
-import static net.minecraft.util.Mth.equal;
 
 /**
  * Static routines of general utility for renderer implementations. Renderers are not required to use these helpers, but
@@ -123,24 +141,24 @@ public abstract class GeometryHelper {
         int a, b;
 
         switch (lightFace) {
-            case EAST:
-            case WEST:
-                a = 1;
-                b = 2;
-                break;
-            case UP:
-            case DOWN:
-                a = 0;
-                b = 2;
-                break;
-            case SOUTH:
-            case NORTH:
-                a = 1;
-                b = 0;
-                break;
-            default:
-                // handle WTF case
-                return false;
+        case EAST:
+        case WEST:
+            a = 1;
+            b = 2;
+            break;
+        case UP:
+        case DOWN:
+            a = 0;
+            b = 2;
+            break;
+        case SOUTH:
+        case NORTH:
+            a = 1;
+            b = 0;
+            break;
+        default:
+            // handle WTF case
+            return false;
         }
 
         return confirmSquareCorners(a, b, quad);
@@ -194,18 +212,18 @@ public abstract class GeometryHelper {
     public static Direction lightFace(QuadView quad) {
         final Vector3f normal = quad.faceNormal();
         switch (GeometryHelper.longestAxis(normal)) {
-            case X:
-                return normal.x() > 0 ? Direction.EAST : Direction.WEST;
+        case X:
+            return normal.x() > 0 ? Direction.EAST : Direction.WEST;
 
-            case Y:
-                return normal.y() > 0 ? Direction.UP : Direction.DOWN;
+        case Y:
+            return normal.y() > 0 ? Direction.UP : Direction.DOWN;
 
-            case Z:
-                return normal.z() > 0 ? Direction.SOUTH : Direction.NORTH;
+        case Z:
+            return normal.z() > 0 ? Direction.SOUTH : Direction.NORTH;
 
-            default:
-                // handle WTF case
-                return Direction.UP;
+        default:
+            // handle WTF case
+            return Direction.UP;
         }
     }
 
