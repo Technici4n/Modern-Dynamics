@@ -1,17 +1,17 @@
 {
   "type": "minecraft:crafting_shaped",
-  "result": {
-    "item": "modern_industrialization:tin_cable"
-  },
+  "pattern": [
+    "cc",
+    "cc"
+  ],
   "key": {
     "c": {
       "item": "moderndynamics:lv_cable"
     }
   },
-  "pattern": [
-    "cc",
-    "cc"
-  ],
+  "result": {
+    "item": "modern_industrialization:tin_cable"
+  },
   "neoforge:conditions": [
     {
       "modid": "modern_industrialization",
