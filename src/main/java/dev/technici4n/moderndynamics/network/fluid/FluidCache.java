@@ -190,7 +190,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
 
             for (var t : targets) {
                 var toExtract = findExtractableResource(t.storage(), attractorFilter);
-                if (toExtract != null) {
+                if (!toExtract.isBlank()) {
                     return toExtract;
                 }
             }
