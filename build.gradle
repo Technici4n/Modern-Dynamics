@@ -9,7 +9,7 @@ plugins {
 archivesBaseName = project.archives_base_name
 version = System.getenv("MOD_VERSION")
         ? System.getenv("MOD_VERSION")
-        : "local"
+        : "0.0.0"
 group = project.maven_group
 
 repositories {
@@ -94,10 +94,26 @@ sourceSets {
     }
 }
 
+minecraft {
+    accessTransformers {
+        file('src/main/resources/META-INF/accesstransformer.cfg')
+    }
+}
+
 runs {
-    datagenClient {
+    configureEach {
+        workingDirectory = project.file('run')
+        modSources = [sourceSets.main]
+    }
+    client {
+    }
+    gametestWorld {
         configure("client")
-        workingDirectory = project.file("build/datagen")
+        programArguments("--username", "MDDev", "--quickPlaySingleplayer", "GametestWorld")
+    }
+    server {
+    }
+    data {
         programArguments = [
                 '--mod', 'moderndynamics',
                 '--all',
@@ -105,7 +121,6 @@ runs {
                 '--existing', file('src/main/resources').absolutePath
         ]
     }
-
     // Use to run the tests
     gametest {
         configure("gameTestServer")
@@ -123,6 +138,12 @@ java {
     // if it is present.
     // If you remove this line, sources will not be generated.
     withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.deprecation = false
+    options.compilerArgs << "-Xmaxerrs" << "9999"
 }
 
 jar {

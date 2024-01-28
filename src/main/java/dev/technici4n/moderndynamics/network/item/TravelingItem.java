@@ -21,7 +21,7 @@ package dev.technici4n.moderndynamics.network.item;
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.concurrent.atomic.AtomicInteger;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.nbt.CompoundTag;
 
 public class TravelingItem {
@@ -29,13 +29,13 @@ public class TravelingItem {
 
     public final int id = NEXT_ID.getAndIncrement();
     public final ItemVariant variant;
-    public final long amount;
+    public final int amount;
     public final ItemPath path;
     public final FailedInsertStrategy strategy;
     public final double speedMultiplier;
     public double traveledDistance;
 
-    public TravelingItem(ItemVariant variant, long amount, ItemPath path, FailedInsertStrategy strategy, double speedMultiplier,
+    public TravelingItem(ItemVariant variant, int amount, ItemPath path, FailedInsertStrategy strategy, double speedMultiplier,
             double traveledDistance) {
         if (speedMultiplier < 0.5) {
             // Upgrade path from before the speed multiplier was added.
@@ -63,7 +63,7 @@ public class TravelingItem {
     public CompoundTag toNbt() {
         CompoundTag nbt = new CompoundTag();
         nbt.put("v", variant.toNbt());
-        nbt.putLong("a", amount);
+        nbt.putInt("a", amount);
         nbt.put("start", SerializationHelper.posToNbt(path.startingPos));
         nbt.put("end", SerializationHelper.posToNbt(path.targetPos));
         nbt.putString("path", SerializationHelper.encodePath(path.path));
@@ -76,7 +76,7 @@ public class TravelingItem {
     public static TravelingItem fromNbt(CompoundTag nbt) {
         return new TravelingItem(
                 ItemVariant.fromNbt(nbt.getCompound("v")),
-                nbt.getLong("a"),
+                nbt.getInt("a"),
                 new ItemPath(
                         SerializationHelper.posFromNbt(nbt.getCompound("start")),
                         SerializationHelper.posFromNbt(nbt.getCompound("end")),

@@ -34,15 +34,14 @@
   },
   "requirements": [
     [
+      "has_the_recipe",
       "has_item_pipe",
-      "has_fluid_pipe",
-      "has_the_recipe"
+      "has_fluid_pipe"
     ]
   ],
   "rewards": {
     "recipes": [
       "moderndynamics:machine_extender"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

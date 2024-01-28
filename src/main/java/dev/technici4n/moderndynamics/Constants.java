@@ -18,13 +18,13 @@
  */
 package dev.technici4n.moderndynamics;
 
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
+import net.neoforged.neoforge.fluids.FluidType;
 
 // All the things that should be moved to a config "one day"
 public class Constants {
     public static class Fluids {
-        public static final long BASE_IO = FluidConstants.BUCKET / 50;
-        public static final long CAPACITY = FluidConstants.BUCKET;
+        public static final int BASE_IO = FluidType.BUCKET_VOLUME / 50;
+        public static final int CAPACITY = FluidType.BUCKET_VOLUME;
     }
 
     public static class Items {

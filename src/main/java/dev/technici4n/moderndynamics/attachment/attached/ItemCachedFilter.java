@@ -27,8 +27,8 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import dev.technici4n.moderndynamics.util.FluidVariant;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
@@ -125,7 +125,7 @@ public final class ItemCachedFilter {
     }
 
     private static String getModId(FluidVariant variant) {
-        // This returns "minecraft" if the fluid is unregistered
+        // This returns "minecraft" if the item is unregistered
         return BuiltInRegistries.FLUID.getKey(variant.getFluid()).getNamespace();
     }
 

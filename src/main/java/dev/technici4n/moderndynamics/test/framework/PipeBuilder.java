@@ -64,7 +64,7 @@ public class PipeBuilder {
             return this;
         }
 
-        helper.fail("Failed to find fluid io from pipe", pipe.getBlockPos());
+        helper.fail("Failed to find item io from pipe", pipe.getBlockPos());
         throw new UnsupportedOperationException();
     }
 

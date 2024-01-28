@@ -22,7 +22,7 @@ import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedIo;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
-import dev.technici4n.moderndynamics.gui.MdPackets;
+import dev.technici4n.moderndynamics.packets.MdPackets;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.function.BiConsumer;
 import java.util.function.IntSupplier;
@@ -36,7 +36,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-// TODO: need to sync item and fluid filter changes done by other players
+// TODO: need to sync item and item filter changes done by other players
 public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu {
     public final PipeBlockEntity pipe;
     public final Direction side;

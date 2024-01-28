@@ -18,101 +18,102 @@
  */
 package dev.technici4n.moderndynamics.client;
 
-import dev.technici4n.moderndynamics.client.attachment.SetAttachmentUpgradesPacket;
 import dev.technici4n.moderndynamics.client.ber.PipeBlockEntityRenderer;
 import dev.technici4n.moderndynamics.client.model.MdModelLoader;
 import dev.technici4n.moderndynamics.client.screen.FluidAttachedIoScreen;
 import dev.technici4n.moderndynamics.client.screen.ItemAttachedIoScreen;
-import dev.technici4n.moderndynamics.gui.MdPackets;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItemSmoothing;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.fabricmc.fabric.api.event.client.player.ClientPickBlockGatherCallback;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.RenderHighlightEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.TickEvent;
 
-public final class ModernDynamicsClient implements ClientModInitializer {
-    @Override
-    public void onInitializeClient() {
-        MdModelLoader.init();
+public final class ModernDynamicsClient {
+    public ModernDynamicsClient(IEventBus modEvents) {
+        MdModelLoader.init(modEvents);
 
-        for (PipeBlock pipeBlock : MdBlocks.ALL_PIPES) {
-            BlockRenderLayerMap.INSTANCE.putBlock(pipeBlock, RenderType.cutout());
+        modEvents.addListener(EntityRenderersEvent.RegisterRenderers.class, this::registerRenderers);
+
+        modEvents.addListener(RegisterMenuScreensEvent.class, e -> {
+            e.register(MdMenus.ITEM_IO, ItemAttachedIoScreen::new);
+            e.register(MdMenus.FLUID_IO, FluidAttachedIoScreen::new);
+        });
+
+        NeoForge.EVENT_BUS.addListener(TickEvent.ClientTickEvent.class, e -> {
+            if (e.phase == TickEvent.Phase.START) {
+                if (!Minecraft.getInstance().isPaused()) {
+                    ClientTravelingItemSmoothing.onUnpausedTick();
+                }
+            }
+        });
+        NeoForge.EVENT_BUS.addListener(RenderHighlightEvent.Block.class, ModernDynamicsClient::renderPipeAttachmentOutline);
+    }
+
+    private void registerRenderers(EntityRenderersEvent.RegisterRenderers evt) {
+
+        for (var pipeBlock : MdBlocks.ALL_PIPES) {
             var blockEntityType = pipeBlock.getBlockEntityTypeNullable();
             if (blockEntityType != null) { // some pipes don't have a block entity type (empty high tier energy pipes)
-                BlockEntityRenderers.register(blockEntityType, PipeBlockEntityRenderer::new);
+                evt.registerBlockEntityRenderer(blockEntityType, PipeBlockEntityRenderer::new);
             }
         }
 
-        MenuScreens.register(MdMenus.ITEM_IO, ItemAttachedIoScreen::new);
-        MenuScreens.register(MdMenus.FLUID_IO, FluidAttachedIoScreen::new);
-
-        ClientPlayNetworking.registerGlobalReceiver(MdPackets.SET_ATTACHMENT_UPGRADES, SetAttachmentUpgradesPacket.HANDLER);
-
-        WorldRenderEvents.BLOCK_OUTLINE.register(ModernDynamicsClient::renderPipeAttachmentOutline);
-        ClientTickEvents.START_CLIENT_TICK.register(mc -> {
-            if (!mc.isPaused()) {
-                ClientTravelingItemSmoothing.onUnpausedTick();
-            }
-        });
-        ClientPickBlockGatherCallback.EVENT.register((player, hitResult) -> {
-            if (hitResult instanceof BlockHitResult bir) {
-                if (player.level().getBlockEntity(bir.getBlockPos()) instanceof PipeBlockEntity pipe) {
-                    return pipe.overridePickBlock(hitResult);
-                }
-            }
-            return ItemStack.EMPTY;
-        });
     }
 
     /**
      * Highlights only the pipe attachment when it's under the mouse cursor to indicate it has special interactions.
      */
-    private static boolean renderPipeAttachmentOutline(WorldRenderContext worldRenderContext,
-            WorldRenderContext.BlockOutlineContext blockOutlineContext) {
+    private static void renderPipeAttachmentOutline(RenderHighlightEvent.Block evt) {
+        var level = Minecraft.getInstance().level;
+        var poseStack = evt.getPoseStack();
+        var buffers = evt.getMultiBufferSource();
+        var camera = evt.getCamera();
+        if (level == null) {
+            return;
+        }
 
-        if (blockOutlineContext.blockState().getBlock() instanceof PipeBlock) {
+        var blockHitResult = evt.getTarget();
+        if (blockHitResult.getType() != HitResult.Type.BLOCK) {
+            return;
+        }
 
-            var be = worldRenderContext.world().getBlockEntity(blockOutlineContext.blockPos());
+        var pos = blockHitResult.getBlockPos();
+        var blockState = level.getBlockState(pos);
+        if (blockState.getBlock() instanceof PipeBlock) {
+
+            var be = level.getBlockEntity(pos);
             if (be instanceof PipeBlockEntity pipe) {
-                var pos = blockOutlineContext.blockPos();
-
                 var hitPosInBlock = Minecraft.getInstance().hitResult.getLocation();
                 hitPosInBlock = hitPosInBlock.subtract(pos.getX(), pos.getY(), pos.getZ());
 
                 var hitSide = pipe.hitTestAttachments(hitPosInBlock);
                 if (hitSide != null) {
                     LevelRenderer.renderShape(
-                            worldRenderContext.matrixStack(),
-                            worldRenderContext.consumers().getBuffer(RenderType.lines()),
+                            poseStack,
+                            buffers.getBuffer(RenderType.lines()),
                             PipeBoundingBoxes.CONNECTOR_SHAPES[hitSide.ordinal()],
-                            (double) pos.getX() - blockOutlineContext.cameraX(),
-                            (double) pos.getY() - blockOutlineContext.cameraY(),
-                            (double) pos.getZ() - blockOutlineContext.cameraZ(),
+                            (double) pos.getX() - camera.getPosition().x,
+                            (double) pos.getY() - camera.getPosition().y,
+                            (double) pos.getZ() - camera.getPosition().z,
                             0.0F,
                             0.0F,
                             0.0F,
                             0.4F);
-                    return false;
+                    evt.setCanceled(true);
                 }
             }
-
         }
-
-        return true;
     }
 }

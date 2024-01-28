@@ -18,21 +18,27 @@
  */
 package dev.technici4n.moderndynamics.data;
 
-import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import dev.technici4n.moderndynamics.util.MdId;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.data.BlockTagsProvider;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 
-public class DataGenerators implements DataGeneratorEntrypoint {
-    @Override
-    public void onInitializeDataGenerator(FabricDataGenerator fabricDataGenerator) {
-        var packGen = fabricDataGenerator.createPack();
+@Mod.EventBusSubscriber(modid = MdId.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+public class DataGenerators {
+    @SubscribeEvent
+    public static void onGatherData(GatherDataEvent event) {
+        var existingFileHelper = event.getExistingFileHelper();
+        var registries = event.getLookupProvider();
+        var pack = event.getGenerator().getVanillaPack(true);
 
-        packGen.addProvider(ModelsProvider::new);
-        packGen.addProvider(PipeModelsProvider::new);
-        packGen.addProvider(SpriteSourceProvider::new);
+        pack.addProvider(packOutput -> new ModelsProvider(packOutput, existingFileHelper));
+        pack.addProvider(PipeModelsProvider::new);
+        pack.addProvider(packOutput -> new SpriteSourceProvider(packOutput, registries, existingFileHelper));
 
-        packGen.addProvider(AttachmentUpgradesProvider::new);
-        packGen.addProvider(ItemTagsProvider::new);
-        packGen.addProvider(LootTablesProvider::new);
-        packGen.addProvider(RecipesProvider::new);
+        pack.addProvider(AttachmentUpgradesProvider::new);
+        pack.addProvider(packOutput -> new ItemTagsProvider(packOutput, registries, existingFileHelper));
+        pack.addProvider(LootTablesProvider::create);
+        pack.addProvider(packOutput -> new RecipesProvider(packOutput, registries));
     }
 }

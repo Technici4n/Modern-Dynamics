@@ -22,7 +22,6 @@ import dev.technici4n.moderndynamics.util.MdId;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import net.fabricmc.fabric.api.renderer.v1.model.WrapperBakedModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.BlockModelRotation;
@@ -78,7 +77,7 @@ public class PipeUnbakedModel implements UnbakedModel {
                 spriteGetter.apply(baseTexture),
                 loadRotatedModels(connector, baker),
                 loadRotatedModels(straightLine, baker),
-                (AttachmentsBakedModel) WrapperBakedModel.unwrap(baker.bake(AttachmentsUnbakedModel.ID, BlockModelRotation.X0_Y0)),
+                (AttachmentsBakedModel) baker.bake(AttachmentsUnbakedModel.ID, BlockModelRotation.X0_Y0, spriteGetter),
                 transparent);
     }
 }

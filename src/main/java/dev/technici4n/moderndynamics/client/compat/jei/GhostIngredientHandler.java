@@ -25,14 +25,14 @@ import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
 import dev.technici4n.moderndynamics.gui.menu.ItemConfigSlot;
 import java.util.ArrayList;
 import java.util.List;
-import mezz.jei.api.fabric.ingredients.fluids.IJeiFluidIngredient;
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
 import mezz.jei.api.ingredients.ITypedIngredient;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import dev.technici4n.moderndynamics.util.FluidVariant;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 @SuppressWarnings("rawtypes")
 class GhostIngredientHandler implements IGhostIngredientHandler<AttachedIoScreen> {
@@ -49,7 +49,7 @@ class GhostIngredientHandler implements IGhostIngredientHandler<AttachedIoScreen
             }
         }
 
-        if (gui instanceof FluidAttachedIoScreen ioScreen && ingredient instanceof IJeiFluidIngredient) {
+        if (gui instanceof FluidAttachedIoScreen ioScreen && ingredient instanceof FluidStack) {
             for (var s : ioScreen.getMenu().slots) {
                 if (s instanceof FluidConfigSlot slot && slot.isActive()) {
                     targets.add((Target<I>) new FluidSlotTarget(slot, ioScreen));
@@ -91,7 +91,7 @@ class GhostIngredientHandler implements IGhostIngredientHandler<AttachedIoScreen
         }
     }
 
-    private static class FluidSlotTarget implements IGhostIngredientHandler.Target<IJeiFluidIngredient> {
+    private static class FluidSlotTarget implements IGhostIngredientHandler.Target<FluidStack> {
         private final FluidConfigSlot slot;
         private final FluidAttachedIoScreen ioScreen;
 
@@ -106,9 +106,9 @@ class GhostIngredientHandler implements IGhostIngredientHandler<AttachedIoScreen
         }
 
         @Override
-        public void accept(IJeiFluidIngredient ingredient) {
+        public void accept(FluidStack ingredient) {
             if (slot.isActive()) {
-                var fv = FluidVariant.of(ingredient.getFluid(), ingredient.getTag().orElse(null));
+                var fv = FluidVariant.of(ingredient);
                 ioScreen.getMenu().setFilter(slot.getConfigIdx(), fv, true);
             }
         }

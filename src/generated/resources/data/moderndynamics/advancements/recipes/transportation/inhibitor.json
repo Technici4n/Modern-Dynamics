@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_item_pipe",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_item_pipe"
     ]
   ],
   "rewards": {
     "recipes": [
       "moderndynamics:inhibitor"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -22,9 +22,7 @@ import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdItems;
-import dev.technici4n.moderndynamics.test.framework.MdGameTest;
 import dev.technici4n.moderndynamics.test.framework.MdGameTestHelper;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -32,9 +30,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.neoforged.neoforge.gametest.GameTestHolder;
 
-public class ItemDistributionTest extends MdGameTest {
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE, timeoutTicks = 200)
+@GameTestHolder
+public class ItemDistributionTest {
+    @GameTest(timeoutTicks = 200)
     public void testRoundRobinInvalidTarget(MdGameTestHelper helper) {
         var sourceChest = new BlockPos(0, 1, 0);
         helper.setBlock(sourceChest, Blocks.CHEST);

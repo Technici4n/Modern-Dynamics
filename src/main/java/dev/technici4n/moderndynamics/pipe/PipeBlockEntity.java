@@ -27,9 +27,9 @@ import dev.technici4n.moderndynamics.model.PipeModelData;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.TickHelper;
 import dev.technici4n.moderndynamics.util.DropHelper;
+import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
 import dev.technici4n.moderndynamics.util.ShapeHelper;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -48,6 +48,10 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -64,7 +68,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
     public int connectionBlacklist = 0;
     private VoxelShape cachedShape = PipeBoundingBoxes.CORE_SHAPE;
     /* client side stuff */
-    private PipeModelData clientModelData = null;
+    private ModelData clientModelData = ModelData.EMPTY;
 
     private int clientSideConnections = 0;
 
@@ -79,10 +83,16 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
 
     private boolean hasAttachment(Direction side) {
         if (isClientSide()) {
-            return clientModelData != null && clientModelData.attachments()[side.get3DDataValue()] != null;
+            var pipeData = getPipeModelData();
+            return pipeData != null && pipeData.attachments()[side.get3DDataValue()] != null;
         } else {
             return getAttachment(side) != null;
         }
+    }
+
+    @Nullable
+    private PipeModelData getPipeModelData() {
+        return clientModelData.get(PipeModelData.PIPE_DATA);
     }
 
     public final AttachedAttachment getAttachment(Direction side) {
@@ -145,7 +155,9 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                 attachments[direction.get3DDataValue()] = AttachmentModelData.from(attachmentTag);
             }
 
-            clientModelData = new PipeModelData(connections, inventoryConnections, attachments);
+            clientModelData = ModelData.builder()
+                    .with(PipeModelData.PIPE_DATA, new PipeModelData(connections, inventoryConnections, attachments))
+                    .build();
             clientSideConnections = connections | inventoryConnections;
 
             updateCachedShape(connections, inventoryConnections);
@@ -153,8 +165,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
     }
 
     @Override
-    @Nullable
-    public Object getRenderData() {
+    public @NotNull ModelData getModelData() {
         return clientModelData;
     }
 
@@ -235,9 +246,9 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
     }
 
     @Nullable
-    public Object getApiInstance(BlockApiLookup<?, Direction> direction, @Nullable Direction side) {
+    public Object getApiInstance(BlockCapability<?, Direction> capability, @Nullable Direction side) {
         for (var host : getHosts()) {
-            var api = host.getApiInstance(direction, side);
+            var api = host.getApiInstance(capability, side);
             if (api != null) {
                 return api;
             }
@@ -420,7 +431,10 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                 var attachment = getAttachment(hitSide);
                 if (attachment != null && attachment.hasMenu()) {
                     // Open attachment GUI
-                    player.openMenu(attachment.createMenu(this, hitSide));
+                    var menuProvider = attachment.createMenu(this, hitSide);
+                    if (menuProvider != null) {
+                        player.openMenu(menuProvider, menuProvider::writeScreenOpeningData);
+                    }
                 }
             }
             return InteractionResult.sidedSuccess(isClientSide());
@@ -446,7 +460,11 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
     public ItemStack overridePickBlock(HitResult hitResult) {
         Vec3 posInBlock = hitResult.getLocation().subtract(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ());
         Direction side = hitTestAttachments(posInBlock);
-        return side != null ? new ItemStack(clientModelData.attachments()[side.get3DDataValue()].item()) : ItemStack.EMPTY;
+        var pipeModelData = getPipeModelData();
+        if (pipeModelData != null) {
+            return side != null ? new ItemStack(pipeModelData.attachments()[side.get3DDataValue()].item()) : ItemStack.EMPTY;
+        }
+        return ItemStack.EMPTY;
     }
 
     public void onRemoved() {

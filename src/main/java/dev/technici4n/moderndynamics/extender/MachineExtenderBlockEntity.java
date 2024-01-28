@@ -19,50 +19,53 @@
 package dev.technici4n.moderndynamics.extender;
 
 import dev.technici4n.moderndynamics.MdBlockEntity;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiCache;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 public class MachineExtenderBlockEntity extends MdBlockEntity {
     private static int registeredApis = 0;
 
-    public static <A> void forwardApi(BlockEntityType<MachineExtenderBlockEntity> bet, BlockApiLookup<A, Direction> lookup) {
+    @SuppressWarnings("unchecked")
+    public static <A> void forwardApi(RegisterCapabilitiesEvent evt, BlockEntityType<MachineExtenderBlockEntity> bet, BlockCapability<A, Direction> lookup) {
         int apiId = registeredApis++;
 
-        lookup.registerForBlockEntity((sideExtender, direction) -> {
-            if (sideExtender.inApiQuery[apiId]) {
+        evt.registerBlockEntity(lookup, bet, (sideExtender, direction) -> {
+            var cacheIndex = apiId * 6 + direction.ordinal();
+            if (sideExtender.inApiQuery[cacheIndex]) {
                 return null;
             }
 
-            sideExtender.inApiQuery[apiId] = true;
+            sideExtender.inApiQuery[cacheIndex] = true;
             try {
-                var cache = (BlockApiCache<A, Direction>) sideExtender.apiCaches[apiId];
+                var cache = (BlockCapabilityCache<A, Direction>) sideExtender.apiCaches[cacheIndex];
 
                 if (cache == null) {
                     var queryPos = sideExtender.getBlockPos().below();
 
                     if (sideExtender.getLevel() instanceof ServerLevel serverLevel) {
-                        sideExtender.apiCaches[apiId] = cache = BlockApiCache.create(lookup, serverLevel, queryPos);
+                        sideExtender.apiCaches[cacheIndex] = cache = BlockCapabilityCache.create(lookup, serverLevel, queryPos, direction);
                     } else {
                         // Client path, fall back to normal lookup
-                        return lookup.find(sideExtender.getLevel(), queryPos, direction);
+                        return sideExtender.getLevel().getCapability(lookup, queryPos, direction);
                     }
                 }
 
-                return cache.find(direction);
+                return cache.getCapability();
             } finally {
-                sideExtender.inApiQuery[apiId] = false;
+                sideExtender.inApiQuery[cacheIndex] = false;
             }
-        }, bet);
+        });
     }
 
-    private final boolean[] inApiQuery = new boolean[registeredApis];
-    private final BlockApiCache[] apiCaches = new BlockApiCache[registeredApis];
+    private final boolean[] inApiQuery = new boolean[registeredApis * Direction.values().length];
+    private final BlockCapabilityCache[] apiCaches = new BlockCapabilityCache[registeredApis * Direction.values().length];
     boolean inNeighborUpdate = false;
 
     public MachineExtenderBlockEntity(BlockEntityType<?> bet, BlockPos pos, BlockState state) {

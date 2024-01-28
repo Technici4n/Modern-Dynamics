@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_lapis",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_lapis"
     ]
   ],
   "rewards": {
     "recipes": [
       "moderndynamics:filter"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

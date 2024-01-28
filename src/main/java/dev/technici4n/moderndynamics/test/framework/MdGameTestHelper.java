@@ -21,17 +21,15 @@ package dev.technici4n.moderndynamics.test.framework;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.Objects;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInfo;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.material.Fluid;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 public class MdGameTestHelper extends GameTestHelper {
     public MdGameTestHelper(GameTestInfo gameTestInfo) {
@@ -51,15 +49,15 @@ public class MdGameTestHelper extends GameTestHelper {
     }
 
     /**
-     * Throw exception unless target block pos (relative) has at least some amount of some fluid.
+     * Throw exception unless target block pos (relative) has at least some amount of some item.
      */
-    public void checkFluid(BlockPos pos, Fluid fluid, long minAmount) {
-        var storage = FluidStorage.SIDED.find(getLevel(), absolutePos(pos), Direction.UP);
+    public void checkFluid(BlockPos pos, Fluid fluid, int minAmount) {
+        var handler = getLevel().getCapability(Capabilities.FluidHandler.BLOCK, absolutePos(pos), Direction.UP);
 
-        if (storage != null) {
-            var storedAmount = StorageUtil.simulateExtract(storage, FluidVariant.of(fluid), Long.MAX_VALUE, null);
+        if (handler != null) {
+            var drained = handler.drain(new FluidStack(fluid, Integer.MAX_VALUE), IFluidHandler.FluidAction.SIMULATE);
 
-            if (storedAmount >= minAmount) {
+            if (!drained.isEmpty() && drained.getAmount() >= minAmount) {
                 return;
             }
         }
@@ -71,12 +69,12 @@ public class MdGameTestHelper extends GameTestHelper {
      * Throw exception unless target block pos (relative) has at least some amount of some item.
      */
     public void checkItem(BlockPos pos, Item item, long minAmount) {
-        var storage = ItemStorage.SIDED.find(getLevel(), absolutePos(pos), Direction.UP);
+        var handler = getLevel().getCapability(Capabilities.ItemHandler.BLOCK, absolutePos(pos), Direction.UP);
 
-        if (storage != null) {
-            var storedAmount = StorageUtil.simulateExtract(storage, ItemVariant.of(item), Long.MAX_VALUE, null);
+        if (handler != null) {
+            var extracted = handler.extractItem(0, Integer.MAX_VALUE, true);
 
-            if (storedAmount >= minAmount) {
+            if (!extracted.isEmpty() && extracted.getCount() >= minAmount) {
                 return;
             }
         }

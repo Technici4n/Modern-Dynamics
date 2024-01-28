@@ -18,25 +18,23 @@
  */
 package dev.technici4n.moderndynamics.network.shared;
 
+import com.google.common.base.Preconditions;
+import com.google.common.primitives.Ints;
 import dev.technici4n.moderndynamics.network.TickHelper;
-import java.util.Arrays;
-import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import net.minecraft.core.Direction;
 
-public class TransferLimits extends SnapshotParticipant<long[]> {
+public class TransferLimits {
     // These numbers are somewhat arbitrary, we can always change them later...
     // TODO: I don't like this, we should cap at bucket capacity...
-    private static final long MAX_TICK_DIFF = 20;
-    private static final long MAX_BUFFER_FACTOR = 50;
+    private static final int MAX_TICK_DIFF = 20;
+    private static final int MAX_BUFFER_FACTOR = 50;
 
     private long lastUpdateTick = 0;
-    private final long[] available = new long[6];
+    private final int[] available = new int[6];
     private final LimitSupplier limitSupplier;
-    private final long maxBuffer;
+    private final int maxBuffer;
 
-    public TransferLimits(LimitSupplier limitSupplier, long maxBuffer) {
+    public TransferLimits(LimitSupplier limitSupplier, int maxBuffer) {
         this.limitSupplier = limitSupplier;
         this.maxBuffer = maxBuffer;
     }
@@ -57,11 +55,11 @@ public class TransferLimits extends SnapshotParticipant<long[]> {
 
                 for (var dir : Direction.values()) {
                     int i = dir.get3DDataValue();
-                    long tickLimit = limitSupplier.getLimit(dir);
+                    int tickLimit = limitSupplier.getLimit(dir);
 
                     if (tickLimit > 0) {
                         // Buffer up to buffer limit
-                        long potentialBuffer = Math.min(available[i] + tickLimit * tickDiff, maxBuffer);
+                        int potentialBuffer = Math.min(Ints.saturatedCast( available[i] + tickLimit * tickDiff), maxBuffer);
                         // Pick max between (limited) buffer and raw tick limit
                         available[i] = Math.max(potentialBuffer, tickLimit);
                     } else {
@@ -78,8 +76,8 @@ public class TransferLimits extends SnapshotParticipant<long[]> {
     /**
      * Limit the passed amount.
      */
-    public long limit(int side, long amount) {
-        StoragePreconditions.notNegative(amount);
+    public int limit(int side, int amount) {
+        Preconditions.checkArgument(amount  >= 0);
         checkForNewTick();
 
         // Always check if transfer is still valid.
@@ -90,19 +88,8 @@ public class TransferLimits extends SnapshotParticipant<long[]> {
         return Math.min(available[side], amount);
     }
 
-    public void use(int side, long amount, TransactionContext tx) {
-        updateSnapshots(tx);
+    public void use(int side, int amount) {
         available[side] -= amount;
-    }
-
-    @Override
-    protected long[] createSnapshot() {
-        return Arrays.copyOf(available, available.length);
-    }
-
-    @Override
-    protected void readSnapshot(long[] snapshot) {
-        System.arraycopy(snapshot, 0, available, 0, snapshot.length);
     }
 
     @FunctionalInterface
@@ -110,6 +97,6 @@ public class TransferLimits extends SnapshotParticipant<long[]> {
         /**
          * @return Transfer limit for direction and context, or "default" limit if context is null.
          */
-        long getLimit(Direction direction);
+        int getLimit(Direction direction);
     }
 }

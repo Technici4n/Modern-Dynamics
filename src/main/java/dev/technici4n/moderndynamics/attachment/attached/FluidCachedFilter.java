@@ -22,7 +22,8 @@ import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import dev.technici4n.moderndynamics.util.FluidVariant;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 public class FluidCachedFilter {
     private final Set<FluidVariant> listedVariants;

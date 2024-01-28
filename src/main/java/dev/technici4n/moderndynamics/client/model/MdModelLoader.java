@@ -23,50 +23,50 @@ import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.HashMap;
 import java.util.Map;
-import net.fabricmc.fabric.api.client.model.loading.v1.DelegatingUnbakedModel;
-import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.ModelEvent;
 
 /**
  * Allows us to load our custom jsons.
  */
 public final class MdModelLoader {
-    public static void init() {
-        ModelLoadingPlugin.register(pluginCtx -> {
+    public static void init(IEventBus modEvents) {
+        modEvents.addListener(ModelEvent.RegisterGeometryLoaders.class, evt -> {
             Map<String, UnbakedModel> pipeItemModels = new HashMap<>();
-
-            for (var pipe : MdBlocks.ALL_PIPES) {
-                pipeItemModels.put("item/" + pipe.id, new DelegatingUnbakedModel(BlockModelShaper.stateToModelLocation(pipe.defaultBlockState())));
-
-                pluginCtx.registerBlockStateResolver(pipe, ctx -> {
-                    var model = new PipeUnbakedModel(pipe.id, pipe.isTransparent());
-                    for (var state : pipe.getStateDefinition().getPossibleStates()) {
-                        ctx.setModel(state, model);
-                    }
-                });
-            }
-
-            pluginCtx.resolveModel().register(ctx -> {
-                if (!MdId.MOD_ID.equals(ctx.id().getNamespace())) {
-                    return null;
-                }
-
-                if (AttachmentsUnbakedModel.ID.getPath().equals(ctx.id().getPath())) {
-                    var modelMap = new HashMap<String, ResourceLocation>();
-                    for (var id : RenderedAttachment.getAttachmentIds()) {
-                        modelMap.put(id, MdId.of("attachment/" + id));
-                    }
-                    return new AttachmentsUnbakedModel(modelMap);
-                }
-
-                if (pipeItemModels.containsKey(ctx.id().getPath())) {
-                    return pipeItemModels.get(ctx.id().getPath());
-                }
-
-                return null;
-            });
+// TODO NEOFORGE
+// TODO NEOFORGE            for (var pipe : MdBlocks.ALL_PIPES) {
+// TODO NEOFORGE                pipeItemModels.put("item/" + pipe.id, new DelegatingUnbakedModel(BlockModelShaper.stateToModelLocation(pipe.defaultBlockState())));
+// TODO NEOFORGE
+// TODO NEOFORGE                pluginCtx.registerBlockStateResolver(pipe, ctx -> {
+// TODO NEOFORGE                    var model = new PipeUnbakedModel(pipe.id, pipe.isTransparent());
+// TODO NEOFORGE                    for (var state : pipe.getStateDefinition().getPossibleStates()) {
+// TODO NEOFORGE                        ctx.setModel(state, model);
+// TODO NEOFORGE                    }
+// TODO NEOFORGE                });
+// TODO NEOFORGE            }
+// TODO NEOFORGE
+// TODO NEOFORGE            pluginCtx.resolveModel().register(ctx -> {
+// TODO NEOFORGE                if (!MdId.MOD_ID.equals(ctx.id().getNamespace())) {
+// TODO NEOFORGE                    return null;
+// TODO NEOFORGE                }
+// TODO NEOFORGE
+// TODO NEOFORGE                if (AttachmentsUnbakedModel.ID.getPath().equals(ctx.id().getPath())) {
+// TODO NEOFORGE                    var modelMap = new HashMap<String, ResourceLocation>();
+// TODO NEOFORGE                    for (var id : RenderedAttachment.getAttachmentIds()) {
+// TODO NEOFORGE                        modelMap.put(id, MdId.of("attachment/" + id));
+// TODO NEOFORGE                    }
+// TODO NEOFORGE                    return new AttachmentsUnbakedModel(modelMap);
+// TODO NEOFORGE                }
+// TODO NEOFORGE
+// TODO NEOFORGE                if (pipeItemModels.containsKey(ctx.id().getPath())) {
+// TODO NEOFORGE                    return pipeItemModels.get(ctx.id().getPath());
+// TODO NEOFORGE                }
+// TODO NEOFORGE
+// TODO NEOFORGE                return null;
+// TODO NEOFORGE            });
 
         });
     }

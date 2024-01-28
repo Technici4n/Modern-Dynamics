@@ -20,14 +20,24 @@ package dev.technici4n.moderndynamics.attachment.attached;
 
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
+import dev.technici4n.moderndynamics.gui.menu.AttachmentMenuType;
+import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
+import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
+import dev.technici4n.moderndynamics.util.FluidVariant;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.jetbrains.annotations.Nullable;
 
 // TODO: also allow nbt filtering
@@ -90,7 +100,7 @@ public class FluidAttachedIo extends AttachedIo {
         return cachedFilter.matches(variant);
     }
 
-    public long getFluidMaxIo() {
+    public int getFluidMaxIo() {
         return upgradeContainer.getFluidMaxIo();
     }
 
@@ -100,7 +110,23 @@ public class FluidAttachedIo extends AttachedIo {
     }
 
     @Override
-    public @Nullable MenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
-        return MdMenus.FLUID_IO.createMenu(pipe, side, this);
+    public @Nullable ExtendedMenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
+        return new ExtendedMenuProvider() {
+            @Override
+            public void writeScreenOpeningData(FriendlyByteBuf buf) {
+                AttachmentMenuType.writeScreenOpeningData(pipe, side, FluidAttachedIo.this, buf);
+            }
+
+            @Override
+            public Component getDisplayName() {
+                return FluidAttachedIo.this.getDisplayName();
+            }
+
+            @Nullable
+            @Override
+            public AbstractContainerMenu createMenu(int syncId, Inventory pPlayerInventory, Player pPlayer) {
+                return new FluidAttachedIoMenu(syncId, pPlayerInventory, pipe, side, FluidAttachedIo.this);
+            }
+        };
     }
 }

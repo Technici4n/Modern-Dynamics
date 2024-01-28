@@ -20,7 +20,7 @@ package dev.technici4n.moderndynamics.client.compat.emi;
 
 import dev.emi.emi.api.EmiPlugin;
 import dev.emi.emi.api.EmiRegistry;
-import dev.emi.emi.api.FabricEmiStack;
+import dev.emi.emi.api.neoforge.NeoForgeEmiStack;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.stack.EmiStackInteraction;
 import dev.emi.emi.api.widget.Bounds;
@@ -28,6 +28,8 @@ import dev.technici4n.moderndynamics.attachment.upgrade.LoadedUpgrades;
 import dev.technici4n.moderndynamics.client.screen.AttachedIoScreen;
 import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
 import dev.technici4n.moderndynamics.init.MdItems;
+import net.neoforged.neoforge.fluids.FluidType;
+
 import java.util.List;
 
 public class MdEmiPlugin implements EmiPlugin {
@@ -51,11 +53,11 @@ public class MdEmiPlugin implements EmiPlugin {
 
         registry.addGenericStackProvider((screen, mouseX, mouseY) -> {
             if (screen instanceof AttachedIoScreen<?>ioScreen) {
-                // Ensures that users can press R, U, etc... on fluid config slots.
+                // Ensures that users can press R, U, etc... on item config slots.
                 if (ioScreen.getHoveredSlot() instanceof FluidConfigSlot fluidConfig) {
                     var variant = fluidConfig.getFilter();
                     if (!variant.isBlank()) {
-                        return new EmiStackInteraction(FabricEmiStack.of(variant), null, false);
+                        return new EmiStackInteraction(NeoForgeEmiStack.of(variant.toStack(FluidType.BUCKET_VOLUME)), null, false);
                     }
                 }
             }

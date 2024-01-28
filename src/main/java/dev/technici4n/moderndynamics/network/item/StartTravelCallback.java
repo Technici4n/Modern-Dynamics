@@ -18,8 +18,8 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 
 public interface StartTravelCallback {
-    void startTravel(ItemVariant variant, long amount);
+    void startTravel(ItemVariant variant, int amount);
 }

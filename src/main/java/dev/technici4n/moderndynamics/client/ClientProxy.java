@@ -19,28 +19,11 @@
 package dev.technici4n.moderndynamics.client;
 
 import dev.technici4n.moderndynamics.MdProxy;
-import dev.technici4n.moderndynamics.util.UnsidedPacketHandler;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 
 public class ClientProxy extends MdProxy {
     @Override
     public boolean isShiftDown() {
         return Screen.hasShiftDown();
-    }
-
-    @Override
-    public void registerPacketHandler(ResourceLocation packetId, UnsidedPacketHandler unsidedHandler) {
-        super.registerPacketHandler(packetId, unsidedHandler);
-
-        ClientPlayNetworking.registerGlobalReceiver(packetId,
-                (mc, handler, buf, responseSender) -> mc.execute(unsidedHandler.handlePacket(mc.player, buf)));
-    }
-
-    @Override
-    public void sendPacket(ResourceLocation packetId, FriendlyByteBuf buf) {
-        ClientPlayNetworking.send(packetId, buf);
     }
 }

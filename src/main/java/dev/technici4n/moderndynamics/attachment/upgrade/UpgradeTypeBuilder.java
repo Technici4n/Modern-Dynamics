@@ -20,16 +20,21 @@ package dev.technici4n.moderndynamics.attachment.upgrade;
 
 import com.google.gson.JsonObject;
 import java.lang.reflect.Modifier;
-import net.fabricmc.fabric.api.resource.conditions.v1.ConditionJsonProvider;
-import net.fabricmc.fabric.api.resource.conditions.v1.DefaultResourceConditions;
+import java.util.Arrays;
+import java.util.List;
+
+import com.mojang.serialization.JsonOps;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
+import net.neoforged.neoforge.common.conditions.AndCondition;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 
 public class UpgradeTypeBuilder {
     private static final UpgradeTypeBuilder DUMMY = new UpgradeTypeBuilder(Items.AIR, 0);
 
-    public transient final ConditionJsonProvider[] conditions;
+    public transient final ICondition[] conditions;
     public transient final String path;
 
     private final String item;
@@ -43,7 +48,7 @@ public class UpgradeTypeBuilder {
     private int multiplyFluidTransfer = 0;
 
     public UpgradeTypeBuilder(String requiredMod, String itemId, int slotLimit) {
-        this.conditions = new ConditionJsonProvider[] { DefaultResourceConditions.allModsLoaded(requiredMod) };
+        this.conditions = new ICondition[] { new ModLoadedCondition(requiredMod) };
         this.item = requiredMod + ":" + itemId;
         this.path = requiredMod + "/" + itemId;
         this.slotLimit = slotLimit;
@@ -114,7 +119,9 @@ public class UpgradeTypeBuilder {
             }
         }
 
-        ConditionJsonProvider.write(obj, conditions);
+        if (conditions != null) {
+            ICondition.writeConditions(JsonOps.INSTANCE, obj, Arrays.asList(conditions));
+        }
         return obj;
     }
 }

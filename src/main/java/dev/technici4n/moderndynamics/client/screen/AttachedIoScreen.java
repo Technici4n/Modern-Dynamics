@@ -123,7 +123,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
@@ -141,7 +141,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
     }
 
     @Override
-    protected void renderSlot(GuiGraphics guiGraphics, Slot slot) {
+    public void renderSlot(GuiGraphics guiGraphics, Slot slot) {
         // Skip disabled slots
         if (slot instanceof ConfigSlot<?>configSlot && !configSlot.isActive()) {
             return;

@@ -18,57 +18,55 @@
  */
 package dev.technici4n.moderndynamics.data;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import dev.technici4n.moderndynamics.util.MdId;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 
-public final class JsonFinishedRecipe implements FinishedRecipe {
+public final class JsonFinishedRecipe implements Recipe<Container> {
     private final RecipeSerializer<?> serializer;
-    private final String id;
     private final String json;
 
-    public JsonFinishedRecipe(RecipeSerializer<?> serializer, String id, String json) {
+    public JsonFinishedRecipe(RecipeSerializer<?> serializer, String json) {
         this.serializer = serializer;
-        this.id = id;
         this.json = json;
     }
 
     @Override
-    public void serializeRecipeData(JsonObject json) {
+    public boolean matches(Container container, Level level) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public JsonObject serializeRecipe() {
-        JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
-        jsonObject.addProperty("type", BuiltInRegistries.RECIPE_SERIALIZER.getKey(this.getType()).toString());
-        return jsonObject;
+    public ItemStack assemble(Container container, RegistryAccess registryAccess) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public ResourceLocation getId() {
-        return MdId.of(id);
+    public boolean canCraftInDimensions(int width, int height) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public RecipeSerializer<?> getType() {
-        return serializer;
+    public ItemStack getResultItem(RegistryAccess registryAccess) {
+        throw new UnsupportedOperationException();
     }
 
-    @Nullable
     @Override
-    public JsonObject serializeAdvancement() {
-        return null;
+    public RecipeSerializer<?> getSerializer() {
+        // JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
+        // jsonObject.addProperty("type", BuiltInRegistries.RECIPE_SERIALIZER.getKey(this.getType()).toString());
+        // return jsonObject;
+//        return serializer;
+throw new UnsupportedOperationException();
+
     }
 
-    @Nullable
     @Override
-    public ResourceLocation getAdvancementId() {
-        return null;
+    public RecipeType<?> getType() {
+        throw new UnsupportedOperationException();
     }
 }

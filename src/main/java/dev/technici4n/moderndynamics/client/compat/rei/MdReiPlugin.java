@@ -41,8 +41,8 @@ import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
 import me.shedaniel.rei.api.client.registry.screen.ExclusionZones;
 import me.shedaniel.rei.api.client.registry.screen.ScreenRegistry;
 import me.shedaniel.rei.api.common.util.EntryStacks;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import dev.technici4n.moderndynamics.util.FluidVariant;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -78,7 +78,7 @@ public class MdReiPlugin implements REIClientPlugin {
 
     @Override
     public void registerScreens(ScreenRegistry registry) {
-        // Ensures that users can press R, U, etc... on fluid config slots.
+        // Ensures that users can press R, U, etc... on item config slots.
         registry.registerFocusedStack((screen, mouse) -> {
             if (screen instanceof AttachedIoScreen<?>ioScreen) {
                 if (ioScreen.getHoveredSlot() instanceof FluidConfigSlot fluidConfig) {

@@ -18,25 +18,39 @@
  */
 package dev.technici4n.moderndynamics.data;
 
-import java.util.List;
-import java.util.function.BiConsumer;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricCodecDataProvider;
+import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.client.renderer.texture.atlas.SpriteSource;
 import net.minecraft.client.renderer.texture.atlas.SpriteSources;
 import net.minecraft.client.renderer.texture.atlas.sources.DirectoryLister;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.JsonCodecProvider;
 
-public class SpriteSourceProvider extends FabricCodecDataProvider<List<SpriteSource>> {
-    public SpriteSourceProvider(FabricDataOutput packOutput) {
-        super(packOutput, PackOutput.Target.RESOURCE_PACK, "atlases", SpriteSources.FILE_CODEC);
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+public class SpriteSourceProvider extends JsonCodecProvider<List<SpriteSource>> {
+    public SpriteSourceProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries, ExistingFileHelper existingFileHelper) {
+        super(packOutput,
+                PackOutput.Target.RESOURCE_PACK,
+                "atlases",
+                PackType.CLIENT_RESOURCES,
+                SpriteSources.FILE_CODEC,
+                registries,
+                MdId.MOD_ID,
+                existingFileHelper
+        );
     }
 
     @Override
-    protected void configure(BiConsumer<ResourceLocation, List<SpriteSource>> provider) {
-        provider.accept(new ResourceLocation("minecraft", "blocks"),
-                List.of(new DirectoryLister("pipe", "pipe/"), new DirectoryLister("attachment", "attachment/")));
+    protected void gather() {
+        unconditional(
+                new ResourceLocation("minecraft", "blocks"),
+                List.of(new DirectoryLister("pipe", "pipe/"), new DirectoryLister("attachment", "attachment/"))
+        );
     }
 
     @Override

@@ -21,26 +21,25 @@ package dev.technici4n.moderndynamics.data;
 import dev.technici4n.moderndynamics.extender.MachineExtenderBlock;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdItems;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
-import net.minecraft.data.models.BlockModelGenerators;
-import net.minecraft.data.models.ItemModelGenerators;
-import net.minecraft.data.models.blockstates.MultiVariantGenerator;
-import net.minecraft.data.models.blockstates.PropertyDispatch;
-import net.minecraft.data.models.blockstates.Variant;
-import net.minecraft.data.models.blockstates.VariantProperties;
-import net.minecraft.data.models.model.ModelTemplates;
+import dev.technici4n.moderndynamics.util.MdId;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.PackOutput;
 import net.minecraft.data.models.model.TextureMapping;
-import net.minecraft.data.models.model.TextureSlot;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
+import net.neoforged.neoforge.client.model.generators.ModelFile;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
-public class ModelsProvider extends FabricModelProvider {
-    public ModelsProvider(FabricDataOutput dataOutput) {
-        super(dataOutput);
+import java.util.Objects;
+
+public class ModelsProvider extends BlockStateProvider {
+    public ModelsProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
+        super(output, MdId.MOD_ID, existingFileHelper);
     }
 
     @Override
-    public void generateBlockStateModels(BlockModelGenerators blockGen) {
+    protected void registerStatesAndModels() {
         var ext = MdBlocks.MACHINE_EXTENDER;
 
         var columnTexture = TextureMapping.getBlockTexture(ext, "_column");
@@ -48,34 +47,26 @@ public class ModelsProvider extends FabricModelProvider {
         var sideTopTexture = TextureMapping.getBlockTexture(ext, "_side_top");
         var endTexture = TextureMapping.getBlockTexture(ext, "_end");
 
-        TextureMapping topMapping = new TextureMapping()
-                .put(TextureSlot.SIDE, sideTopTexture)
-                .put(TextureSlot.TOP, endTexture)
-                .put(TextureSlot.BOTTOM, columnTexture);
-        Variant topVariant = Variant.variant()
-                .with(VariantProperties.MODEL,
-                        ModelTemplates.CUBE_BOTTOM_TOP.createWithSuffix(ext, "_top", topMapping, blockGen.modelOutput));
+        var topModel = models().cubeBottomTop("machine_extender_top", sideTopTexture, columnTexture, endTexture);
+        var normalModel = models().cubeColumn("machine_extender_normal", sideTexture, columnTexture);
 
-        TextureMapping normalMapping = new TextureMapping()
-                .put(TextureSlot.SIDE, sideTexture)
-                .put(TextureSlot.END, columnTexture);
-        ResourceLocation normalVariantId = ModelTemplates.CUBE_COLUMN.createWithSuffix(ext, "_normal", normalMapping, blockGen.modelOutput);
-        Variant normalVariant = Variant.variant().with(VariantProperties.MODEL, normalVariantId);
+        getVariantBuilder(ext)
+                .partialState().with(MachineExtenderBlock.TOP, true).addModels(new ConfiguredModel(topModel))
+                .partialState().with(MachineExtenderBlock.TOP, false).addModels(new ConfiguredModel(normalModel));
+        simpleBlockItem(ext, normalModel);
 
-        blockGen.blockStateOutput.accept(
-                MultiVariantGenerator.multiVariant(ext)
-                        .with(PropertyDispatch.property(MachineExtenderBlock.TOP)
-                                .select(true, topVariant)
-                                .select(false, normalVariant)));
-        blockGen.delegateItemModel(ext, normalVariantId);
-    }
-
-    @Override
-    public void generateItemModels(ItemModelGenerators itemGen) {
         for (var attachment : MdItems.ALL_ATTACHMENTS) {
-            itemGen.generateFlatItem(attachment, ModelTemplates.FLAT_ITEM);
+            itemModels().basicItem(attachment);
         }
-        itemGen.generateFlatItem(MdItems.WRENCH, ModelTemplates.FLAT_HANDHELD_ITEM);
-        itemGen.generateFlatItem(MdItems.DEBUG_TOOL, ModelTemplates.FLAT_ITEM);
+        wrench();
+        itemModels().basicItem(MdItems.DEBUG_TOOL);
     }
+
+    private void wrench() {
+        ResourceLocation id = Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(MdItems.WRENCH));
+        itemModels().getBuilder(id.toString())
+                .parent(new ModelFile.UncheckedModelFile("item/handheld"))
+                .texture("layer0", new ResourceLocation(id.getNamespace(), "item/" + id.getPath()));
+    }
+
 }

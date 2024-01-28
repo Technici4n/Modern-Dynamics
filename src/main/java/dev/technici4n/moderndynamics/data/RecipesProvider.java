@@ -20,23 +20,25 @@ package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.util.MdId;
-import java.util.function.Consumer;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
-import net.fabricmc.fabric.api.resource.conditions.v1.DefaultResourceConditions;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 
-public class RecipesProvider extends FabricRecipeProvider {
-    public RecipesProvider(FabricDataOutput dataOutput) {
-        super(dataOutput);
+import java.util.concurrent.CompletableFuture;
+
+public class RecipesProvider extends RecipeProvider {
+    public RecipesProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
+        super(packOutput, registries);
     }
 
     @Override
-    public void buildRecipes(Consumer<FinishedRecipe> exporter) {
+    protected void buildRecipes(RecipeOutput exporter) {
         ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.ITEM_PIPE, 8)
                 .pattern("igi")
                 .define('i', Items.IRON_INGOT)
@@ -110,7 +112,7 @@ public class RecipesProvider extends FabricRecipeProvider {
                 .unlockedBy("has_fluid_pipe", has(MdItems.FLUID_PIPE))
                 .save(exporter);
 
-        var miExporter = withConditions(exporter, DefaultResourceConditions.allModsLoaded("modern_industrialization"));
+        var miExporter = exporter.withConditions(new ModLoadedCondition("modern_industrialization"));
         generateMiCableRecipes("lv", "tin_cable", miExporter);
         generateMiCableRecipes("mv", "electrum_cable", miExporter);
         generateMiCableRecipes("hv", "aluminum_cable", miExporter);
@@ -118,11 +120,11 @@ public class RecipesProvider extends FabricRecipeProvider {
         generateMiCableRecipes("superconductor", "superconductor_cable", miExporter);
     }
 
-    private void generateMiCableRecipes(String cableName, String miCable, Consumer<FinishedRecipe> exporter) {
+    private void generateMiCableRecipes(String cableName, String miCable, RecipeOutput exporter) {
         String mdCableItemId = MdId.of(cableName + "_cable").toString();
         String miCableItemId = "modern_industrialization:" + miCable;
 
-        exporter.accept(new JsonFinishedRecipe(RecipeSerializer.SHAPELESS_RECIPE, "cable/%s_from_mi".formatted(cableName), """
+        exporter.accept(MdId.of("cable/%s_from_mi".formatted(cableName)), new JsonFinishedRecipe(RecipeSerializer.SHAPELESS_RECIPE, """
                 {
                     "ingredients": [
                         {
@@ -134,9 +136,9 @@ public class RecipesProvider extends FabricRecipeProvider {
                         "count": 4
                     }
                 }
-                """.formatted(miCableItemId, mdCableItemId)));
+                """.formatted(miCableItemId, mdCableItemId)), null);
 
-        exporter.accept(new JsonFinishedRecipe(RecipeSerializer.SHAPED_RECIPE, "cable/%s_to_mi".formatted(cableName), """
+        exporter.accept(MdId.of("cable/%s_to_mi".formatted(cableName)), new JsonFinishedRecipe(RecipeSerializer.SHAPED_RECIPE, """
                 {
                     "pattern": [ "cc", "cc" ],
                     "key": {
@@ -148,6 +150,6 @@ public class RecipesProvider extends FabricRecipeProvider {
                         "item": "%s"
                     }
                 }
-                """.formatted(mdCableItemId, miCableItemId)));
+                """.formatted(mdCableItemId, miCableItemId)), null);
     }
 }
