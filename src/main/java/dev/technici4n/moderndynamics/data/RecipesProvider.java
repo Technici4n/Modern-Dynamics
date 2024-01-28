@@ -49,6 +49,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class RecipesProvider extends RecipeProvider {
 
+    private static final Gson GSON = new Gson();
     private final PackOutput packOutput;
 
     public RecipesProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
@@ -180,11 +181,10 @@ public class RecipesProvider extends RecipeProvider {
         var path = recipePathProvider.json(id);
         var outputFile = packOutput.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(path);
 
-        var gson = new Gson();
-        var jsonObject = (JsonObject) gson.toJsonTree(recipe);
+        var jsonObject = (JsonObject) GSON.toJsonTree(recipe);
         ICondition.writeConditions(JsonOps.INSTANCE, jsonObject, Arrays.asList(conditions));
 
-        var content = gson.toJson(jsonObject).getBytes(StandardCharsets.UTF_8);
+        var content = GSON.toJson(jsonObject).getBytes(StandardCharsets.UTF_8);
 
         try {
             output.writeIfNeeded(outputFile, content, HashCode.fromBytes(content));
