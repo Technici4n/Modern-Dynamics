@@ -1,13 +1,13 @@
 {
-  "result": {
-    "count": 4,
-    "item": "moderndynamics:lv_cable"
-  },
   "ingredients": [
     {
       "item": "modern_industrialization:tin_cable"
     }
   ],
+  "result": {
+    "item": "moderndynamics:lv_cable",
+    "count": 4
+  },
   "type": "minecraft:crafting_shapeless",
   "neoforge:conditions": [
     {

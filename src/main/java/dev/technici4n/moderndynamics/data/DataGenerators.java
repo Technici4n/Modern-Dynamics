@@ -40,5 +40,7 @@ public class DataGenerators {
         pack.addProvider(packOutput -> new ItemTagsProvider(packOutput, registries, existingFileHelper));
         pack.addProvider(LootTablesProvider::create);
         pack.addProvider(packOutput -> new RecipesProvider(packOutput, registries));
+
+        pack.addProvider(EmptyTestStructureGenerator::new);
     }
 }

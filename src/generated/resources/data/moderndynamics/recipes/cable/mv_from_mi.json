@@ -1,13 +1,13 @@
 {
-  "result": {
-    "count": 4,
-    "item": "moderndynamics:mv_cable"
-  },
   "ingredients": [
     {
       "item": "modern_industrialization:electrum_cable"
     }
   ],
+  "result": {
+    "item": "moderndynamics:mv_cable",
+    "count": 4
+  },
   "type": "minecraft:crafting_shapeless",
   "neoforge:conditions": [
     {

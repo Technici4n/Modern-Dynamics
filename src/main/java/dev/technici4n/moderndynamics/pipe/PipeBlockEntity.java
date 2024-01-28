@@ -159,6 +159,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                     .with(PipeModelData.PIPE_DATA, new PipeModelData(connections, inventoryConnections, attachments))
                     .build();
             clientSideConnections = connections | inventoryConnections;
+            requestModelDataUpdate();
 
             updateCachedShape(connections, inventoryConnections);
         }

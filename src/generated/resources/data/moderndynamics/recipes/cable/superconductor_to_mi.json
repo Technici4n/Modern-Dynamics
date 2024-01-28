@@ -1,17 +1,17 @@
 {
+  "type": "minecraft:crafting_shaped",
   "result": {
     "item": "modern_industrialization:superconductor_cable"
   },
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "cc",
-    "cc"
-  ],
   "key": {
     "c": {
       "item": "moderndynamics:superconductor_cable"
     }
   },
+  "pattern": [
+    "cc",
+    "cc"
+  ],
   "neoforge:conditions": [
     {
       "modid": "modern_industrialization",

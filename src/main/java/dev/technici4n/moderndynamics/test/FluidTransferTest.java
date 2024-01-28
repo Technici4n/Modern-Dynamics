@@ -24,18 +24,22 @@ import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.test.framework.MdGameTestHelper;
 import dev.technici4n.moderndynamics.util.FluidVariant;
+import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-@GameTestHolder
+@GameTestHolder(MdId.MOD_ID)
+@PrefixGameTestTemplate(false)
 public class FluidTransferTest {
-    @GameTest
+    @MdGameTest
     public void cauldronToCauldronExtractor(MdGameTestHelper helper) {
         var toFillPos = new BlockPos(0, 1, 0);
         var toEmptyPos = new BlockPos(3, 1, 0);
@@ -52,7 +56,7 @@ public class FluidTransferTest {
         });
     }
 
-    @GameTest
+    @MdGameTest
     public void cauldronToCauldronAttractor(MdGameTestHelper helper) {
         var toFillPos = new BlockPos(0, 1, 0);
         var toEmptyPos = new BlockPos(3, 1, 0);
@@ -69,7 +73,7 @@ public class FluidTransferTest {
         });
     }
 
-    @GameTest
+    @MdGameTest
     public void cauldronToCauldronAttractorExtractor(MdGameTestHelper helper) {
         var toFillPos = new BlockPos(0, 1, 0);
         var toEmptyPos = new BlockPos(3, 1, 0);
@@ -88,7 +92,7 @@ public class FluidTransferTest {
         });
     }
 
-    @GameTest
+    @MdGameTest
     public void doubleAttractor(MdGameTestHelper helper) {
         var toFillPos = new BlockPos(0, 1, 0);
         var toEmptyPos = new BlockPos(3, 1, 0);
@@ -112,7 +116,7 @@ public class FluidTransferTest {
      * Test that attractors only grant pulling power for fluids matching filter.
      * Here we test that an attractor filtered for lava will not attract water.
      */
-    @GameTest
+    @MdGameTest
     public void doubleAttractorOneFiltered(MdGameTestHelper helper) {
         var toFillPos = new BlockPos(0, 1, 0);
         var toEmptyPos = new BlockPos(3, 1, 0);

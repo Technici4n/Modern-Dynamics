@@ -21,6 +21,8 @@ package dev.technici4n.moderndynamics.test.framework;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.Objects;
+
+import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -32,6 +34,9 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 public class MdGameTestHelper extends GameTestHelper {
+
+    public static final String EMPTY_STRUCTURE = "empty";
+
     public MdGameTestHelper(GameTestInfo gameTestInfo) {
         super(gameTestInfo);
     }
