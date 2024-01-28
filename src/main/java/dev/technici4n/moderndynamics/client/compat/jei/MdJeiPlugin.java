@@ -90,7 +90,7 @@ public class MdJeiPlugin implements IModPlugin {
 
             @Override
             public Optional<IClickableIngredient<?>> getClickableIngredientUnderMouse(AttachedIoScreen<?> screen, double mouseX, double mouseY) {
-                // Ensures that users can press R, U, etc... on item config slots.
+                // Ensures that users can press R, U, etc... on fluid config slots.
                 if (screen.getHoveredSlot() instanceof FluidConfigSlot fluidConfig) {
                     var variant = fluidConfig.getFilter();
                     if (!variant.isBlank()) {

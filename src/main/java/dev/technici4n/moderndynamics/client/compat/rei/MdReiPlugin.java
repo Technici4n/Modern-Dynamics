@@ -78,7 +78,7 @@ public class MdReiPlugin implements REIClientPlugin {
 
     @Override
     public void registerScreens(ScreenRegistry registry) {
-        // Ensures that users can press R, U, etc... on item config slots.
+        // Ensures that users can press R, U, etc... on fluid config slots.
         registry.registerFocusedStack((screen, mouse) -> {
             if (screen instanceof AttachedIoScreen<?>ioScreen) {
                 if (ioScreen.getHoveredSlot() instanceof FluidConfigSlot fluidConfig) {

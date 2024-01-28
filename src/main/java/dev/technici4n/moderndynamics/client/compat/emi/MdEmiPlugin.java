@@ -52,7 +52,7 @@ public class MdEmiPlugin implements EmiPlugin {
 
         registry.addGenericStackProvider((screen, mouseX, mouseY) -> {
             if (screen instanceof AttachedIoScreen<?>ioScreen) {
-                // Ensures that users can press R, U, etc... on item config slots.
+                // Ensures that users can press R, U, etc... on fluid config slots.
                 if (ioScreen.getHoveredSlot() instanceof FluidConfigSlot fluidConfig) {
                     var variant = fluidConfig.getFilter();
                     if (!variant.isBlank()) {
