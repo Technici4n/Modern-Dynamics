@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.data;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.HashCode;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -154,22 +155,22 @@ public class RecipesProvider extends RecipeProvider {
         String mdCableItemId = MdId.of(cableName + "_cable").toString();
         String miCableItemId = "modern_industrialization:" + miCable;
         var condition = new ModLoadedCondition("modern_industrialization");
-        writeRawRecipe(output, MdId.of("cable/%s_from_mi".formatted(cableName)), Map.of(
+        writeRawRecipe(output, MdId.of("cable/%s_from_mi".formatted(cableName)), ImmutableMap.of(
                 "type", getRecipeTypeId(RecipeSerializer.SHAPELESS_RECIPE),
                 "ingredients", List.of(
-                        Map.of(
+                        ImmutableMap.of(
                                 "item", miCableItemId)),
-                "result", Map.of(
+                "result", ImmutableMap.of(
                         "item", mdCableItemId,
                         "count", 4)),
                 condition);
 
-        writeRawRecipe(output, MdId.of("cable/%s_to_mi".formatted(cableName)), Map.of(
+        writeRawRecipe(output, MdId.of("cable/%s_to_mi".formatted(cableName)), ImmutableMap.of(
                 "type", getRecipeTypeId(RecipeSerializer.SHAPED_RECIPE),
                 "pattern", List.of("cc", "cc"),
-                "key", Map.of(
-                        "c", Map.of("item", mdCableItemId)),
-                "result", Map.of(
+                "key", ImmutableMap.of(
+                        "c", ImmutableMap.of("item", mdCableItemId)),
+                "result", ImmutableMap.of(
                         "item", miCableItemId)),
                 condition);
     }

@@ -1,14 +1,14 @@
 {
-  "result": {
-    "count": 4,
-    "item": "moderndynamics:hv_cable"
-  },
+  "type": "minecraft:crafting_shapeless",
   "ingredients": [
     {
       "item": "modern_industrialization:aluminum_cable"
     }
   ],
-  "type": "minecraft:crafting_shapeless",
+  "result": {
+    "item": "moderndynamics:hv_cable",
+    "count": 4
+  },
   "neoforge:conditions": [
     {
       "modid": "modern_industrialization",

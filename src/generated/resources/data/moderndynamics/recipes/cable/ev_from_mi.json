@@ -1,14 +1,14 @@
 {
-  "result": {
-    "count": 4,
-    "item": "moderndynamics:ev_cable"
-  },
+  "type": "minecraft:crafting_shapeless",
   "ingredients": [
     {
       "item": "modern_industrialization:annealed_copper_cable"
     }
   ],
-  "type": "minecraft:crafting_shapeless",
+  "result": {
+    "item": "moderndynamics:ev_cable",
+    "count": 4
+  },
   "neoforge:conditions": [
     {
       "modid": "modern_industrialization",
