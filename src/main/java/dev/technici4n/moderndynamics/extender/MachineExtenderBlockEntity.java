@@ -28,9 +28,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import org.jetbrains.annotations.Nullable;
 
 public class MachineExtenderBlockEntity extends MdBlockEntity {
     private static int registeredApis = 0;
+
+    private static int getDirectionIndex(@Nullable Direction direction) {
+        return direction == null ? 0 : (1 + direction.ordinal());
+    }
+
+    private static int getCacheIndex(int apiId, @Nullable Direction direction) {
+        return apiId * 7 + getDirectionIndex(direction);
+    }
 
     @SuppressWarnings("unchecked")
     public static <A> void forwardApi(RegisterCapabilitiesEvent evt, BlockEntityType<MachineExtenderBlockEntity> bet,
@@ -38,7 +47,7 @@ public class MachineExtenderBlockEntity extends MdBlockEntity {
         int apiId = registeredApis++;
 
         evt.registerBlockEntity(lookup, bet, (sideExtender, direction) -> {
-            var cacheIndex = apiId * 6 + direction.ordinal();
+            var cacheIndex = getCacheIndex(apiId, direction);
             if (sideExtender.inApiQuery[cacheIndex]) {
                 return null;
             }
@@ -65,8 +74,8 @@ public class MachineExtenderBlockEntity extends MdBlockEntity {
         });
     }
 
-    private final boolean[] inApiQuery = new boolean[registeredApis * Direction.values().length];
-    private final BlockCapabilityCache[] apiCaches = new BlockCapabilityCache[registeredApis * Direction.values().length];
+    private final boolean[] inApiQuery = new boolean[registeredApis * (1 + Direction.values().length)];
+    private final BlockCapabilityCache[] apiCaches = new BlockCapabilityCache[registeredApis * (1 + Direction.values().length)];
     boolean inNeighborUpdate = false;
 
     public MachineExtenderBlockEntity(BlockEntityType<?> bet, BlockPos pos, BlockState state) {
