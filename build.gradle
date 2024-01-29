@@ -251,7 +251,7 @@ if (System.getenv("CURSEFORGE_API_KEY") && !version.endsWith("-SNAPSHOT")) {
             addGameVersion "NeoForge"
             addGameVersion "Java 17"
 
-            mainArtifact(remapJar.archiveFile) {
+            mainArtifact(jar.archiveFile) {
                 displayName = "Modern Dynamics v${version}"
             }
         }
@@ -259,7 +259,7 @@ if (System.getenv("CURSEFORGE_API_KEY") && !version.endsWith("-SNAPSHOT")) {
             forgeGradleIntegration = false
         }
         afterEvaluate {
-            tasks.getByName("curseforge${project.curseforge_project}").dependsOn remapJar
+            tasks.getByName("curseforge${project.curseforge_project}").dependsOn jar
         }
     }
 }
@@ -272,7 +272,7 @@ if (System.getenv("MODRINTH_API_KEY") && !version.endsWith("-SNAPSHOT")) {
         versionName = "Modern Dynamics v${version}"
         delegate.changelog = changelog
         versionType = releaseChannel.toUpperCase()
-        uploadFile = remapJar.archiveFile
+        uploadFile = jar.archiveFile
         gameVersions = ["1.20.4"]
         loaders = ["neoforge"]
     }
