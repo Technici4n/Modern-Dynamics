@@ -22,35 +22,36 @@ import dev.technici4n.moderndynamics.network.mienergy.MICableTier;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.minecraft.core.Direction;
-import team.reborn.energy.api.EnergyStorage;
+import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 public class MIAvailableProxy implements MIProxy {
-    private static final BlockApiLookup<? extends EnergyStorage, Direction> LOOKUP;
+    private static final BlockCapability<? extends IEnergyStorage, Direction> LOOKUP;
     private static final MethodHandle CAN_CONNECT;
 
     static {
         try {
             // noinspection unchecked,rawtypes
-            LOOKUP = (BlockApiLookup) Class.forName("aztech.modern_industrialization.api.energy.EnergyApi").getField("SIDED").get(null);
+            LOOKUP = (BlockCapability<? extends IEnergyStorage, Direction>) Class.forName("aztech.modern_industrialization.api.energy.EnergyApi")
+                    .getField("SIDED").get(null);
 
             var miEnergyStorage = Class.forName("aztech.modern_industrialization.api.energy.MIEnergyStorage");
             var rawMethod = MethodHandles.lookup().findVirtual(miEnergyStorage, "canConnect", MethodType.methodType(boolean.class, String.class));
             // Convert first argument to EnergyStorage because that's what we'll be passing in the invokeExact call.
-            CAN_CONNECT = rawMethod.asType(rawMethod.type().changeParameterType(0, EnergyStorage.class));
+            CAN_CONNECT = rawMethod.asType(rawMethod.type().changeParameterType(0, IEnergyStorage.class));
         } catch (ReflectiveOperationException exception) {
             throw new RuntimeException("Failed to initialize Modern Dynamics MI proxy", exception);
         }
     }
 
     @Override
-    public BlockApiLookup<? extends EnergyStorage, Direction> getLookup() {
+    public BlockCapability<? extends IEnergyStorage, Direction> getLookup() {
         return LOOKUP;
     }
 
     @Override
-    public boolean canConnect(EnergyStorage storage, MICableTier tier) {
+    public boolean canConnect(IEnergyStorage storage, MICableTier tier) {
         try {
             return (boolean) CAN_CONNECT.invokeExact(storage, tier.getName());
         } catch (Throwable throwable) {

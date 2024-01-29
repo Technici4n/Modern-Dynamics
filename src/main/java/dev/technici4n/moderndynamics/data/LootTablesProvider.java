@@ -19,20 +19,40 @@
 package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.MdBlock;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
+import java.util.List;
+import java.util.Set;
+import java.util.function.BiConsumer;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.PackOutput;
+import net.minecraft.data.loot.BlockLootSubProvider;
+import net.minecraft.data.loot.LootTableProvider;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 
-public class LootTablesProvider extends FabricBlockLootTableProvider {
-    protected LootTablesProvider(FabricDataOutput dataOutput) {
-        super(dataOutput);
+public class LootTablesProvider extends BlockLootSubProvider {
+    public static LootTableProvider create(PackOutput pOutput) {
+        return new LootTableProvider(
+                pOutput,
+                Set.of(),
+                List.of(
+                        new LootTableProvider.SubProviderEntry(LootTablesProvider::new, LootContextParamSets.BLOCK)));
+    }
+
+    protected LootTablesProvider() {
+        super(Set.of(), FeatureFlagSet.of());
     }
 
     @Override
-    public void generate() {
+    protected void generate() {
+    }
+
+    @Override
+    public void generate(BiConsumer<ResourceLocation, LootTable.Builder> output) {
         for (var block : BuiltInRegistries.BLOCK) {
             if (block instanceof MdBlock) {
-                dropSelf(block);
+                output.accept(block.getLootTable(), createSingleItemTable(block));
             }
         }
     }

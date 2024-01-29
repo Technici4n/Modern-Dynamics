@@ -23,13 +23,12 @@ import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.energy.EnergyCache;
 import java.util.ArrayList;
 import java.util.List;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.server.level.ServerLevel;
-import team.reborn.energy.api.EnergyStorage;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 public class MIEnergyCache extends NetworkCache<MIEnergyHost, MIEnergyCache> {
-    private long energy = 0;
-    private long maxEnergy = 0;
+    private int energy = 0;
+    private int maxEnergy = 0;
 
     protected MIEnergyCache(ServerLevel level, List<NetworkNode<MIEnergyHost, MIEnergyCache>> networkNodes) {
         super(level, networkNodes);
@@ -65,7 +64,7 @@ public class MIEnergyCache extends NetworkCache<MIEnergyHost, MIEnergyCache> {
         combine();
 
         // Gather inventory connections
-        List<EnergyStorage> storages = new ArrayList<>();
+        List<IEnergyStorage> storages = new ArrayList<>();
 
         for (var node : nodes) {
             if (node.getHost().isTicking()) {
@@ -75,13 +74,9 @@ public class MIEnergyCache extends NetworkCache<MIEnergyHost, MIEnergyCache> {
 
         var tier = nodes.get(0).getHost().tier;
 
-        try (var tx = Transaction.openOuter()) {
-            // Extract
-            energy += EnergyCache.transferForTargets(EnergyStorage::extract, storages, Math.min(maxEnergy - energy, tier.getMax()), tx);
-            // Insert
-            energy -= EnergyCache.transferForTargets(EnergyStorage::insert, storages, Math.min(energy, tier.getMax()), tx);
-
-            tx.commit();
-        }
+        // Extract
+        energy += EnergyCache.transferForTargets(IEnergyStorage::extractEnergy, storages, Math.min(maxEnergy - energy, tier.getMax()));
+        // Insert
+        energy -= EnergyCache.transferForTargets(IEnergyStorage::receiveEnergy, storages, Math.min(energy, tier.getMax()));
     }
 }

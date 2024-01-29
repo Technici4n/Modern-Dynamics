@@ -18,15 +18,11 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
-
-public class MaxParticipant extends SnapshotParticipant<Integer> {
+public class MaxParticipant {
     private int max = 0;
 
-    public void addEntry(int amount, TransactionContext transaction) {
+    public void addEntry(int amount, boolean simulate) {
         if (amount > max) {
-            updateSnapshots(transaction);
             max = amount;
         }
     }
@@ -35,12 +31,10 @@ public class MaxParticipant extends SnapshotParticipant<Integer> {
         return max;
     }
 
-    @Override
     protected Integer createSnapshot() {
         return max;
     }
 
-    @Override
     protected void readSnapshot(Integer snapshot) {
         max = snapshot;
     }

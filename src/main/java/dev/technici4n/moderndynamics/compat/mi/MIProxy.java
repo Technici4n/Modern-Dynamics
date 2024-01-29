@@ -19,17 +19,17 @@
 package dev.technici4n.moderndynamics.compat.mi;
 
 import dev.technici4n.moderndynamics.network.mienergy.MICableTier;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Direction;
-import team.reborn.energy.api.EnergyStorage;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 public interface MIProxy {
     String MOD_ID = "modern_industrialization";
 
-    MIProxy INSTANCE = FabricLoader.getInstance().isModLoaded(MOD_ID) ? new MIAvailableProxy() : new MIAbsentProxy();
+    MIProxy INSTANCE = ModList.get().isLoaded(MOD_ID) ? new MIAvailableProxy() : new MIAbsentProxy();
 
-    BlockApiLookup<? extends EnergyStorage, Direction> getLookup();
+    BlockCapability<? extends IEnergyStorage, Direction> getLookup();
 
-    boolean canConnect(EnergyStorage storage, MICableTier tier);
+    boolean canConnect(IEnergyStorage storage, MICableTier tier);
 }

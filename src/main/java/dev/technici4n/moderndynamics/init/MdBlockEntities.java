@@ -27,20 +27,22 @@ import dev.technici4n.moderndynamics.network.energy.EnergyPipeTier;
 import dev.technici4n.moderndynamics.network.mienergy.MICableTier;
 import dev.technici4n.moderndynamics.pipe.*;
 import dev.technici4n.moderndynamics.util.MdId;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import team.reborn.energy.api.EnergyStorage;
+import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 public final class MdBlockEntities {
 
+    private static final List<Consumer<RegisterCapabilitiesEvent>> capRegistrations = new ArrayList<>();
     public static final BlockEntityType<PipeBlockEntity> ITEM_PIPE = register(ItemPipeBlockEntity::new, MdBlocks.ITEM_PIPE);
     public static final BlockEntityType<PipeBlockEntity> FLUID_PIPE = register(FluidPipeBlockEntity::new, MdBlocks.FLUID_PIPE);
 
@@ -54,13 +56,17 @@ public final class MdBlockEntities {
     public static final BlockEntityType<MachineExtenderBlockEntity> MACHINE_EXTENDER = registerRaw(MachineExtenderBlockEntity::new,
             MdBlocks.MACHINE_EXTENDER);
 
-    static {
+    public static void registerCapabilities(RegisterCapabilitiesEvent evt) {
         // Extender API forwarding
         var type = MACHINE_EXTENDER;
-        MachineExtenderBlockEntity.forwardApi(type, ItemStorage.SIDED);
-        MachineExtenderBlockEntity.forwardApi(type, FluidStorage.SIDED);
-        MachineExtenderBlockEntity.forwardApi(type, EnergyStorage.SIDED);
-        MachineExtenderBlockEntity.forwardApi(type, MIProxy.INSTANCE.getLookup());
+        MachineExtenderBlockEntity.forwardApi(evt, type, Capabilities.ItemHandler.BLOCK);
+        MachineExtenderBlockEntity.forwardApi(evt, type, Capabilities.FluidHandler.BLOCK);
+        MachineExtenderBlockEntity.forwardApi(evt, type, Capabilities.EnergyStorage.BLOCK);
+        MachineExtenderBlockEntity.forwardApi(evt, type, MIProxy.INSTANCE.getLookup());
+
+        for (var capRegistration : capRegistrations) {
+            capRegistration.accept(evt);
+        }
     }
 
     /*
@@ -100,7 +106,7 @@ public final class MdBlockEntities {
 
     private static <T extends MdBlockEntity> BlockEntityType<T> registerRaw(BlockEntityConstructor<T> factory, MdBlock block) {
         TypeFactory<T> typeFactory = new TypeFactory<>(factory);
-        BlockEntityType<T> type = FabricBlockEntityTypeBuilder.create(typeFactory, block).build(null);
+        BlockEntityType<T> type = BlockEntityType.Builder.of(typeFactory, block).build(null);
         typeFactory.type = type;
         Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, MdId.of(block.id), type);
         // noinspection unchecked
@@ -115,17 +121,18 @@ public final class MdBlockEntities {
     private static <T extends PipeBlockEntity> BlockEntityType<T> register(BlockEntityConstructor<T> factory, PipeBlock block) {
         var type = registerRaw(factory, block);
 
-        // Register item, fluid and energy API.
-        registerLookup(ItemStorage.SIDED, type);
-        registerLookup(FluidStorage.SIDED, type);
-        registerLookup(EnergyStorage.SIDED, type);
+        // Register item, item and energy API.
+        capRegistrations.add(evt -> registerLookup(evt, Capabilities.ItemHandler.BLOCK, type));
+        capRegistrations.add(evt -> registerLookup(evt, Capabilities.FluidHandler.BLOCK, type));
+        capRegistrations.add(evt -> registerLookup(evt, Capabilities.EnergyStorage.BLOCK, type));
 
         return type;
     }
 
-    private static <A> void registerLookup(BlockApiLookup<A, Direction> lookup, BlockEntityType<? extends PipeBlockEntity> type) {
-        var apiClass = lookup.apiClass();
-        lookup.registerForBlockEntity((pipe, dir) -> apiClass.cast(pipe.getApiInstance(lookup, dir)), type);
+    private static <A> void registerLookup(RegisterCapabilitiesEvent evt, BlockCapability<A, Direction> lookup,
+            BlockEntityType<? extends PipeBlockEntity> type) {
+        var apiClass = lookup.typeClass();
+        evt.registerBlockEntity(lookup, type, (pipe, dir) -> apiClass.cast(pipe.getApiInstance(lookup, dir)));
     }
 
     private static BlockEntityType<PipeBlockEntity> createMIEnergyCable(PipeBlock block, MICableTier tier) {
@@ -140,7 +147,7 @@ public final class MdBlockEntities {
      * Helper class to solve that the constructor for the block entity needs to reference the block entity type,
      * but to create the block entity type, we need the constructor (recursion, blergh).
      */
-    static class TypeFactory<T extends MdBlockEntity> implements FabricBlockEntityTypeBuilder.Factory<T> {
+    static class TypeFactory<T extends MdBlockEntity> implements BlockEntityType.BlockEntitySupplier<T> {
 
         final BlockEntityConstructor<T> constructor;
 

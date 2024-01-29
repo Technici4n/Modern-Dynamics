@@ -19,10 +19,10 @@
 package dev.technici4n.moderndynamics.attachment.attached;
 
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
+import dev.technici4n.moderndynamics.util.FluidVariant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 
 public class FluidCachedFilter {
     private final Set<FluidVariant> listedVariants;

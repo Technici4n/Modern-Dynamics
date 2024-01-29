@@ -19,20 +19,21 @@
 package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.attachment.upgrade.UpgradeTypeBuilder;
+import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
+import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
 public class AttachmentUpgradesProvider implements DataProvider {
-    private final FabricDataOutput dataOutput;
+    private final PackOutput dataOutput;
     private final List<UpgradeTypeBuilder> builders = new ArrayList<>();
 
-    public AttachmentUpgradesProvider(FabricDataOutput dataOutput) {
+    public AttachmentUpgradesProvider(PackOutput dataOutput) {
         this.dataOutput = dataOutput;
     }
 
@@ -82,7 +83,7 @@ public class AttachmentUpgradesProvider implements DataProvider {
         var futures = new ArrayList<CompletableFuture<?>>();
 
         for (var builder : builders) {
-            var path = dataOutput.getOutputFolder().resolve("data/%s/attachment_upgrades/%s".formatted(dataOutput.getModId(), builder.getFileName()));
+            var path = dataOutput.getOutputFolder().resolve("data/%s/attachment_upgrades/%s".formatted(MdId.MOD_ID, builder.getFileName()));
             futures.add(DataProvider.saveStable(cache, builder.toJson(), path));
         }
 

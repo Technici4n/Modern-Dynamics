@@ -19,7 +19,7 @@
 package dev.technici4n.moderndynamics.gui.menu;
 
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import dev.technici4n.moderndynamics.util.FluidVariant;
 import net.minecraft.world.item.ItemStack;
 
 public class FluidConfigSlot extends ConfigSlot<FluidAttachedIo> {

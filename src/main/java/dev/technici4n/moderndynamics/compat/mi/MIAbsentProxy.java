@@ -20,21 +20,22 @@ package dev.technici4n.moderndynamics.compat.mi;
 
 import dev.technici4n.moderndynamics.network.mienergy.MICableTier;
 import dev.technici4n.moderndynamics.util.MdId;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.minecraft.core.Direction;
-import team.reborn.energy.api.EnergyStorage;
+import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 public class MIAbsentProxy implements MIProxy {
-    private static final BlockApiLookup<? extends EnergyStorage, Direction> MISSING_LOOKUP = BlockApiLookup.get(MdId.of("mi_energy_missing"),
-            EnergyStorage.class, Direction.class);
+    private static final BlockCapability<? extends IEnergyStorage, Direction> MISSING_LOOKUP = BlockCapability.createSided(
+            MdId.of("mi_energy_missing"),
+            IEnergyStorage.class);
 
     @Override
-    public BlockApiLookup<? extends EnergyStorage, Direction> getLookup() {
+    public BlockCapability<? extends IEnergyStorage, Direction> getLookup() {
         return MISSING_LOOKUP;
     }
 
     @Override
-    public boolean canConnect(EnergyStorage storage, MICableTier tier) {
+    public boolean canConnect(IEnergyStorage storage, MICableTier tier) {
         return false;
     }
 }

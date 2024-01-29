@@ -1,12 +1,4 @@
 {
-  "fabric:load_conditions": [
-    {
-      "condition": "fabric:all_mods_loaded",
-      "values": [
-        "modern_industrialization"
-      ]
-    }
-  ],
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
     {
@@ -14,7 +6,13 @@
     }
   ],
   "result": {
-    "count": 4,
-    "item": "moderndynamics:mv_cable"
-  }
+    "item": "moderndynamics:mv_cable",
+    "count": 4
+  },
+  "neoforge:conditions": [
+    {
+      "modid": "modern_industrialization",
+      "type": "neoforge:mod_loaded"
+    }
+  ]
 }

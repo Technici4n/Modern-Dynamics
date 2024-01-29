@@ -31,24 +31,24 @@ import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItem;
 import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItemSmoothing;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import java.util.function.Predicate;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.wrapper.EmptyHandler;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemHost extends NodeHost {
@@ -82,8 +82,8 @@ public class ItemHost extends NodeHost {
 
     @Override
     @Nullable
-    public Object getApiInstance(BlockApiLookup<?, Direction> lookup, @Nullable Direction side) {
-        if (lookup == ItemStorage.SIDED && side != null && allowItemConnection(side)) {
+    public Object getApiInstance(BlockCapability<?, Direction> lookup, @Nullable Direction side) {
+        if (lookup == Capabilities.ItemHandler.BLOCK && side != null && allowItemConnection(side)) {
             return buildExternalNetworkInjectStorage(side);
         }
         return null;
@@ -98,33 +98,33 @@ public class ItemHost extends NodeHost {
     /**
      * Storage used for external injections (e.g. via hoppers), does not respect routing mode.
      */
-    private InsertionOnlyStorage<ItemVariant> buildExternalNetworkInjectStorage(Direction side) {
+    private IItemHandler buildExternalNetworkInjectStorage(Direction side) {
         double speedupFactor = getAttachment(side) instanceof ItemAttachedIo io ? io.getItemSpeedupFactor() : 1;
-        return (resource, maxAmount, transaction) -> {
+        return new InsertionOnlyItemHandler((resource, maxAmount, simulate) -> {
             NetworkNode<ItemHost, ItemCache> node = findNode();
             if (node != null) {
                 var cache = node.getNetworkCache();
                 var paths = cache.pathCache.getPaths(node, side.getOpposite());
                 // The node can be null if the pipe was just placed, and not initialized yet.
-                return cache.insertList(node, paths, resource, maxAmount, transaction, speedupFactor, null);
+                return cache.insertList(node, paths, resource, maxAmount, simulate, speedupFactor, null);
             } else {
                 return 0;
             }
-        };
+        });
     }
 
     /**
      * Storage used by extractors. It respects routing mode.
      */
-    private InsertionOnlyStorage<ItemVariant> buildExtractorNetworkInjectStorage(Direction side, ItemAttachedIo extractor,
+    private InsertionOnlyItemHandler buildExtractorNetworkInjectStorage(Direction side, ItemAttachedIo extractor,
             @Nullable MaxParticipant maxIndexParticipant) {
         double speedupFactor = extractor.getItemSpeedupFactor();
         NetworkNode<ItemHost, ItemCache> node = findNode();
         var cache = node.getNetworkCache();
         var paths = rearrangePaths(cache.pathCache.getPaths(node, side.getOpposite()), extractor);
-        return (resource, maxAmount, transaction) -> {
-            return cache.insertList(node, paths, resource, maxAmount, transaction, speedupFactor, maxIndexParticipant);
-        };
+        return new InsertionOnlyItemHandler((resource, maxAmount, simulate) -> {
+            return cache.insertList(node, paths, resource, maxAmount, simulate, speedupFactor, maxIndexParticipant);
+        });
     }
 
     protected EnumSet<Direction> getInventoryConnections() {
@@ -132,10 +132,10 @@ public class ItemHost extends NodeHost {
     }
 
     @Nullable
-    protected Storage<ItemVariant> getAdjacentStorage(Direction side, boolean checkAttachments) {
+    protected IItemHandler getAdjacentStorage(Direction side, boolean checkAttachments) {
         if ((inventoryConnections & (1 << side.get3DDataValue())) > 0 && (pipeConnections & (1 << side.get3DDataValue())) == 0
                 && (!checkAttachments || allowItemConnection(side))) {
-            return ItemStorage.SIDED.find(pipe.getLevel(), pipe.getBlockPos().relative(side), side.getOpposite());
+            return pipe.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, pipe.getBlockPos().relative(side), side.getOpposite());
         }
         return null;
     }
@@ -199,12 +199,11 @@ public class ItemHost extends NodeHost {
 
             var maxParticipant = new MaxParticipant();
 
-            if (StorageUtil.move(
+            if (move(
                     adjStorage,
                     buildExtractorNetworkInjectStorage(side, extractor, maxParticipant),
                     extractor::matchesItemFilter,
-                    extractor.getMaxItemsExtracted(),
-                    null) > 0) {
+                    extractor.getMaxItemsExtracted()) > 0) {
                 extractor.incrementRoundRobin(maxParticipant.getMax());
             }
         }
@@ -233,8 +232,8 @@ public class ItemHost extends NodeHost {
             var pathCache = cache.pathCache;
             var paths = rearrangePaths(pathCache.getPaths(thisNode, side.getOpposite()), attractor);
 
-            long maxTransfer = attractor.getMaxItemsExtracted();
-            long toTransfer = maxTransfer;
+            int maxTransfer = attractor.getMaxItemsExtracted();
+            int toTransfer = maxTransfer;
 
             int nextPathIndex = 0;
             for (var path : paths) {
@@ -245,24 +244,23 @@ public class ItemHost extends NodeHost {
                     continue;
                 }
 
-                var extractTarget = ItemStorage.SIDED.find(pipe.getLevel(), path.targetPos, path.getTargetBlockSide());
+                var extractTarget = pipe.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, path.targetPos, path.getTargetBlockSide());
                 if (extractTarget != null) {
                     // Make sure to check the filter at the endpoint.
                     var endpointFilter = path.getEndFilter(cache.level);
 
-                    InsertionOnlyStorage<ItemVariant> insertStorage = (variant, maxAmount, tx) -> {
-                        return insertTarget.insert(variant, maxAmount, tx, (v, a) -> {
+                    InsertionOnlyItemHandler insertStorage = new InsertionOnlyItemHandler((variant, maxAmount, simulate) -> {
+                        return insertTarget.insert(variant, maxAmount, simulate, (v, a) -> {
                             var reversedPath = path.reversed();
                             var travelingItem = reversedPath.makeTravelingItem(v, a, attractor.getItemSpeedupFactor());
                             reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
                         });
-                    };
-                    toTransfer -= StorageUtil.move(
+                    });
+                    toTransfer -= move(
                             extractTarget,
                             insertStorage,
                             v -> attractor.matchesItemFilter(v) && endpointFilter.test(v),
-                            toTransfer,
-                            null);
+                            toTransfer);
                     if (toTransfer == 0)
                         break;
                 }
@@ -274,8 +272,28 @@ public class ItemHost extends NodeHost {
         }
     }
 
+    private int move(IItemHandler from, IItemHandler to, Predicate<ItemVariant> predicate, int maxAmount) {
+        var moved = 0;
+        for (int i = 0; i < from.getSlots(); i++) {
+            var extracted = from.extractItem(i, maxAmount, true);
+            if (!extracted.isEmpty()) {
+                var variant = ItemVariant.of(extracted);
+                if (predicate.test(variant)) {
+                    var overflow = ItemHandlerHelper.insertItemStacked(to, extracted, true);
+                    var likelyToFit = extracted.getCount() - overflow.getCount();
+                    if (likelyToFit > 0) {
+                        extracted = from.extractItem(i, likelyToFit, false);
+                        overflow = ItemHandlerHelper.insertItemStacked(to, extracted, false);
+                        moved += extracted.getCount() - overflow.getCount();
+                    }
+                }
+            }
+        }
+        return moved;
+    }
+
     public void tickMovingItems() {
-        if (travelingItems.size() == 0) {
+        if (travelingItems.isEmpty()) {
             return;
         }
 
@@ -306,16 +324,14 @@ public class ItemHost extends NodeHost {
                 var side = travelingItem.path.path[newIndex];
                 var storage = getAdjacentStorage(side, checkAttachments);
                 if (storage == null) {
-                    storage = Storage.empty();
+                    storage = EmptyHandler.INSTANCE;
                 }
-                long inserted = 0;
+                int inserted = 0;
                 // Check filter.
                 if (!checkAttachments || !(getAttachment(side) instanceof ItemAttachedIo io) ||
                         io.matchesItemFilter(travelingItem.variant) && io.isEnabledViaRedstone(pipe)) {
-                    try (var transaction = Transaction.openOuter()) {
-                        inserted = storage.insert(travelingItem.variant, travelingItem.amount, transaction);
-                        transaction.commit();
-                    }
+                    var overflow = ItemHandlerHelper.insertItemStacked(storage, travelingItem.variant.toStack(travelingItem.amount), false);
+                    inserted = travelingItem.amount - overflow.getCount();
                 }
                 finishTravel(travelingItem, inserted);
             } else {
@@ -347,16 +363,16 @@ public class ItemHost extends NodeHost {
         pipe.sync(false);
     }
 
-    private void finishTravel(TravelingItem item, long inserted) {
+    private void finishTravel(TravelingItem item, int inserted) {
         // In any case, remove the item from the simulated insertion target
         item.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(item.variant, item.amount);
-        long leftover = item.amount - inserted;
+        int leftover = item.amount - inserted;
 
         // Try to stuff first!
         var attachment = getAttachment(item.path.path[item.getPathLength() - 1]);
         if (leftover > 0 && attachment instanceof ItemAttachedIo io && io.getType() != IoAttachmentType.FILTER) {
             boolean wasStuffed = io.isStuffed();
-            io.getStuffedItems().merge(item.variant, item.amount, Long::sum);
+            io.getStuffedItems().merge(item.variant, item.amount, Integer::sum);
             pipe.setChanged();
             if (wasStuffed != io.isStuffed()) {
                 pipe.sync();
@@ -443,7 +459,7 @@ public class ItemHost extends NodeHost {
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
                 Direction dir = Direction.from3DDataValue(i);
-                Storage<ItemVariant> adjacentCap = ItemStorage.SIDED.find(pipe.getLevel(), pipe.getBlockPos().relative(dir), dir.getOpposite());
+                var adjacentCap = pipe.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, pipe.getBlockPos().relative(dir), dir.getOpposite());
 
                 if (adjacentCap == null) {
                     // Remove the direction from the bitmask

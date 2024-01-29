@@ -22,20 +22,22 @@ import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdItems;
-import dev.technici4n.moderndynamics.test.framework.MdGameTest;
 import dev.technici4n.moderndynamics.test.framework.MdGameTestHelper;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import dev.technici4n.moderndynamics.util.FluidVariant;
+import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-public class FluidTransferTest extends MdGameTest {
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+@GameTestHolder(MdId.MOD_ID)
+@PrefixGameTestTemplate(false)
+public class FluidTransferTest {
+    @MdGameTest
     public void cauldronToCauldronExtractor(MdGameTestHelper helper) {
         var toFillPos = new BlockPos(0, 1, 0);
         var toEmptyPos = new BlockPos(3, 1, 0);
@@ -46,13 +48,13 @@ public class FluidTransferTest extends MdGameTest {
                 .attachment(Direction.EAST, MdItems.EXTRACTOR);
         helper.setBlock(toEmptyPos, Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3));
 
-        int timeToFill = (int) Math.ceil((double) FluidConstants.BUCKET / Constants.Fluids.BASE_IO);
+        int timeToFill = (int) Math.ceil((double) FluidType.BUCKET_VOLUME / Constants.Fluids.BASE_IO);
         helper.succeedOnTickWhen(timeToFill, () -> {
-            helper.checkFluid(toFillPos, Fluids.WATER, FluidConstants.BUCKET);
+            helper.checkFluid(toFillPos, Fluids.WATER, FluidType.BUCKET_VOLUME);
         });
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @MdGameTest
     public void cauldronToCauldronAttractor(MdGameTestHelper helper) {
         var toFillPos = new BlockPos(0, 1, 0);
         var toEmptyPos = new BlockPos(3, 1, 0);
@@ -63,13 +65,14 @@ public class FluidTransferTest extends MdGameTest {
         helper.pipe(new BlockPos(2, 1, 0), MdBlocks.FLUID_PIPE);
         helper.setBlock(toEmptyPos, Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3));
 
-        int timeToFill = (int) Math.ceil((double) FluidConstants.BUCKET / Constants.Fluids.BASE_IO);
+        int timeToFill = (int) Math.ceil((double) FluidType.BUCKET_VOLUME / Constants.Fluids.BASE_IO);
         helper.succeedOnTickWhen(timeToFill, () -> {
-            helper.checkFluid(toFillPos, Fluids.WATER, FluidConstants.BUCKET);
+            helper.checkFluid(toFillPos, Fluids.WATER, FluidType.BUCKET_VOLUME);
         });
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    // Disabled because NeoForge does not support transfers from/to cauldrons in levels
+    @MdGameTest(required = false)
     public void cauldronToCauldronAttractorExtractor(MdGameTestHelper helper) {
         var toFillPos = new BlockPos(0, 1, 0);
         var toEmptyPos = new BlockPos(3, 1, 0);
@@ -82,13 +85,13 @@ public class FluidTransferTest extends MdGameTest {
         helper.setBlock(toEmptyPos, Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3));
 
         // Both attractor and extractor are active. Cauldron is discrete, only first two levels can be done in parallel.
-        int timeToFill = (int) Math.ceil((double) FluidConstants.BUCKET / Constants.Fluids.BASE_IO * 2 / 3);
+        int timeToFill = (int) Math.ceil((double) FluidType.BUCKET_VOLUME / Constants.Fluids.BASE_IO * 2 / 3);
         helper.succeedOnTickWhen(timeToFill, () -> {
-            helper.checkFluid(toFillPos, Fluids.WATER, FluidConstants.BUCKET);
+            helper.checkFluid(toFillPos, Fluids.WATER, FluidType.BUCKET_VOLUME);
         });
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @MdGameTest
     public void doubleAttractor(MdGameTestHelper helper) {
         var toFillPos = new BlockPos(0, 1, 0);
         var toEmptyPos = new BlockPos(3, 1, 0);
@@ -102,9 +105,9 @@ public class FluidTransferTest extends MdGameTest {
         helper.setBlock(toEmptyPos, Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3));
 
         // Two attractors are pulling (with only 1 viable target). Only half the time should be needed.
-        int timeToFill = (int) Math.ceil((double) FluidConstants.BUCKET / Constants.Fluids.BASE_IO / 2);
+        int timeToFill = (int) Math.ceil((double) FluidType.BUCKET_VOLUME / Constants.Fluids.BASE_IO / 2);
         helper.succeedOnTickWhen(timeToFill, () -> {
-            helper.checkFluid(toFillPos, Fluids.WATER, FluidConstants.BUCKET);
+            helper.checkFluid(toFillPos, Fluids.WATER, FluidType.BUCKET_VOLUME);
         });
     }
 
@@ -112,7 +115,7 @@ public class FluidTransferTest extends MdGameTest {
      * Test that attractors only grant pulling power for fluids matching filter.
      * Here we test that an attractor filtered for lava will not attract water.
      */
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @MdGameTest
     public void doubleAttractorOneFiltered(MdGameTestHelper helper) {
         var toFillPos = new BlockPos(0, 1, 0);
         var toEmptyPos = new BlockPos(3, 1, 0);
@@ -130,9 +133,9 @@ public class FluidTransferTest extends MdGameTest {
         helper.setBlock(toEmptyPos, Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3));
 
         // Two attractors are pulling, but only 1 has a filter matching water. So only 1 is effectively pulling.
-        int timeToFill = (int) Math.ceil((double) FluidConstants.BUCKET / Constants.Fluids.BASE_IO);
+        int timeToFill = (int) Math.ceil((double) FluidType.BUCKET_VOLUME / Constants.Fluids.BASE_IO);
         helper.succeedOnTickWhen(timeToFill, () -> {
-            helper.checkFluid(toFillPos, Fluids.WATER, FluidConstants.BUCKET);
+            helper.checkFluid(toFillPos, Fluids.WATER, FluidType.BUCKET_VOLUME);
         });
     }
 }

@@ -20,18 +20,16 @@ package dev.technici4n.moderndynamics.gui.menu;
 
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
-import dev.technici4n.moderndynamics.gui.MdPackets;
 import dev.technici4n.moderndynamics.init.MdMenus;
+import dev.technici4n.moderndynamics.packets.MdPackets;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import java.util.Objects;
-import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
+import dev.technici4n.moderndynamics.util.FluidVariant;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidUtil;
 
 public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
 
@@ -53,31 +51,42 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
     @Override
     public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
         if (slotIndex >= 0 && getSlot(slotIndex) instanceof FluidConfigSlot configSlot && configSlot.isActive()) {
-            var selectedVariant = Objects.requireNonNullElse(
-                    StorageUtil.findStoredResource(ContainerItemContext.ofPlayerCursor(player, this).find(FluidStorage.ITEM)),
-                    FluidVariant.blank());
-            attachment.setFilter(configSlot.getConfigIdx(), selectedVariant);
+
+            var contained = FluidUtil.getFluidContained(getCarried()).orElse(FluidStack.EMPTY);
+            attachment.setFilter(configSlot.getConfigIdx(), FluidVariant.of(contained));
         } else {
             super.clicked(slotIndex, button, actionType, player);
         }
     }
 
+    private boolean matchesAnyFilter(FluidStack stack) {
+        for (var slot : slots) {
+            if (slot instanceof FluidConfigSlot fluidConfig) {
+                if (fluidConfig.getFilter().matches(stack)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     protected boolean trySetFilterOnShiftClick(int clickedSlot) {
         // Find resource that's not configured yet
-        var fluidVariant = StorageUtil.findStoredResource(
-                ContainerItemContext.withConstant(slots.get(clickedSlot).getItem()).find(FluidStorage.ITEM),
-                fv -> {
-                    for (var slot : slots) {
-                        if (slot instanceof FluidConfigSlot fluidConfig) {
-                            if (fluidConfig.getFilter().equals(fv)) {
-                                return false;
-                            }
-                        }
-                    }
-                    return true;
-                });
-        if (fluidVariant != null) {
+        FluidVariant fluidVariant = FluidVariant.blank();
+        var fluidHandler = FluidUtil.getFluidHandler(getCarried()).orElse(null);
+        if (fluidHandler != null) {
+            for (int i = 0; i < fluidHandler.getTanks(); i++) {
+                var fluidInTank = fluidHandler.getFluidInTank(i);
+                if (fluidInTank.isEmpty() || matchesAnyFilter(fluidInTank)) {
+                    continue;
+                }
+                fluidVariant = FluidVariant.of(fluidInTank);
+                break;
+            }
+        }
+
+        if (!fluidVariant.isBlank()) {
             for (var slot : slots) {
                 if (slot instanceof FluidConfigSlot fluidConfig) {
                     if (fluidConfig.getFilter().isBlank()) {

@@ -29,14 +29,14 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
+import net.minecraft.data.PackOutput;
 
 public class PipeModelsProvider implements DataProvider {
-    private final FabricDataOutput dataOutput;
+    private final PackOutput dataOutput;
 
-    public PipeModelsProvider(FabricDataOutput dataOutput) {
+    public PipeModelsProvider(PackOutput dataOutput) {
         this.dataOutput = dataOutput;
     }
 
@@ -87,7 +87,7 @@ public class PipeModelsProvider implements DataProvider {
     }
 
     private void registerPipeModel(PipeBlock pipe, BiConsumer<JsonElement, Path> saver) {
-        var baseFolder = dataOutput.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(dataOutput.getModId(), pipe.id));
+        var baseFolder = dataOutput.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(MdId.MOD_ID, pipe.id));
 
         registerPipePart(baseFolder, pipe, "connector", saver);
         registerPipePart(baseFolder, pipe, "straight", saver);
@@ -124,7 +124,7 @@ public class PipeModelsProvider implements DataProvider {
         textures.addProperty("0", MdId.of(texture).toString());
 
         saver.accept(obj,
-                dataOutput.getOutputFolder().resolve("assets/%s/models/attachment/%s.json".formatted(dataOutput.getModId(), attachment.id)));
+                dataOutput.getOutputFolder().resolve("assets/%s/models/attachment/%s.json".formatted(MdId.MOD_ID, attachment.id)));
     }
 
     @Override

@@ -24,7 +24,6 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.EnumSet;
 import java.util.List;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -35,6 +34,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.capabilities.BlockCapability;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
@@ -142,7 +142,7 @@ public abstract class NodeHost {
     }
 
     @Nullable
-    public abstract Object getApiInstance(BlockApiLookup<?, Direction> lookup, @Nullable Direction side);
+    public abstract Object getApiInstance(BlockCapability<?, Direction> lookup, @Nullable Direction side);
 
     @SuppressWarnings("unchecked")
     @Nullable

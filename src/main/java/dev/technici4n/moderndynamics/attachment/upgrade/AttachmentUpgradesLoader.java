@@ -23,8 +23,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.mojang.serialization.JsonOps;
 import dev.technici4n.moderndynamics.ModernDynamics;
-import dev.technici4n.moderndynamics.util.MdId;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -34,29 +34,24 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<List<JsonObject>> implements IdentifiableResourceReloadListener {
+public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<List<JsonObject>> {
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     // A bit dirty... could maybe use a better fabric API hook?
     private static final Map<ResourceManager, LoadedUpgrades> LOADED_UPGRADES = new WeakHashMap<>();
 
     private AttachmentUpgradesLoader() {
-    }
-
-    @Override
-    public ResourceLocation getFabricId() {
-        return MdId.of("attachment_upgrades_loader");
     }
 
     @Override
@@ -83,12 +78,12 @@ public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<Lis
         List<Item> list = new ArrayList<>();
 
         for (JsonObject obj : array) {
-            if (!ResourceConditions.objectMatchesConditions(obj)) {
+            if (!ICondition.conditionsMatched(JsonOps.INSTANCE, obj)) {
                 continue;
             }
 
             try {
-                var item = GsonHelper.getAsItem(obj, "item");
+                var item = GsonHelper.getAsItem(obj, "item").value();
                 var deserialized = GSON.fromJson(obj, UpgradeType.class);
                 // TODO validate
 
@@ -105,19 +100,23 @@ public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<Lis
     }
 
     public static void setup() {
-        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new AttachmentUpgradesLoader());
-        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+        NeoForge.EVENT_BUS.addListener(AddReloadListenerEvent.class, e -> {
+            e.addListener(new AttachmentUpgradesLoader());
+        });
+        NeoForge.EVENT_BUS.addListener(ServerStartingEvent.class, e -> {
+            var server = e.getServer();
             LoadedUpgrades.trySet(LOADED_UPGRADES.remove(server.getResourceManager()));
         });
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
-            if (success) {
-                LoadedUpgrades.trySet(LOADED_UPGRADES.remove(resourceManager));
+        NeoForge.EVENT_BUS.addListener(OnDatapackSyncEvent.class, e -> {
+            var server = ServerLifecycleHooks.getCurrentServer();
+            var player = e.getPlayer();
+            if (player != null) {
+                LoadedUpgrades.trySet(LOADED_UPGRADES.remove(server.getResourceManager()));
+                LoadedUpgrades.syncToClient(player);
+            } else {
+                LoadedUpgrades.trySet(LOADED_UPGRADES.remove(server.getResourceManager()));
                 // TODO: should maybe invalidate all cached filters?
             }
-        });
-        ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
-            LoadedUpgrades.trySet(LOADED_UPGRADES.remove(player.server.getResourceManager()));
-            LoadedUpgrades.syncToClient(player);
         });
     }
 }

@@ -22,8 +22,8 @@ import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import java.util.function.Predicate;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -76,7 +76,7 @@ public class ItemPath {
         return getLastDirection().getOpposite();
     }
 
-    public TravelingItem makeTravelingItem(ItemVariant variant, long amount, double speedMultiplier) {
+    public TravelingItem makeTravelingItem(ItemVariant variant, int amount, double speedMultiplier) {
         return new TravelingItem(
                 variant,
                 amount,

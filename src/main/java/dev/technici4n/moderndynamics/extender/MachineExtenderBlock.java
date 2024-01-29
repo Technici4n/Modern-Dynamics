@@ -21,6 +21,7 @@ package dev.technici4n.moderndynamics.extender;
 import dev.technici4n.moderndynamics.MdBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
@@ -28,6 +29,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.MapColor;
+import org.jetbrains.annotations.Nullable;
 
 public class MachineExtenderBlock extends MdBlock {
     public static final BooleanProperty TOP = BooleanProperty.create("top");
@@ -51,6 +53,18 @@ public class MachineExtenderBlock extends MdBlock {
         }
 
         return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
+    }
+
+    @Nullable
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        var state = super.getStateForPlacement(context);
+        if (state != null) {
+            var pos = context.getClickedPos();
+            var level = context.getLevel();
+            state = state.setValue(TOP, !level.getBlockState(pos.above()).is(this));
+        }
+        return state;
     }
 
     @Override

@@ -25,28 +25,27 @@ import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.shared.TransferLimits;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.List;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.api.EnergyStorage;
-import team.reborn.energy.api.base.DelegatingEnergyStorage;
 
 public class EnergyHost extends NodeHost {
     private static final NetworkManager<EnergyHost, EnergyCache> MANAGER = NetworkManager.get(EnergyCache.class, EnergyCache::new);
 
     private final EnergyPipeTier tier;
-    private long energy;
+    private int energy;
     // Rate limiting
     // inserted INTO the neighbor inventories
     private final TransferLimits insertLimit = new TransferLimits(this::getTransferLimit, 0);
     // extracted FROM the neighbor inventories
     private final TransferLimits extractLimit = new TransferLimits(this::getTransferLimit, 0);
     // Caps
-    private final EnergyStorage[] caps = new EnergyStorage[6];
-    private final EnergyStorage unsidedCap = new ReadOnlyNetworkStorage();
+    private final IEnergyStorage[] caps = new IEnergyStorage[6];
+    private final IEnergyStorage unsidedCap = new ReadOnlyNetworkStorage();
 
     public EnergyHost(PipeBlockEntity pipe, EnergyPipeTier tier) {
         super(pipe);
@@ -63,8 +62,8 @@ public class EnergyHost extends NodeHost {
     }
 
     @Override
-    public Object getApiInstance(BlockApiLookup<?, Direction> lookup, @Nullable Direction side) {
-        if (lookup == EnergyStorage.SIDED) {
+    public Object getApiInstance(BlockCapability<?, Direction> lookup, @Nullable Direction side) {
+        if (lookup == Capabilities.EnergyStorage.BLOCK) {
             if (side == null) {
                 return unsidedCap;
             } else if ((pipe.connectionBlacklist & (1 << side.get3DDataValue())) == 0) {
@@ -74,15 +73,15 @@ public class EnergyHost extends NodeHost {
         return null;
     }
 
-    public long getEnergy() {
+    public int getEnergy() {
         return energy;
     }
 
-    public long getMaxEnergy() {
+    public int getMaxEnergy() {
         return tier.getCapacity();
     }
 
-    public void setEnergy(long energy) {
+    public void setEnergy(int energy) {
         if (energy < 0 || energy > getMaxEnergy()) {
             throw new IllegalArgumentException("Invalid energy value " + energy);
         }
@@ -106,17 +105,18 @@ public class EnergyHost extends NodeHost {
         return super.canConnectTo(connectionDirection, adjacentHost) && ((EnergyHost) adjacentHost).tier == this.tier;
     }
 
-    protected void addEnergyStorages(List<EnergyStorage> out) {
+    protected void addEnergyStorages(List<IEnergyStorage> out) {
         gatherCapabilities(out);
     }
 
-    public void gatherCapabilities(@Nullable List<EnergyStorage> out) {
+    public void gatherCapabilities(@Nullable List<IEnergyStorage> out) {
         int oldConnections = inventoryConnections;
 
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
                 Direction dir = Direction.from3DDataValue(i);
-                EnergyStorage adjacentCap = EnergyStorage.SIDED.find(pipe.getLevel(), pipe.getBlockPos().relative(dir), dir.getOpposite());
+                IEnergyStorage adjacentCap = pipe.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, pipe.getBlockPos().relative(dir),
+                        dir.getOpposite());
 
                 if (adjacentCap != null) {
                     if (out != null) {
@@ -151,71 +151,96 @@ public class EnergyHost extends NodeHost {
     @Override
     public void writeNbt(CompoundTag tag) {
         super.writeNbt(tag);
-        tag.putLong("energy", energy);
+        tag.putInt("energy", energy);
     }
 
     @Override
     public void readNbt(CompoundTag tag) {
         super.readNbt(tag);
         // Guard against max energy config changes
-        energy = Math.max(0, Math.min(tag.getLong("energy"), getMaxEnergy()));
+        energy = Math.max(0, Math.min(tag.getInt("energy"), getMaxEnergy()));
     }
 
-    private long getTransferLimit(Direction side) {
+    private int getTransferLimit(Direction side) {
         return tier.getMaxConnectionTransfer();
     }
 
-    private class ExternalEnergyStorage extends DelegatingEnergyStorage {
+    private class ExternalEnergyStorage implements IEnergyStorage {
         private final int directionId;
+        private final IEnergyStorage delegate;
 
-        private ExternalEnergyStorage(EnergyStorage delegate, int directionId) {
-            super(delegate, null);
+        private ExternalEnergyStorage(IEnergyStorage delegate, int directionId) {
+            this.delegate = delegate;
             this.directionId = directionId;
         }
 
         @Override
-        public long insert(long maxAmount, TransactionContext transaction) {
+        public int receiveEnergy(int maxAmount, boolean simulate) {
             maxAmount = insertLimit.limit(directionId, maxAmount);
             if (maxAmount <= 0)
                 return 0;
 
-            long transferred = backingStorage.get().insert(maxAmount, transaction);
-            insertLimit.use(directionId, transferred, transaction);
+            int transferred = delegate.receiveEnergy(maxAmount, simulate);
+            if (!simulate) {
+                insertLimit.use(directionId, transferred);
+            }
             return transferred;
         }
 
         @Override
-        public long extract(long maxAmount, TransactionContext transaction) {
+        public int extractEnergy(int maxAmount, boolean simulate) {
             maxAmount = extractLimit.limit(directionId, maxAmount);
             if (maxAmount <= 0)
                 return 0;
 
-            long transferred = backingStorage.get().extract(maxAmount, transaction);
-            extractLimit.use(directionId, transferred, transaction);
+            int transferred = delegate.extractEnergy(maxAmount, simulate);
+            if (!simulate) {
+                extractLimit.use(directionId, transferred);
+            }
             return transferred;
+        }
+
+        @Override
+        public int getEnergyStored() {
+            return delegate.getEnergyStored();
+        }
+
+        @Override
+        public int getMaxEnergyStored() {
+            return delegate.getMaxEnergyStored();
+        }
+
+        @Override
+        public boolean canExtract() {
+            return delegate.canExtract();
+        }
+
+        @Override
+        public boolean canReceive() {
+            return delegate.canReceive();
         }
     }
 
-    private abstract class AbstractNetworkStorage implements EnergyStorage {
+    private abstract class AbstractNetworkStorage implements IEnergyStorage {
         @Override
-        public final long getAmount() {
+        public int getEnergyStored() {
             @Nullable
             NetworkNode<EnergyHost, EnergyCache> node = findNode();
 
             if (node != null && node.getHost() == EnergyHost.this) {
-                return node.getNetworkCache().getAmount();
+                return node.getNetworkCache().getEnergyStored();
             }
 
             return 0;
         }
 
         @Override
-        public final long getCapacity() {
+        public int getMaxEnergyStored() {
             @Nullable
             NetworkNode<EnergyHost, EnergyCache> node = findNode();
 
             if (node != null && node.getHost() == EnergyHost.this) {
-                return node.getNetworkCache().getCapacity();
+                return node.getNetworkCache().getMaxEnergyStored();
             }
 
             return 0;
@@ -230,7 +255,21 @@ public class EnergyHost extends NodeHost {
         }
 
         @Override
-        public long insert(long maxAmount, TransactionContext transaction) {
+        public boolean canExtract() {
+            @Nullable
+            NetworkNode<EnergyHost, EnergyCache> node = findNode();
+            return node != null && node.getHost() == EnergyHost.this;
+        }
+
+        @Override
+        public boolean canReceive() {
+            @Nullable
+            NetworkNode<EnergyHost, EnergyCache> node = findNode();
+            return node != null && node.getHost() == EnergyHost.this;
+        }
+
+        @Override
+        public int receiveEnergy(int maxAmount, boolean simulate) {
             @Nullable
             NetworkNode<EnergyHost, EnergyCache> node = findNode();
 
@@ -241,8 +280,10 @@ public class EnergyHost extends NodeHost {
                 if (maxAmount <= 0)
                     return 0;
 
-                long transferred = node.getNetworkCache().insert(maxAmount, transaction);
-                extractLimit.use(directionId, transferred, transaction);
+                int transferred = node.getNetworkCache().insert(maxAmount, simulate);
+                if (!simulate) {
+                    extractLimit.use(directionId, transferred);
+                }
 
                 return transferred;
             }
@@ -251,7 +292,7 @@ public class EnergyHost extends NodeHost {
         }
 
         @Override
-        public long extract(long maxAmount, TransactionContext transaction) {
+        public int extractEnergy(int maxAmount, boolean simulate) {
             @Nullable
             NetworkNode<EnergyHost, EnergyCache> node = findNode();
 
@@ -262,8 +303,10 @@ public class EnergyHost extends NodeHost {
                 if (maxAmount <= 0)
                     return 0;
 
-                long transferred = node.getNetworkCache().extract(maxAmount, transaction);
-                insertLimit.use(directionId, transferred, transaction);
+                int transferred = node.getNetworkCache().extract(maxAmount, simulate);
+                if (!simulate) {
+                    insertLimit.use(directionId, transferred);
+                }
 
                 return transferred;
             }
@@ -274,13 +317,23 @@ public class EnergyHost extends NodeHost {
 
     private class ReadOnlyNetworkStorage extends AbstractNetworkStorage {
         @Override
-        public long insert(long maxAmount, TransactionContext transaction) {
+        public int receiveEnergy(int maxAmount, boolean simulate) {
             return 0;
         }
 
         @Override
-        public long extract(long maxAmount, TransactionContext transaction) {
+        public boolean canReceive() {
+            return false;
+        }
+
+        @Override
+        public int extractEnergy(int maxExtract, boolean simulate) {
             return 0;
+        }
+
+        @Override
+        public boolean canExtract() {
+            return false;
         }
     }
 }

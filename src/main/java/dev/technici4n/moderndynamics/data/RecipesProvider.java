@@ -18,25 +18,50 @@
  */
 package dev.technici4n.moderndynamics.data;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.hash.HashCode;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.util.MdId;
-import java.util.function.Consumer;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
-import net.fabricmc.fabric.api.resource.conditions.v1.DefaultResourceConditions;
-import net.minecraft.data.recipes.FinishedRecipe;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.CachedOutput;
+import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 
-public class RecipesProvider extends FabricRecipeProvider {
-    public RecipesProvider(FabricDataOutput dataOutput) {
-        super(dataOutput);
+public class RecipesProvider extends RecipeProvider {
+
+    private static final Gson GSON = new GsonBuilder()
+            .setPrettyPrinting()
+            .create();
+    private final PackOutput packOutput;
+
+    public RecipesProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
+        super(packOutput, registries);
+        this.packOutput = packOutput;
     }
 
     @Override
-    public void buildRecipes(Consumer<FinishedRecipe> exporter) {
+    protected void buildRecipes(RecipeOutput exporter) {
         ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.ITEM_PIPE, 8)
                 .pattern("igi")
                 .define('i', Items.IRON_INGOT)
@@ -109,45 +134,66 @@ public class RecipesProvider extends FabricRecipeProvider {
                 .unlockedBy("has_item_pipe", has(MdItems.ITEM_PIPE))
                 .unlockedBy("has_fluid_pipe", has(MdItems.FLUID_PIPE))
                 .save(exporter);
-
-        var miExporter = withConditions(exporter, DefaultResourceConditions.allModsLoaded("modern_industrialization"));
-        generateMiCableRecipes("lv", "tin_cable", miExporter);
-        generateMiCableRecipes("mv", "electrum_cable", miExporter);
-        generateMiCableRecipes("hv", "aluminum_cable", miExporter);
-        generateMiCableRecipes("ev", "annealed_copper_cable", miExporter);
-        generateMiCableRecipes("superconductor", "superconductor_cable", miExporter);
     }
 
-    private void generateMiCableRecipes(String cableName, String miCable, Consumer<FinishedRecipe> exporter) {
+    @Override
+    public CompletableFuture<?> run(CachedOutput output) {
+        generateMiCableRecipes(output);
+
+        return super.run(output);
+    }
+
+    private void generateMiCableRecipes(CachedOutput output) {
+        generateMiCableRecipes("lv", "tin_cable", output);
+        generateMiCableRecipes("mv", "electrum_cable", output);
+        generateMiCableRecipes("hv", "aluminum_cable", output);
+        generateMiCableRecipes("ev", "annealed_copper_cable", output);
+        generateMiCableRecipes("superconductor", "superconductor_cable", output);
+    }
+
+    private void generateMiCableRecipes(String cableName, String miCable, CachedOutput output) {
         String mdCableItemId = MdId.of(cableName + "_cable").toString();
         String miCableItemId = "modern_industrialization:" + miCable;
+        var condition = new ModLoadedCondition("modern_industrialization");
+        writeRawRecipe(output, MdId.of("cable/%s_from_mi".formatted(cableName)), ImmutableMap.of(
+                "type", getRecipeTypeId(RecipeSerializer.SHAPELESS_RECIPE),
+                "ingredients", List.of(
+                        ImmutableMap.of(
+                                "item", miCableItemId)),
+                "result", ImmutableMap.of(
+                        "item", mdCableItemId,
+                        "count", 4)),
+                condition);
 
-        exporter.accept(new JsonFinishedRecipe(RecipeSerializer.SHAPELESS_RECIPE, "cable/%s_from_mi".formatted(cableName), """
-                {
-                    "ingredients": [
-                        {
-                            "item": "%s"
-                        }
-                    ],
-                    "result": {
-                        "item": "%s",
-                        "count": 4
-                    }
-                }
-                """.formatted(miCableItemId, mdCableItemId)));
+        writeRawRecipe(output, MdId.of("cable/%s_to_mi".formatted(cableName)), ImmutableMap.of(
+                "type", getRecipeTypeId(RecipeSerializer.SHAPED_RECIPE),
+                "pattern", List.of("cc", "cc"),
+                "key", ImmutableMap.of(
+                        "c", ImmutableMap.of("item", mdCableItemId)),
+                "result", ImmutableMap.of(
+                        "item", miCableItemId)),
+                condition);
+    }
 
-        exporter.accept(new JsonFinishedRecipe(RecipeSerializer.SHAPED_RECIPE, "cable/%s_to_mi".formatted(cableName), """
-                {
-                    "pattern": [ "cc", "cc" ],
-                    "key": {
-                        "c": {
-                            "item": "%s"
-                        }
-                    },
-                    "result": {
-                        "item": "%s"
-                    }
-                }
-                """.formatted(mdCableItemId, miCableItemId)));
+    private void writeRawRecipe(CachedOutput output, ResourceLocation id, Map<String, Object> recipe, ICondition... conditions) {
+        var path = recipePathProvider.json(id);
+        var outputFile = packOutput.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(path);
+
+        var jsonObject = (JsonObject) GSON.toJsonTree(recipe);
+        ICondition.writeConditions(JsonOps.INSTANCE, jsonObject, Arrays.asList(conditions));
+
+        var content = GSON.toJson(jsonObject).getBytes(StandardCharsets.UTF_8);
+
+        try {
+            output.writeIfNeeded(outputFile, content, HashCode.fromBytes(content));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static String getRecipeTypeId(RecipeSerializer<?> serializer) {
+        var serializerId = BuiltInRegistries.RECIPE_SERIALIZER.getKey(serializer);
+        Objects.requireNonNull(serializerId, "Serializer " + serializer + " is unregistered");
+        return serializerId.toString();
     }
 }

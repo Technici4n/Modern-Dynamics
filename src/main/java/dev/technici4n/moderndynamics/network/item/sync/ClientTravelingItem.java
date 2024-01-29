@@ -18,7 +18,7 @@
  */
 package dev.technici4n.moderndynamics.network.item.sync;
 
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.core.Direction;
 
 public final class ClientTravelingItem {

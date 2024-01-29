@@ -23,11 +23,11 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.model.AttachmentModelData;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
 import java.util.List;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
@@ -96,7 +96,7 @@ public class AttachedAttachment {
     }
 
     @Nullable
-    public MenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
+    public ExtendedMenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
         return null;
     }
 
