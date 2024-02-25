@@ -99,15 +99,15 @@ public class ItemHost extends NodeHost {
      * Storage used for external injections (e.g. via hoppers), does not respect routing mode.
      */
     private IItemHandler buildExternalNetworkInjectStorage(Direction side) {
-        double speedupFactor = getAttachment(side) instanceof ItemAttachedIo io ? io.getItemSpeedupFactor() : 1;
         return new InsertionOnlyItemHandler((resource, maxAmount, simulate) -> {
             NetworkNode<ItemHost, ItemCache> node = findNode();
             if (node != null) {
                 var cache = node.getNetworkCache();
                 var paths = cache.pathCache.getPaths(node, side.getOpposite());
-                // The node can be null if the pipe was just placed, and not initialized yet.
+                double speedupFactor = getAttachment(side) instanceof ItemAttachedIo io ? io.getItemSpeedupFactor() : 1;
                 return cache.insertList(node, paths, resource, maxAmount, simulate, speedupFactor, null);
             } else {
+                // The node can be null if the pipe was just placed, and not initialized yet.
                 return 0;
             }
         });
