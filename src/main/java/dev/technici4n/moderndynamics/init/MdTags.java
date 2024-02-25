@@ -24,5 +24,5 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 
 public class MdTags {
-    public static final TagKey<Item> WRENCHES = TagKey.create(Registries.ITEM, new ResourceLocation("c:wrenches"));
+    public static final TagKey<Item> WRENCHES = TagKey.create(Registries.ITEM, new ResourceLocation("forge:tools/wrench"));
 }
