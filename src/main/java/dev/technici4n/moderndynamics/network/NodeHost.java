@@ -87,6 +87,7 @@ public abstract class NodeHost {
         } else {
             attachments[side.get3DDataValue()] = item.createAttached(this, data);
             scheduleUpdate();
+            pipe.invalidateCapabilities();
         }
     }
 

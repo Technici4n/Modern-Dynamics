@@ -27,6 +27,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
+import net.neoforged.neoforge.capabilities.ICapabilityInvalidationListener;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,9 +78,26 @@ public class MachineExtenderBlockEntity extends MdBlockEntity {
     private final boolean[] inApiQuery = new boolean[registeredApis * (1 + Direction.values().length)];
     private final BlockCapabilityCache[] apiCaches = new BlockCapabilityCache[registeredApis * (1 + Direction.values().length)];
     boolean inNeighborUpdate = false;
+    // We need to proxy invalidations of the bottom block to this block.
+    private final ICapabilityInvalidationListener invalidationListener = () -> {
+        if (isRemoved()) {
+            return false;
+        }
+        this.invalidateCapabilities();
+        return true;
+    };
 
     public MachineExtenderBlockEntity(BlockEntityType<?> bet, BlockPos pos, BlockState state) {
         super(bet, pos, state);
+    }
+
+    @Override
+    public void clearRemoved() {
+        super.clearRemoved();
+
+        if (level instanceof ServerLevel serverLevel) {
+            serverLevel.registerCapabilityListener(getBlockPos().below(), invalidationListener);
+        }
     }
 
     @Override

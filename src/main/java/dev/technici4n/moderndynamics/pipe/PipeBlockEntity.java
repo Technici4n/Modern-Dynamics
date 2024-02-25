@@ -322,6 +322,8 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
         refreshHosts();
         // The call to getNode() causes a network rebuild, but that shouldn't be an issue. (?)
         scheduleHostUpdates();
+        // Exposed caps do change
+        invalidateCapabilities();
 
         level.blockUpdated(worldPosition, getBlockState().getBlock());
         setChanged();
