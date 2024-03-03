@@ -145,7 +145,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
 
         // remesh flag, a bit hacky but it should work ;)
         // the second check ensures that the very first packet is processed even though it doesn't have the remesh flag
-        if (tag.getBoolean("#c") || clientModelData == null) {
+        if (tag.getBoolean("#c") || clientModelData == ModelData.EMPTY) {
             var attachmentTags = tag.getList("attachments", Tag.TAG_COMPOUND);
             var attachments = new AttachmentModelData[6];
             for (var direction : Direction.values()) {
