@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "moderndynamics:block/lv_cable"
+    }
+  }
+}

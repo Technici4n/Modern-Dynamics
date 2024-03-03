@@ -19,31 +19,44 @@
 package dev.technici4n.moderndynamics.client.model;
 
 import dev.technici4n.moderndynamics.util.MdId;
-import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.BlockModelRotation;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.client.model.geometry.IGeometryBakingContext;
+import net.neoforged.neoforge.client.model.geometry.IUnbakedGeometry;
 
-public class PipeUnbakedModel implements UnbakedModel {
+public class PipeUnbakedModel implements IUnbakedGeometry<PipeUnbakedModel> {
     private final Material baseTexture;
     private final ResourceLocation connector;
     private final ResourceLocation straightLine;
+    private final String pipeType;
     private final boolean transparent;
+    private final Map<String, ResourceLocation> attachmentModels;
 
-    public PipeUnbakedModel(String pipeType, boolean transparent) {
+    public PipeUnbakedModel(String pipeType, boolean transparent, Map<String, ResourceLocation> attachmentModels) {
+        this.attachmentModels = attachmentModels;
         this.baseTexture = new Material(InventoryMenu.BLOCK_ATLAS, MdId.of("pipe/" + pipeType + "/base"));
         this.connector = MdId.of("pipe/" + pipeType + "/connector");
         this.straightLine = MdId.of("pipe/" + pipeType + "/straight");
+        this.pipeType = pipeType;
         this.transparent = transparent;
+    }
+
+    public String getPipeType() {
+        return pipeType;
+    }
+
+    public boolean isTransparent() {
+        return transparent;
     }
 
     public static BakedModel[] loadRotatedModels(ResourceLocation modelId, ModelBaker baker) {
@@ -58,26 +71,30 @@ public class PipeUnbakedModel implements UnbakedModel {
     }
 
     @Override
-    public Collection<ResourceLocation> getDependencies() {
-        return List.of(connector, straightLine, AttachmentsUnbakedModel.ID);
-    }
-
-    @Override
-    public void resolveParents(Function<ResourceLocation, UnbakedModel> resolver) {
+    public void resolveParents(Function<ResourceLocation, UnbakedModel> resolver, IGeometryBakingContext context) {
         resolver.apply(connector).resolveParents(resolver);
         resolver.apply(straightLine).resolveParents(resolver);
-        resolver.apply(AttachmentsUnbakedModel.ID).resolveParents(resolver);
+
+        for (var subModel : attachmentModels.values()) {
+            resolver.apply(subModel).resolveParents(resolver);
+        }
     }
 
-    @Nullable
     @Override
-    public BakedModel bake(ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState transform,
-            ResourceLocation location) {
+    public BakedModel bake(IGeometryBakingContext context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter,
+            ModelState modelState, ItemOverrides overrides, ResourceLocation modelLocation) {
+
+        var bakedAttachments = attachmentModels.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> loadRotatedModels(e.getValue(), baker)));
+
         return new PipeBakedModel(
                 spriteGetter.apply(baseTexture),
                 loadRotatedModels(connector, baker),
                 loadRotatedModels(straightLine, baker),
-                (AttachmentsBakedModel) baker.bake(AttachmentsUnbakedModel.ID, BlockModelRotation.X0_Y0, spriteGetter),
+                bakedAttachments,
                 transparent);
     }
 }

@@ -59,6 +59,26 @@ public class ModelsProvider extends BlockStateProvider {
         }
         wrench();
         itemModels().basicItem(MdItems.DEBUG_TOOL);
+
+        // Generate model files referencing the custom loader for Pipe
+        for (var pipeBlock : MdBlocks.ALL_PIPES) {
+            var path = "block/" + pipeBlock.id;
+
+            var model = models().getBuilder(path)
+                    .customLoader(PipeModelLoaderBuilder::new)
+                    .pipeType(pipeBlock.id)
+                    .transparent(pipeBlock.isTransparent())
+                    .end();
+
+            // Use the block model as the item parent
+            itemModels().withExistingParent("item/" + pipeBlock.id, modLoc(path));
+
+            getVariantBuilder(pipeBlock).partialState().setModels(
+                    ConfiguredModel.builder().modelFile(model).build());
+        }
+
+        // Generate the model-file for attachments
+
     }
 
     private void wrench() {

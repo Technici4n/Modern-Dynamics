@@ -18,8 +18,9 @@
  */
 package dev.technici4n.moderndynamics.client;
 
+import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import dev.technici4n.moderndynamics.client.ber.PipeBlockEntityRenderer;
-import dev.technici4n.moderndynamics.client.model.MdModelLoader;
+import dev.technici4n.moderndynamics.client.model.PipeModelLoader;
 import dev.technici4n.moderndynamics.client.screen.FluidAttachedIoScreen;
 import dev.technici4n.moderndynamics.client.screen.ItemAttachedIoScreen;
 import dev.technici4n.moderndynamics.init.MdBlocks;
@@ -28,12 +29,16 @@ import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItemSmooth
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes;
+import dev.technici4n.moderndynamics.util.MdId;
+import java.util.HashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.HitResult;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderHighlightEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -41,7 +46,14 @@ import net.neoforged.neoforge.event.TickEvent;
 
 public final class ModernDynamicsClient {
     public ModernDynamicsClient(IEventBus modEvents) {
-        MdModelLoader.init(modEvents);
+        modEvents.addListener(ModelEvent.RegisterGeometryLoaders.class, event -> {
+            var modelMap = new HashMap<String, ResourceLocation>();
+            for (var id : RenderedAttachment.getAttachmentIds()) {
+                modelMap.put(id, MdId.of("attachment/" + id));
+            }
+
+            event.register(PipeModelLoader.ID, new PipeModelLoader(modelMap));
+        });
 
         modEvents.addListener(EntityRenderersEvent.RegisterRenderers.class, this::registerRenderers);
 
