@@ -31,6 +31,7 @@ import dev.technici4n.moderndynamics.thirdparty.fabric.MutableQuadView;
 import dev.technici4n.moderndynamics.thirdparty.fabric.QuadEmitter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -52,11 +53,11 @@ public class PipeBakedModel implements BakedModel {
     private final Mesh[] baseMeshes;
     private final BakedModel[] connectorModels;
     private final BakedModel[] straightLineModels;
-    private final AttachmentsBakedModel attachments;
+    private final Map<String, BakedModel[]> attachments;
     private final boolean transparent;
 
     public PipeBakedModel(TextureAtlasSprite baseSprite, BakedModel[] connectorModels, BakedModel[] straightLineModels,
-            AttachmentsBakedModel attachments, boolean transparent) {
+            Map<String, BakedModel[]> attachments, boolean transparent) {
         this.baseSprite = baseSprite;
         this.connectorModels = connectorModels;
         this.straightLineModels = straightLineModels;
@@ -198,7 +199,7 @@ public class PipeBakedModel implements BakedModel {
         for (int i = 0; i < 6; ++i) {
             var attachment = pipeData.attachments()[i];
             if (attachment != null) {
-                fallbackConsumer.accept(attachments.attachmentModels.get(attachment.modelId())[i]);
+                fallbackConsumer.accept(attachments.get(attachment.modelId())[i]);
             }
         }
 
