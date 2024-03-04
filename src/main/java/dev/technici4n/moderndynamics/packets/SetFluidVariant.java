@@ -30,6 +30,9 @@ public record SetFluidVariant(int syncId, int configIdx, FluidVariant variant) i
 
     @Override
     public void write(FriendlyByteBuf buf) {
+        buf.writeInt(syncId);
+        buf.writeInt(configIdx);
+        variant.toPacket(buf);
     }
 
     public static SetFluidVariant read(FriendlyByteBuf buf) {

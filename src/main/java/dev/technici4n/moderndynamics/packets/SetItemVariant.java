@@ -30,6 +30,9 @@ public record SetItemVariant(int syncId, int configIdx, ItemVariant variant) imp
 
     @Override
     public void write(FriendlyByteBuf buf) {
+        buf.writeInt(syncId);
+        buf.writeInt(configIdx);
+        variant.toPacket(buf);
     }
 
     public static SetItemVariant read(FriendlyByteBuf buf) {
