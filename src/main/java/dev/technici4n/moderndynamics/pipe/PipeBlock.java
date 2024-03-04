@@ -185,7 +185,10 @@ public class PipeBlock extends MdBlock implements EntityBlock, SimpleWaterlogged
     @Override
     public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level, BlockPos pos, Player player) {
         if (level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
-            return pipe.overridePickBlock(target);
+            var result = pipe.overridePickBlock(target);
+            if (!result.isEmpty()) {
+                return result;
+            }
         }
         return super.getCloneItemStack(state, target, level, pos, player);
     }
