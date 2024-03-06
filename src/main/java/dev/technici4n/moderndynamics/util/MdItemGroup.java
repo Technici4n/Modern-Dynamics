@@ -35,7 +35,7 @@ public final class MdItemGroup {
                 .title(Component.translatable("itemGroup.moderndynamics.moderndynamics"))
                 .icon(() -> new ItemStack(MdItems.ITEM_PIPE))
                 .displayItems((params, output) -> {
-                    for (var item : BuiltInRegistries.ITEM) { // Don't use entrySet(), it doesn't respect the iteration order
+                    for (var item : BuiltInRegistries.ITEM) { // Don't use entrySet(), it doesn't respect the registration order
                         var key = BuiltInRegistries.ITEM.getKey(item);
                         if (MdId.MOD_ID.equals(key.getNamespace()) && item != MdItems.DEBUG_TOOL) {
                             output.accept(item.getDefaultInstance());
