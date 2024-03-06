@@ -24,6 +24,7 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedIo;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
+import dev.technici4n.moderndynamics.network.HostAdjacentCaps;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
@@ -59,6 +60,7 @@ public class FluidHost extends NodeHost {
     // Caps
     private final IFluidHandler[] caps = new IFluidHandler[6];
     private final IFluidHandler unsidedCap;
+    private final HostAdjacentCaps<IFluidHandler> adjacentCaps = new HostAdjacentCaps<>(this, Capabilities.FluidHandler.BLOCK);
 
     public FluidHost(PipeBlockEntity pipe) {
         super(pipe);
@@ -177,8 +179,7 @@ public class FluidHost extends NodeHost {
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
                 Direction dir = Direction.from3DDataValue(i);
-                IFluidHandler adjacentCap = pipe.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, pipe.getBlockPos().relative(dir),
-                        dir.getOpposite());
+                IFluidHandler adjacentCap = adjacentCaps.getCapability(dir);
 
                 if (adjacentCap != null) {
                     if (out != null) {

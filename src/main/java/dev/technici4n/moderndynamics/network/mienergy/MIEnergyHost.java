@@ -20,6 +20,7 @@ package dev.technici4n.moderndynamics.network.mienergy;
 
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.compat.mi.MIProxy;
+import dev.technici4n.moderndynamics.network.HostAdjacentCaps;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
@@ -36,6 +37,7 @@ public class MIEnergyHost extends NodeHost {
 
     public final MICableTier tier;
     private long energy = 0;
+    private final HostAdjacentCaps<? extends IEnergyStorage> adjacentCaps = new HostAdjacentCaps<>(this, MIProxy.INSTANCE.getLookup());
 
     public MIEnergyHost(PipeBlockEntity pipe, MICableTier tier) {
         super(pipe);
@@ -64,8 +66,7 @@ public class MIEnergyHost extends NodeHost {
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
                 Direction dir = Direction.from3DDataValue(i);
-                IEnergyStorage adjacentCap = pipe.getLevel().getCapability(MIProxy.INSTANCE.getLookup(), pipe.getBlockPos().relative(dir),
-                        dir.getOpposite());
+                IEnergyStorage adjacentCap = adjacentCaps.getCapability(dir);
 
                 if (adjacentCap != null && MIProxy.INSTANCE.canConnect(adjacentCap, tier)) {
                     if (out != null) {

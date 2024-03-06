@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
+import dev.technici4n.moderndynamics.network.HostAdjacentCaps;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
@@ -56,6 +57,7 @@ public class ItemHost extends NodeHost {
     private final List<TravelingItem> travelingItems = new ArrayList<>();
     private final List<ClientTravelingItem> clientTravelingItems = new ArrayList<>();
     private final long[] lastOperationTick = new long[6];
+    private final HostAdjacentCaps<IItemHandler> adjacentCaps = new HostAdjacentCaps<>(this, Capabilities.ItemHandler.BLOCK);
 
     public ItemHost(PipeBlockEntity pipe) {
         super(pipe);
@@ -135,7 +137,7 @@ public class ItemHost extends NodeHost {
     protected IItemHandler getAdjacentStorage(Direction side, boolean checkAttachments) {
         if ((inventoryConnections & (1 << side.get3DDataValue())) > 0 && (pipeConnections & (1 << side.get3DDataValue())) == 0
                 && (!checkAttachments || allowItemConnection(side))) {
-            return pipe.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, pipe.getBlockPos().relative(side), side.getOpposite());
+            return adjacentCaps.getCapability(side);
         }
         return null;
     }
@@ -459,7 +461,7 @@ public class ItemHost extends NodeHost {
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
                 Direction dir = Direction.from3DDataValue(i);
-                var adjacentCap = pipe.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, pipe.getBlockPos().relative(dir), dir.getOpposite());
+                var adjacentCap = adjacentCaps.getCapability(dir);
 
                 if (adjacentCap == null) {
                     // Remove the direction from the bitmask
