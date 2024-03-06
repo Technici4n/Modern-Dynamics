@@ -18,9 +18,9 @@
  */
 package dev.technici4n.moderndynamics.packets;
 
+import dev.technici4n.moderndynamics.MdProxy;
 import dev.technici4n.moderndynamics.attachment.upgrade.LoadedUpgrades;
 import dev.technici4n.moderndynamics.util.MdId;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
@@ -44,14 +44,10 @@ public record SetAttachmentUpgrades(LoadedUpgrades holder) implements CustomPack
     }
 
     public static final IPlayPayloadHandler<SetAttachmentUpgrades> HANDLER = (payload, context) -> {
-        context.player().ifPresent(player -> {
-            if (!(player instanceof LocalPlayer)) {
-                return;
-            }
-
-            context.workHandler().execute(() -> {
+        context.workHandler().execute(() -> {
+            if (!MdProxy.INSTANCE.isMemoryConnection()) {
                 LoadedUpgrades.trySet(payload.holder);
-            });
+            }
         });
     };
 

@@ -35,4 +35,11 @@ public class MdProxy {
     public boolean isShiftDown() {
         return false;
     }
+
+    /**
+     * Checks if the current client has a memory connection to the server.
+     */
+    public boolean isMemoryConnection() {
+        return false;
+    }
 }

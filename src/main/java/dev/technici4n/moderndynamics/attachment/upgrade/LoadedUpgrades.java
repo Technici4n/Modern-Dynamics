@@ -25,7 +25,9 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +51,10 @@ public class LoadedUpgrades {
 
     public static void syncToClient(ServerPlayer player) {
         player.connection.send(new SetAttachmentUpgrades(holder));
+    }
+
+    public static void syncToAllClients(PlayerList playerList) {
+        playerList.broadcastAll(new ClientboundCustomPayloadPacket(new SetAttachmentUpgrades(holder)));
     }
 
     public final Map<Item, UpgradeType> map;
