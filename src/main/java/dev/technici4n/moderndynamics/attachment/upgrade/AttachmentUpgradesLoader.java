@@ -109,13 +109,13 @@ public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<Lis
         });
         NeoForge.EVENT_BUS.addListener(OnDatapackSyncEvent.class, e -> {
             var server = ServerLifecycleHooks.getCurrentServer();
+            LoadedUpgrades.trySet(LOADED_UPGRADES.remove(server.getResourceManager()));
+
             var player = e.getPlayer();
             if (player != null) {
-                LoadedUpgrades.trySet(LOADED_UPGRADES.remove(server.getResourceManager()));
                 LoadedUpgrades.syncToClient(player);
             } else {
-                LoadedUpgrades.trySet(LOADED_UPGRADES.remove(server.getResourceManager()));
-                // TODO: should maybe invalidate all cached filters?
+                LoadedUpgrades.syncToAllClients(e.getPlayerList());
             }
         });
     }
