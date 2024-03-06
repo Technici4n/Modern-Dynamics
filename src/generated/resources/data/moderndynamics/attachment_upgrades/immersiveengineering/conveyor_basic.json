@@ -1,0 +1,11 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "immersiveengineering"
+    }
+  ],
+  "addItemCount": 4,
+  "item": "immersiveengineering:conveyor_basic",
+  "slotLimit": 32
+}

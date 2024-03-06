@@ -1,0 +1,13 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "mekanism"
+    }
+  ],
+  "addFilterSlots": 2,
+  "addFluidTransfer": 1,
+  "addItemCount": 20,
+  "item": "mekanism:advanced_control_circuit",
+  "slotLimit": 6
+}

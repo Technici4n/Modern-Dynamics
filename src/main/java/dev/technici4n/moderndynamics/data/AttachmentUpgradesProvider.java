@@ -49,10 +49,25 @@ public class AttachmentUpgradesProvider implements DataProvider {
         modUpgrade("ae2", "capacity_card", 6).filterSlots(2).itemCount(10).fluidTransfer(1, 0);
         modUpgrade("ae2", "fuzzy_card", 1).advancedBehavior();
 
+        modUpgrade("immersiveengineering", "conveyor_basic", 32).itemCount(4);
+        modUpgrade("immersiveengineering", "conveyor_extract", 3).itemSpeed(1).itemTransferFrequency(1);
+        modUpgrade("immersiveengineering", "fluid_pipe", 3).fluidTransfer(1, 0);
+        modUpgrade("immersiveengineering", "component_electronic", 6).filterSlots(2).advancedBehavior();
+
+        modUpgrade("mekanism", "upgrade_speed", 3).itemSpeed(1).itemTransferFrequency(1).fluidTransfer(0, 1);
+        modUpgrade("mekanism", "basic_control_circuit", 6).filterSlots(2).itemCount(10);
+        modUpgrade("mekanism", "advanced_control_circuit", 6).filterSlots(2).itemCount(20).fluidTransfer(1, 0);
+        modUpgrade("mekanism", "elite_control_circuit", 1).advancedBehavior();
+
         modUpgrade("modern_industrialization", "motor", 5).itemSpeed(1).itemTransferFrequency(1);
         modUpgrade("modern_industrialization", "robot_arm", 10).itemCount(16);
         modUpgrade("modern_industrialization", "pump", 9).fluidTransfer(1, 1);
         modUpgrade("modern_industrialization", "analog_circuit", 6).filterSlots(2).advancedBehavior();
+
+        modUpgrade("refinedstorage", "upgrade", 6).filterSlots(2);
+        modUpgrade("refinedstorage", "speed_upgrade", 3).itemSpeed(1).itemTransferFrequency(1).fluidTransfer(0, 1);
+        modUpgrade("refinedstorage", "stack_upgrade", 4).itemCount(16).fluidTransfer(2, 0);
+        modUpgrade("refinedstorage", "regulator_upgrade", 1).advancedBehavior();
 
         modUpgrade("techreborn", "overclocker_upgrade", 3).itemSpeed(1).itemTransferFrequency(1).fluidTransfer(0, 1);
         modUpgrade("techreborn", "electronic_circuit", 6).filterSlots(2).itemCount(10);
