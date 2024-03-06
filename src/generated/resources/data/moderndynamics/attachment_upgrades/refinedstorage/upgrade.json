@@ -1,0 +1,11 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "refinedstorage"
+    }
+  ],
+  "addFilterSlots": 2,
+  "item": "refinedstorage:upgrade",
+  "slotLimit": 6
+}
