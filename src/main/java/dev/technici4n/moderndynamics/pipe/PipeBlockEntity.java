@@ -377,13 +377,21 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                 if (ShapeHelper.shapeContains(PipeBoundingBoxes.INVENTORY_CONNECTIONS[i], posInBlock)) {
                     var side = Direction.from3DDataValue(i);
                     if (hasAttachment(side)) {
-                        // Remove attachment
-                        if (level.isClientSide()) {
+                        // We will either remove the attachment or clear out its stuffed items.
+                        // In any case, for the client it's a success.
+                        if (isClientSide()) {
                             return InteractionResult.SUCCESS;
-                        } else {
-                            for (var host : getHosts()) {
-                                var attachment = host.removeAttachment(side);
-                                if (attachment != null) {
+                        }
+
+                        for (var host : getHosts()) {
+                            var attachment = host.getAttachment(side);
+                            if (attachment != null) {
+                                // Try to clear contents
+                                if (attachment.tryClearContents(this)) {
+                                    return InteractionResult.CONSUME;
+                                } else {
+                                    // Remove attachment
+                                    host.removeAttachment(side);
                                     if (!player.isCreative()) {
                                         DropHelper.dropStacks(this, attachment.getDrops());
                                     }

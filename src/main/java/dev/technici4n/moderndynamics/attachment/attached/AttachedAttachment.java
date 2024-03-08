@@ -64,6 +64,16 @@ public class AttachedAttachment {
         return List.of(new ItemStack(item));
     }
 
+    /**
+     * Try to clear contents of the attachment,
+     * for example when the player right-clicks with a wrench.
+     *
+     * @return {@code true} if there was something to clear
+     */
+    public boolean tryClearContents(PipeBlockEntity pipe) {
+        return false;
+    }
+
     public Component getDisplayName() {
         return item.getDescription();
     }
