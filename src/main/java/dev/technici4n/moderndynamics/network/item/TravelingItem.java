@@ -34,6 +34,7 @@ public class TravelingItem {
     public final FailedInsertStrategy strategy;
     public final double speedMultiplier;
     public double traveledDistance;
+    public long lastTick;
 
     public TravelingItem(ItemVariant variant, int amount, ItemPath path, FailedInsertStrategy strategy, double speedMultiplier,
             double traveledDistance) {
