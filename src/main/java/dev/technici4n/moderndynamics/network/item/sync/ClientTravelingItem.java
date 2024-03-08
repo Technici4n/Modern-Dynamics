@@ -24,14 +24,14 @@ import net.minecraft.core.Direction;
 public final class ClientTravelingItem {
     public final int id;
     private final ItemVariant variant;
-    private final long amount;
+    private final int amount;
     public final double totalPathDistance;
     public double traveledDistance;
     public Direction in;
     public Direction out;
     final double speed;
 
-    public ClientTravelingItem(int id, ItemVariant variant, long amount, double totalPathDistance, double traveledDistance, Direction in,
+    public ClientTravelingItem(int id, ItemVariant variant, int amount, double totalPathDistance, double traveledDistance, Direction in,
             Direction out, double speed) {
         this.id = id;
         this.variant = variant;
@@ -47,7 +47,7 @@ public final class ClientTravelingItem {
         return variant;
     }
 
-    public long amount() {
+    public int amount() {
         return amount;
     }
 

@@ -23,7 +23,7 @@ import net.neoforged.neoforge.client.model.data.ModelProperty;
 import org.jetbrains.annotations.Nullable;
 
 public record PipeModelData(byte pipeConnections, byte inventoryConnections,
-        AttachmentModelData @Nullable [] attachments) {
+        @Nullable AttachmentModelData[] attachments) {
 
     public static ModelProperty<PipeModelData> PIPE_DATA = new ModelProperty<>();
 
