@@ -30,6 +30,7 @@ public final class ClientTravelingItem {
     public Direction in;
     public Direction out;
     final double speed;
+    public long lastTick;
 
     public ClientTravelingItem(int id, ItemVariant variant, int amount, double totalPathDistance, double traveledDistance, Direction in,
             Direction out, double speed) {

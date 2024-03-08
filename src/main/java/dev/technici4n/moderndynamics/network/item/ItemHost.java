@@ -299,11 +299,21 @@ public class ItemHost extends NodeHost {
             return;
         }
 
+        long curTick = getLevel().getGameTime();
+
         // List of items that moved out of this pipe.
         List<TravelingItem> movedOut = new ArrayList<>();
 
         for (var iterator = travelingItems.iterator(); iterator.hasNext();) {
             var travelingItem = iterator.next();
+
+            // Make sure we only update items once per tick.
+            // This makes sure that we don't update items twice if they get moved to another pipe.
+            if (travelingItem.lastTick == curTick) {
+                continue;
+            }
+            travelingItem.lastTick = curTick;
+
             // Calculate in which path segment the item is now, and in which segment it is after moving it
             int currentIndex = (int) travelingItem.traveledDistance;
             travelingItem.traveledDistance += travelingItem.getSpeed();
@@ -538,9 +548,20 @@ public class ItemHost extends NodeHost {
 
     @Override
     public void clientTick() {
+        long curTick = getLevel().getGameTime();
+
         for (var it = clientTravelingItems.iterator(); it.hasNext();) {
             ClientTravelingItem travelingItem = it.next();
+
+            // Make sure we only update items once per tick.
+            // This makes sure that we don't update items twice if they get moved to another pipe.
+            if (travelingItem.lastTick == curTick) {
+                continue;
+            }
+            travelingItem.lastTick = curTick;
+
             travelingItem.traveledDistance += travelingItem.speed();
+            ClientTravelingItemSmoothing.onTickItem(travelingItem);
 
             if (Mth.frac(travelingItem.traveledDistance) < travelingItem.speed()) {
                 // Goes out of this pipe!
