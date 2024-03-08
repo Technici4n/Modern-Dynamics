@@ -251,6 +251,22 @@ public class ItemAttachedIo extends AttachedIo {
         return drops;
     }
 
+    @Override
+    public boolean tryClearContents(PipeBlockEntity pipe) {
+        if (isStuffed()) {
+            List<ItemStack> drops = new ArrayList<>();
+            for (var entry : stuffedItems.entrySet()) {
+                DropHelper.splitIntoStacks(entry.getKey(), entry.getValue(), drops::add);
+            }
+            stuffedItems.clear();
+            DropHelper.dropStacks(pipe, drops);
+            pipe.setChanged();
+            pipe.sync();
+            return true;
+        }
+        return super.tryClearContents(pipe);
+    }
+
     public boolean isStuffed() {
         return !stuffedItems.isEmpty();
     }
