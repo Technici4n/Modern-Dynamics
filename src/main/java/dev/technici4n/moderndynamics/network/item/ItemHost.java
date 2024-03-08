@@ -501,7 +501,7 @@ public class ItemHost extends NodeHost {
                 CompoundTag compound = new CompoundTag();
                 compound.putInt("id", travelingItem.id);
                 compound.put("v", travelingItem.variant.toNbt());
-                compound.putLong("a", travelingItem.amount);
+                compound.putInt("a", travelingItem.amount);
                 compound.putDouble("td", travelingItem.getPathLength() - 1);
                 compound.putDouble("d", travelingItem.traveledDistance);
                 int currentBlock = (int) Math.floor(travelingItem.traveledDistance);
@@ -525,7 +525,7 @@ public class ItemHost extends NodeHost {
             var newItem = new ClientTravelingItem(
                     compound.getInt("id"),
                     ItemVariant.fromNbt(compound.getCompound("v")),
-                    compound.getLong("a"),
+                    compound.getInt("a"),
                     compound.getDouble("td"),
                     compound.getDouble("d"),
                     Direction.from3DDataValue(compound.getByte("in")),
