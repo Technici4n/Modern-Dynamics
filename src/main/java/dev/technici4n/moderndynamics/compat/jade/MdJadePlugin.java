@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.compat.jade;
 
+import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import snownee.jade.api.IWailaClientRegistration;
 import snownee.jade.api.IWailaCommonRegistration;
@@ -34,5 +35,8 @@ public class MdJadePlugin implements IWailaPlugin {
     @Override
     public void registerClient(IWailaClientRegistration registration) {
         registration.registerItemStorageClient(ItemPipeServerProvider.INSTANCE);
+        for (var pipe : MdBlocks.ALL_PIPES) {
+            registration.usePickedResult(pipe);
+        }
     }
 }
