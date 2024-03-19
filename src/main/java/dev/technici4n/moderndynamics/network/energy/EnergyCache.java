@@ -113,7 +113,6 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
      * Dispatch a transfer operation among a list of targets. Will not modify the list.
      */
     public static int transferForTargets(TransferOperation operation, List<IEnergyStorage> targets, int maxAmount) {
-        int intMaxAmount = Ints.saturatedCast(maxAmount);
         // Build target list
         List<EnergyTarget> sortableTargets = new ArrayList<>(targets.size());
         for (var target : targets) {
@@ -123,7 +122,7 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
         Collections.shuffle(sortableTargets);
         // Simulate the transfer for every target
         for (EnergyTarget target : sortableTargets) {
-            target.simulationResult = operation.transfer(target.target, intMaxAmount, true);
+            target.simulationResult = operation.transfer(target.target, maxAmount, true);
         }
         // Sort from low to high result
         sortableTargets.sort(Comparator.comparingLong(t -> t.simulationResult));
