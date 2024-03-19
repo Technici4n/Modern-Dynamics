@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.network.mienergy;
 
+import com.google.common.base.Preconditions;
 import dev.technici4n.moderndynamics.network.NetworkCache;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.energy.EnergyCache;
@@ -27,8 +28,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 
 public class MIEnergyCache extends NetworkCache<MIEnergyHost, MIEnergyCache> {
-    private int energy = 0;
-    private int maxEnergy = 0;
+    private long energy = 0;
+    private long maxEnergy = 0;
 
     protected MIEnergyCache(ServerLevel level, List<NetworkNode<MIEnergyHost, MIEnergyCache>> networkNodes) {
         super(level, networkNodes);
@@ -39,8 +40,8 @@ public class MIEnergyCache extends NetworkCache<MIEnergyHost, MIEnergyCache> {
         energy = maxEnergy = 0;
 
         for (var node : nodes) {
-            energy += node.getHost().getEnergy();
-            maxEnergy += node.getHost().getMaxEnergy();
+            energy = saturatedSum(energy, node.getHost().getEnergy());
+            maxEnergy = saturatedSum(maxEnergy, node.getHost().getMaxEnergy());
         }
     }
 
@@ -74,9 +75,21 @@ public class MIEnergyCache extends NetworkCache<MIEnergyHost, MIEnergyCache> {
 
         var tier = nodes.get(0).getHost().tier;
 
+        // tier.getMax() is an int and energy is unsigned, so casting to (int) is safe
         // Extract
-        energy += EnergyCache.transferForTargets(IEnergyStorage::extractEnergy, storages, Math.min(maxEnergy - energy, tier.getMax()));
+        energy += EnergyCache.transferForTargets(IEnergyStorage::extractEnergy, storages, (int) Math.min(maxEnergy - energy, tier.getMax()));
         // Insert
-        energy -= EnergyCache.transferForTargets(IEnergyStorage::receiveEnergy, storages, Math.min(energy, tier.getMax()));
+        energy -= EnergyCache.transferForTargets(IEnergyStorage::receiveEnergy, storages, (int) Math.min(energy, tier.getMax()));
+    }
+
+    // Energy is unsigned. Hence we handle only one case of satured addition (same sign)
+    private static long saturatedSum(long a, long b) {
+        Preconditions.checkArgument(a >= 0, "a >= 0");
+        Preconditions.checkArgument(b >= 0, "b >= 0");
+        var sum = a + b;
+        if (sum < a || sum < b) {
+            return Long.MAX_VALUE;
+        }
+        return sum;
     }
 }

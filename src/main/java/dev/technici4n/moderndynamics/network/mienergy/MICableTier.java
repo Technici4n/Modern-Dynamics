@@ -27,9 +27,9 @@ public enum MICableTier {
 
     // Very important that this matches exactly what's used in MIEnergyStorage#canConnect.
     private final String tierName;
-    private final int baseEu;
+    private final long baseEu;
 
-    MICableTier(String tierName, int baseEu) {
+    MICableTier(String tierName, long baseEu) {
         this.tierName = tierName;
         this.baseEu = baseEu;
     }
@@ -41,7 +41,7 @@ public enum MICableTier {
     /**
      * Max network-wide transfer and max storage in each cable.
      */
-    public int getMax() {
+    public long getMax() {
         return baseEu * 8;
     }
 }
