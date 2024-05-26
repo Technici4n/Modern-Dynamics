@@ -26,133 +26,108 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.fluids.FluidStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public final class FluidVariant {
-    private static final Logger LOG = LoggerFactory.getLogger(FluidVariant.class);
-
-    private final Fluid fluid;
-    private final @Nullable CompoundTag nbt;
-    private final int hashCode;
-
-    private FluidVariant(Fluid fluid, @Nullable CompoundTag nbt) {
-        this.fluid = fluid;
-        this.nbt = nbt != null ? nbt.copy() : null; // defensive copy
-        this.hashCode = Objects.hash(fluid, nbt);
+/**
+ * An immutable association of a still fluid and an optional NBT tag.
+ *
+ * <p>
+ * Do not extend this class. Use {@link #of(Fluid)} and {@link #of(Fluid, NbtCompound)} to create instances.
+ *
+ * <p>
+ * {@link aztech.modern_industrialization.thirdparty.fabrictransfer.api.client.fluid.FluidVariantRendering} can be used for client-side rendering of
+ * fluid variants.
+ *
+ * <p>
+ * <b>Fluid variants must always be compared with {@code equals}, never by reference!</b>
+ * {@code hashCode} is guaranteed to be correct and constant time independently of the size of the NBT.
+ */
+@ApiStatus.NonExtendable
+public interface FluidVariant extends TransferVariant<Fluid> {
+    /**
+     * Retrieve a blank FluidVariant.
+     */
+    static FluidVariant blank() {
+        return of(Fluids.EMPTY);
     }
 
-    public FluidVariant(Fluid fluid) {
-        this(fluid, null);
+    /**
+     * Retrieve an ItemVariant with the item and tag of a stack.
+     */
+    static FluidVariant of(FluidStack stack) {
+        return of(stack.getFluid(), stack.getTag());
     }
 
-    public static FluidVariant blank() {
-        return new FluidVariant(Fluids.EMPTY, null);
-    }
-
-    public static FluidVariant of(Fluid fluid, @Nullable CompoundTag nbt) {
-        Objects.requireNonNull(fluid, "Fluid may not be null.");
-
-        if (!fluid.isSource(fluid.defaultFluidState()) && fluid != Fluids.EMPTY) {
-            // Note: the empty fluid is not still, that's why we check for it specifically.
-
-            if (fluid instanceof FlowingFluid flowable) {
-                // Normalize FlowableFluids to their still variants.
-                fluid = flowable.getSource();
-            } else {
-                // If not a FlowableFluid, we don't know how to convert -> crash.
-                ResourceLocation id = BuiltInRegistries.FLUID.getKey(fluid);
-                throw new IllegalArgumentException("Cannot convert flowing fluid %s (%s) into a still fluid.".formatted(id, fluid));
-            }
-        }
-
-        if (nbt == null || fluid == Fluids.EMPTY) {
-            // Use the cached variant inside the fluid
-            return new FluidVariant(fluid, null); // TODO noTagCache.computeIfAbsent(fluid, f -> new FluidVariant(fluid, null));
-        } else {
-            // TODO explore caching fluid variants for non null tags.
-            return new FluidVariant(fluid, nbt);
-        }
-    }
-
-    public static FluidVariant of(Fluid fluid) {
+    /**
+     * Retrieve a FluidVariant with a fluid, and a {@code null} tag.
+     *
+     * <p>
+     * The flowing and still variations of {@linkplain net.minecraft.fluid.FlowableFluid flowable fluids}
+     * are normalized to always refer to the still variant. For example,
+     * {@code FluidVariant.of(Fluids.FLOWING_WATER).getFluid() == Fluids.WATER}.
+     */
+    static FluidVariant of(Fluid fluid) {
         return of(fluid, null);
     }
 
-    public static FluidVariant of(FluidStack resource) {
-        return of(resource.getFluid(), resource.getTag());
+    /**
+     * Retrieve a FluidVariant with a fluid, and an optional tag.
+     *
+     * <p>
+     * The flowing and still variations of {@linkplain net.minecraft.fluid.FlowableFluid flowable fluids}
+     * are normalized to always refer to the still fluid. For example,
+     * {@code FluidVariant.of(Fluids.FLOWING_WATER, nbt).getFluid() == Fluids.WATER}.
+     */
+    static FluidVariant of(Fluid fluid, @Nullable CompoundTag nbt) {
+        return FluidVariantImpl.of(fluid, nbt);
     }
 
-    public CompoundTag toNbt() {
-        CompoundTag result = new CompoundTag();
-        result.putString("fluid", BuiltInRegistries.FLUID.getKey(fluid).toString());
-
-        if (nbt != null) {
-            result.put("tag", nbt.copy());
-        }
-
-        return result;
+    /**
+     * Return the fluid of this variant.
+     */
+    default Fluid getFluid() {
+        return getObject();
     }
 
-    public static FluidVariant fromNbt(CompoundTag compound) {
-        try {
-            Fluid fluid = BuiltInRegistries.FLUID.get(new ResourceLocation(compound.getString("fluid")));
-            CompoundTag nbt = compound.contains("tag") ? compound.getCompound("tag") : null;
-            return of(fluid, nbt);
-        } catch (RuntimeException runtimeException) {
-            LOG.debug("Tried to load an invalid FluidVariant from NBT: {}", compound, runtimeException);
-            return FluidVariant.blank();
-        }
+    /**
+     * Create a new fluid stack from this variant.
+     */
+    default FluidStack toStack(int count) {
+        if (isBlank())
+            return FluidStack.EMPTY;
+        FluidStack stack = new FluidStack(getFluid(), count);
+        stack.setTag(copyNbt());
+        return stack;
     }
 
-    public void toPacket(FriendlyByteBuf buf) {
-        if (isBlank()) {
-            buf.writeBoolean(false);
-        } else {
-            buf.writeBoolean(true);
-            buf.writeVarInt(BuiltInRegistries.FLUID.getId(fluid));
-            buf.writeNbt(nbt);
-        }
+    /**
+     * Deserialize a variant from an NBT compound tag, assuming it was serialized using {@link #toNbt}.
+     *
+     * <p>
+     * If an error occurs during deserialization, it will be logged with the DEBUG level, and a blank variant will be returned.
+     */
+    static FluidVariant fromNbt(CompoundTag nbt) {
+        return FluidVariantImpl.fromNbt(nbt);
     }
 
-    public static FluidVariant fromPacket(FriendlyByteBuf buf) {
-        if (!buf.readBoolean()) {
-            return FluidVariant.blank();
-        } else {
-            Fluid fluid = BuiltInRegistries.FLUID.byId(buf.readVarInt());
-            CompoundTag nbt = buf.readNbt();
-            return of(fluid, nbt);
-        }
+    /**
+     * Read a variant from a packet byte buffer, assuming it was serialized using {@link #toPacket}.
+     */
+    static FluidVariant fromPacket(FriendlyByteBuf buf) {
+        return FluidVariantImpl.fromPacket(buf);
     }
 
-    public boolean isBlank() {
-        return fluid.isSame(Fluids.EMPTY);
-    }
-
-    public boolean matches(FluidStack stack) {
-        return fluid == stack.getFluid() && Objects.equals(nbt, stack.getTag());
-    }
-
-    public Fluid getFluid() {
-        return fluid();
-    }
-
-    public FluidStack toStack(int amount) {
-        return new FluidStack(fluid, amount, nbt != null ? nbt.copy() : null);
-    }
-
-    public List<Component> getTooltip() {
+    // Not in MI variants:
+    default List<Component> getTooltip() {
         var tooltip = new ArrayList<Component>();
         tooltip.add(toStack(1).getDisplayName());
 
-        var modId = BuiltInRegistries.FLUID.getKey(fluid).getNamespace();
+        var modId = BuiltInRegistries.FLUID.getKey(getFluid()).getNamespace();
 
         // Heuristic: If the last line doesn't include the modname, add it ourselves
         var modName = formatModName(modId);
@@ -172,40 +147,7 @@ public final class FluidVariant {
                 .orElse(modId);
     }
 
-    public @Nullable CompoundTag getNbt() {
-        return nbt != null ? nbt.copy() : null;
+    default boolean matches(FluidStack stack) {
+        return getFluid() == stack.getFluid() && Objects.equals(getNbt(), stack.getTag());
     }
-
-    public Fluid fluid() {
-        return fluid;
-    }
-
-    public @Nullable CompoundTag nbt() {
-        return nbt;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this)
-            return true;
-        if (obj == null || obj.getClass() != this.getClass())
-            return false;
-        var that = (FluidVariant) obj;
-        return hashCode == that.hashCode
-                && Objects.equals(this.fluid, that.fluid)
-                && Objects.equals(this.nbt, that.nbt);
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    @Override
-    public String toString() {
-        return "FluidVariant[" +
-                "fluid=" + fluid + ", " +
-                "nbt=" + nbt + ']';
-    }
-
 }

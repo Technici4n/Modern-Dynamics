@@ -61,7 +61,7 @@ public class FluidPipeRendering {
             return;
         }
 
-        int color = renderProps.getTintColor(fluid.fluid().defaultFluidState(), level, pos);
+        int color = renderProps.getTintColor(fluid.getFluid().defaultFluidState(), level, pos);
         float r = ((color >> 16) & 255) / 256f;
         float g = ((color >> 8) & 255) / 256f;
         float b = (color & 255) / 256f;
