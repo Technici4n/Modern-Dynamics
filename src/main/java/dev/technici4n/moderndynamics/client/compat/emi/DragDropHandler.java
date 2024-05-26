@@ -48,7 +48,7 @@ class DragDropHandler implements EmiDragDropHandler<Screen> {
         if (gui instanceof ItemAttachedIoScreen ioScreen && ing.getKey() instanceof Item i) {
             for (var s : ioScreen.getMenu().slots) {
                 if (s instanceof ItemConfigSlot slot && slot.isActive() && getSlotBounds(s, ioScreen).contains(mouseX, mouseY)) {
-                    var iv = ItemVariant.of(i, ing.getNbt());
+                    var iv = ItemVariant.of(ing.getItemStack());
                     ioScreen.getMenu().setFilter(slot.getConfigIdx(), iv, true);
                     return true;
                 }

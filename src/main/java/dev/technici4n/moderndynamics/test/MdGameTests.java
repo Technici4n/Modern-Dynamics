@@ -31,7 +31,8 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 public class MdGameTests {
     private final List<Class<?>> testClasses = List.of(
             FluidTransferTest.class,
-            ItemDistributionTest.class);
+            ItemDistributionTest.class,
+            ItemTransferTest.class);
 
     @GameTestGenerator
     public List<TestFunction> generateTests() {

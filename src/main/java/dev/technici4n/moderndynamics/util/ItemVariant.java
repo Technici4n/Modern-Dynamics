@@ -19,161 +19,102 @@
 package dev.technici4n.moderndynamics.util;
 
 import java.util.Objects;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public final class ItemVariant {
-    private static final Logger LOG = LoggerFactory.getLogger(ItemVariant.class);
-    private final Item item;
-    private final @Nullable CompoundTag nbt;
-    private final @Nullable CompoundTag attachments;
-    private final int hashCode;
-
-    public ItemVariant(Item item, @Nullable CompoundTag nbt, @Nullable CompoundTag attachmentsNbt) {
-        this.item = item;
-        this.nbt = nbt == null ? null : nbt.copy(); // defensive copy
-        this.attachments = attachmentsNbt == null ? null : attachmentsNbt.copy(); // defensive copy
-        this.hashCode = Objects.hash(item, nbt, attachmentsNbt);
-    }
-
-    public static ItemVariant blank() {
+/**
+ * An immutable count-less ItemStack, i.e. an immutable association of an item and an optional NBT compound tag.
+ *
+ * <p>
+ * Do not implement, use the static {@code of(...)} functions instead.
+ */
+@ApiStatus.NonExtendable
+public interface ItemVariant extends TransferVariant<Item> {
+    /**
+     * Retrieve a blank ItemVariant.
+     */
+    static ItemVariant blank() {
         return of(Items.AIR);
     }
 
-    public static ItemVariant of(ItemStack stack) {
-        return of(
-                stack.getItem(),
-                stack.getTag(),
-                stack.serializeAttachments());
+    /**
+     * Retrieve an ItemVariant with the item and tag of a stack.
+     */
+    static ItemVariant of(ItemStack stack) {
+        return of(stack.getItem(), stack.getTag(), stack.serializeAttachments());
     }
 
-    public static ItemVariant of(ItemLike item, @Nullable CompoundTag nbt, @Nullable CompoundTag attachments) {
-        return new ItemVariant(item.asItem(), nbt, attachments);
+    /**
+     * Retrieve an ItemVariant with an item and without a tag.
+     */
+    static ItemVariant of(ItemLike item) {
+        return of(item, null, null);
     }
 
-    public static ItemVariant of(ItemLike item, @Nullable CompoundTag nbt) {
-        return new ItemVariant(item.asItem(), nbt, null);
+    /**
+     * Retrieve an ItemVariant with an item and an optional tag.
+     */
+    static ItemVariant of(ItemLike item, @Nullable CompoundTag tag, @Nullable CompoundTag attachmentsTags) {
+        return ItemVariantImpl.of(item.asItem(), tag, attachmentsTags);
     }
 
-    public static ItemVariant of(ItemLike item) {
-        return new ItemVariant(item.asItem(), null, null);
+    /**
+     * Return true if the item and tag of this variant match those of the passed stack, and false otherwise.
+     */
+    default boolean matches(ItemStack stack) {
+        return isOf(stack.getItem()) && nbtMatches(stack.getTag()) && Objects.equals(getAttachments(), stack.serializeAttachments());
     }
 
-    public CompoundTag toNbt() {
-        CompoundTag result = new CompoundTag();
-        result.putString("item", BuiltInRegistries.ITEM.getKey(item).toString());
-
-        if (nbt != null) {
-            result.put("tag", nbt.copy());
-        }
-
-        if (attachments != null) {
-            result.put("attachments", attachments.copy());
-        }
-
-        return result;
+    /**
+     * Return the item of this variant.
+     */
+    default Item getItem() {
+        return getObject();
     }
 
-    public static ItemVariant fromNbt(CompoundTag tag) {
-        try {
-            Item item = BuiltInRegistries.ITEM.get(new ResourceLocation(tag.getString("item")));
-            CompoundTag aTag = tag.contains("tag") ? tag.getCompound("tag") : null;
-            CompoundTag attachmentsTag = tag.contains("attachments") ? tag.getCompound("attachments") : null;
-            return of(item, aTag, attachmentsTag);
-        } catch (RuntimeException runtimeException) {
-            LOG.debug("Tried to load an invalid ItemVariant from NBT: {}", tag, runtimeException);
-            return ItemVariant.blank();
-        }
-    }
+    @Nullable
+    CompoundTag getAttachments();
 
-    public void toPacket(FriendlyByteBuf buf) {
-        if (isBlank()) {
-            buf.writeBoolean(false);
-        } else {
-            buf.writeBoolean(true);
-            buf.writeVarInt(Item.getId(item));
-            buf.writeNbt(nbt);
-            buf.writeNbt(attachments);
-        }
-    }
-
-    public static ItemVariant fromPacket(FriendlyByteBuf buf) {
-        if (!buf.readBoolean()) {
-            return ItemVariant.blank();
-        } else {
-            Item item = Item.byId(buf.readVarInt());
-            CompoundTag nbt = buf.readNbt();
-            CompoundTag attachments = buf.readNbt();
-            return of(item, nbt, attachments);
-        }
-    }
-
-    public boolean isBlank() {
-        return item.equals(Items.AIR);
-    }
-
-    public Item getItem() {
-        return item();
-    }
-
-    public ItemStack toStack(int amount) {
-        return new ItemStack(item, amount, nbt != null ? nbt.copy() : null);
-    }
-
-    public ItemStack toStack() {
+    /**
+     * Create a new item stack with count 1 from this variant.
+     */
+    default ItemStack toStack() {
         return toStack(1);
     }
 
-    public boolean matches(ItemStack stack) {
-        return this.item == stack.getItem() && Objects.equals(this.nbt, stack.getTag());
+    /**
+     * Create a new item stack from this variant.
+     *
+     * @param count The count of the returned stack. It may lead to counts higher than maximum stack size.
+     */
+    default ItemStack toStack(int count) {
+        if (isBlank())
+            return ItemStack.EMPTY;
+        ItemStack stack = new ItemStack(getItem(), count, getAttachments());
+        stack.setTag(copyNbt());
+        return stack;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        // succeed fast with == check
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-
-        ItemVariant variant = (ItemVariant) o;
-        // fail fast with hash code
-        return hashCode == variant.hashCode && item == variant.item && Objects.equals(nbt, variant.nbt)
-                && Objects.equals(attachments, variant.attachments);
+    /**
+     * Deserialize a variant from an NBT compound tag, assuming it was serialized using
+     * {@link #toNbt}. If an error occurs during deserialization, it will be logged
+     * with the DEBUG level, and a blank variant will be returned.
+     */
+    static ItemVariant fromNbt(CompoundTag nbt) {
+        return ItemVariantImpl.fromNbt(nbt);
     }
 
-    @Override
-    public int hashCode() {
-        return hashCode;
+    /**
+     * Write a variant from a packet byte buffer, assuming it was serialized using
+     * {@link #toPacket}.
+     */
+    static ItemVariant fromPacket(FriendlyByteBuf buf) {
+        return ItemVariantImpl.fromPacket(buf);
     }
-
-    public Item item() {
-        return item;
-    }
-
-    public @Nullable CompoundTag nbt() {
-        return nbt;
-    }
-
-    public @Nullable CompoundTag attachments() {
-        return attachments;
-    }
-
-    @Override
-    public String toString() {
-        return "ItemVariant[" +
-                "item=" + item + ", " +
-                "nbt=" + nbt + ", " +
-                "attachments=" + attachments + ']';
-    }
-
 }
