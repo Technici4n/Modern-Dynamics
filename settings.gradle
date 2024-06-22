@@ -1,14 +1,10 @@
 pluginManagement {
     repositories {
-        maven {
-            name = 'NeoForged'
-            url = 'https://maven.neoforged.net/releases'
-        }
         gradlePluginPortal()
         mavenCentral()
     }
     plugins {
-        id 'net.neoforged.gradle.userdev' version '7.0.78'
+        id 'net.neoforged.moddev' version '0.1.105'
         id 'com.diffplug.spotless' version '5.14.0'
         id 'com.matthewprenger.cursegradle' version '1.4.0'
         id "com.modrinth.minotaur" version "2.+"

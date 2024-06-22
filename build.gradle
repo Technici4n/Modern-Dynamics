@@ -1,5 +1,5 @@
 plugins {
-    id 'net.neoforged.gradle.userdev'
+    id 'net.neoforged.moddev'
     id 'maven-publish'
     id 'com.diffplug.spotless'
     id 'com.matthewprenger.cursegradle'
@@ -52,9 +52,6 @@ repositories {
 }
 
 dependencies {
-    // To change the versions see the gradle.properties file
-    implementation "net.neoforged:neoforge:${project.neoforge_version}"
-
     if (project.runtime_itemlist_mod == "jei") {
         implementation("mezz.jei:jei-${project.jei_minecraft_version}-neoforge:${project.jei_version}") {
             exclude group: "mezz.jei"
@@ -104,37 +101,40 @@ sourceSets {
     }
 }
 
-minecraft {
-    accessTransformers {
-        file('src/main/resources/META-INF/accesstransformer.cfg')
-    }
-}
+neoForge {
+    version = project.neoforge_version
 
-runs {
-    configureEach {
-        workingDirectory = project.file('run')
-        modSources = [sourceSets.main]
+    mods {
+        moderndynamics {
+            sourceSet sourceSets.main
+        }
     }
-    client {
-    }
-    gametestWorld {
-        configure("client")
-        programArguments("--username", "MDDev", "--quickPlaySingleplayer", "GametestWorld")
-    }
-    server {
-    }
-    data {
-        programArguments = [
-                '--mod', 'moderndynamics',
-                '--all',
-                '--output', file('src/generated/resources/').absolutePath,
-                '--existing', file('src/main/resources').absolutePath
-        ]
-    }
-    // Use to run the tests
-    gametest {
-        configure("gameTestServer")
-        workingDirectory = project.file("build/gametest")
+
+    runs {
+        client {
+            client()
+        }
+        gametestWorld {
+            client()
+            programArguments.addAll("--username", "MDDev", "--quickPlaySingleplayer", "GametestWorld")
+        }
+        server {
+            server()
+        }
+        data {
+            data()
+            programArguments = [
+                    '--mod', 'moderndynamics',
+                    '--all',
+                    '--output', file('src/generated/resources/').absolutePath,
+                    '--existing', file('src/main/resources').absolutePath
+            ]
+        }
+        // Use to run the tests
+        gametest {
+            type = "gameTestServer"
+            gameDirectory = project.file("build/gametest")
+        }
     }
 }
 
@@ -142,7 +142,7 @@ test.dependsOn runGametest
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
     // if it is present.
