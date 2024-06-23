@@ -6,7 +6,7 @@ plugins {
     id "com.modrinth.minotaur"
 }
 
-archivesBaseName = project.archives_base_name
+def archivesBaseName = project.archives_base_name
 version = System.getenv("MOD_VERSION")
         ? System.getenv("MOD_VERSION")
         : "0.0.0"
