@@ -34,26 +34,26 @@ import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.function.BiConsumer;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPlayPayloadHandler;
-import net.neoforged.neoforge.network.registration.IPayloadRegistrar;
+import net.neoforged.neoforge.network.handling.IPayloadHandler;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public class MdPackets {
 
     public static void sendSetFilter(int syncId, int filterSlot, ItemVariant variant) {
-        PacketDistributor.SERVER.noArg().send(new SetItemVariant(
+        PacketDistributor.sendToServer(new SetItemVariant(
                 syncId, filterSlot, variant));
     }
 
     public static void sendSetFilter(int syncId, int filterSlot, FluidVariant variant) {
-        PacketDistributor.SERVER.noArg().send(new SetFluidVariant(
+        PacketDistributor.sendToServer(new SetFluidVariant(
                 syncId, filterSlot, variant));
     }
 
-    private static final ResourceLocation SET_FILTER_MODE = MdId.of("set_filter_mode");
+    private static final CustomPacketPayload.Type<SetEnum<FilterInversionMode>> SET_FILTER_MODE = new CustomPacketPayload.Type<>(
+            MdId.of("set_filter_mode"));
     private static final SetEnumHandler<FilterInversionMode> SET_FILTER_MODE_HANDLER = createSetEnumHandler(AttachedIoMenu.class,
             AttachedIoMenu::setFilterMode);
 
@@ -61,7 +61,8 @@ public class MdPackets {
         sendSetEnum(syncId, SET_FILTER_MODE, filterMode);
     }
 
-    private static final ResourceLocation SET_FILTER_DAMAGE = MdId.of("set_filter_damage");
+    private static final CustomPacketPayload.Type<SetEnum<FilterDamageMode>> SET_FILTER_DAMAGE = new CustomPacketPayload.Type<>(
+            MdId.of("set_filter_damage"));
     private static final SetEnumHandler<FilterDamageMode> SET_FILTER_DAMAGE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
             ItemAttachedIoMenu::setFilterDamage);
 
@@ -69,7 +70,7 @@ public class MdPackets {
         sendSetEnum(syncId, SET_FILTER_DAMAGE, value);
     }
 
-    private static final ResourceLocation SET_FILTER_NBT = MdId.of("set_filter_nbt");
+    private static final CustomPacketPayload.Type<SetEnum<FilterNbtMode>> SET_FILTER_NBT = new CustomPacketPayload.Type<>(MdId.of("set_filter_nbt"));
     private static final SetEnumHandler<FilterNbtMode> SET_FILTER_NBT_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
             ItemAttachedIoMenu::setFilterNbt);
 
@@ -77,7 +78,7 @@ public class MdPackets {
         sendSetEnum(syncId, SET_FILTER_NBT, value);
     }
 
-    private static final ResourceLocation SET_FILTER_MOD = MdId.of("set_filter_mod");
+    private static final CustomPacketPayload.Type<SetEnum<FilterModMode>> SET_FILTER_MOD = new CustomPacketPayload.Type<>(MdId.of("set_filter_mod"));
     private static final SetEnumHandler<FilterModMode> SET_FILTER_MOD_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
             ItemAttachedIoMenu::setFilterMod);
 
@@ -85,7 +86,8 @@ public class MdPackets {
         sendSetEnum(syncId, SET_FILTER_MOD, value);
     }
 
-    private static final ResourceLocation SET_FILTER_SIMILAR = MdId.of("set_filter_similar");
+    private static final CustomPacketPayload.Type<SetEnum<FilterSimilarMode>> SET_FILTER_SIMILAR = new CustomPacketPayload.Type<>(
+            MdId.of("set_filter_similar"));
     private static final SetEnumHandler<FilterSimilarMode> SET_FILTER_SIMILAR_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
             ItemAttachedIoMenu::setFilterSimilar);
 
@@ -93,7 +95,8 @@ public class MdPackets {
         sendSetEnum(syncId, SET_FILTER_SIMILAR, value);
     }
 
-    private static final ResourceLocation SET_ROUTING_MODE = MdId.of("set_routing_mode");
+    private static final CustomPacketPayload.Type<SetEnum<RoutingMode>> SET_ROUTING_MODE = new CustomPacketPayload.Type<>(
+            MdId.of("set_routing_mode"));
     private static final SetEnumHandler<RoutingMode> SET_ROUTING_MODE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
             ItemAttachedIoMenu::setRoutingMode);
 
@@ -101,7 +104,8 @@ public class MdPackets {
         sendSetEnum(syncId, SET_ROUTING_MODE, value);
     }
 
-    private static final ResourceLocation SET_OVERSENDING_MODE = MdId.of("set_oversending_mode");
+    private static final CustomPacketPayload.Type<SetEnum<OversendingMode>> SET_OVERSENDING_MODE = new CustomPacketPayload.Type<>(
+            MdId.of("set_oversending_mode"));
     private static final SetEnumHandler<OversendingMode> SET_OVERSENDING_MODE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
             ItemAttachedIoMenu::setOversendingMode);
 
@@ -109,7 +113,8 @@ public class MdPackets {
         sendSetEnum(syncId, SET_OVERSENDING_MODE, value);
     }
 
-    private static final ResourceLocation SET_REDSTONE_MODE = MdId.of("set_redstone_mode");
+    private static final CustomPacketPayload.Type<SetEnum<RedstoneMode>> SET_REDSTONE_MODE = new CustomPacketPayload.Type<>(
+            MdId.of("set_redstone_mode"));
     private static final SetEnumHandler<RedstoneMode> SET_REDSTONE_MODE_HANDLER = createSetEnumHandler(AttachedIoMenu.class,
             AttachedIoMenu::setRedstoneMode);
 
@@ -117,22 +122,24 @@ public class MdPackets {
         sendSetEnum(syncId, SET_REDSTONE_MODE, value);
     }
 
-    private static final ResourceLocation SET_MAX_ITEMS_IN_INVENTORY = MdId.of("set_max_items_in_inventory");
+    private static final CustomPacketPayload.Type<SetInt> SET_MAX_ITEMS_IN_INVENTORY = new CustomPacketPayload.Type<>(
+            MdId.of("set_max_items_in_inventory"));
     private static final SetIntHandler SET_MAX_ITEMS_IN_INVENTORY_HANDLER = createSetIntHandler(ItemAttachedIoMenu::setMaxItemsInInventory);
 
     public static void sendSetMaxItemsInInventory(int syncId, int value) {
         sendSetInt(syncId, SET_MAX_ITEMS_IN_INVENTORY, value);
     }
 
-    private static final ResourceLocation SET_MAX_ITEMS_EXTRACTED = MdId.of("set_max_items_extracted");
+    private static final CustomPacketPayload.Type<SetInt> SET_MAX_ITEMS_EXTRACTED = new CustomPacketPayload.Type<>(
+            MdId.of("set_max_items_extracted"));
     private static final SetIntHandler SET_MAX_ITEMS_EXTRACTED_HANDLER = createSetIntHandler(ItemAttachedIoMenu::setMaxItemsExtracted);
 
     public static void sendSetMaxItemsExtracted(int syncId, int value) {
         sendSetInt(syncId, SET_MAX_ITEMS_EXTRACTED, value);
     }
 
-    private static <T extends Enum<T>> void sendSetEnum(int syncId, ResourceLocation packetId, T enumValue) {
-        PacketDistributor.SERVER.noArg().send(new SetEnum<>(packetId, syncId, enumValue));
+    private static <T extends Enum<T>> void sendSetEnum(int syncId, CustomPacketPayload.Type<SetEnum<T>> packetType, T enumValue) {
+        PacketDistributor.sendToServer(new SetEnum<>(packetType, syncId, enumValue));
     }
 
     private static <T extends Enum<T>, M extends AbstractContainerMenu> SetEnumHandler<T> createSetEnumHandler(Class<M> menuClass,
@@ -145,8 +152,8 @@ public class MdPackets {
         };
     }
 
-    private static void sendSetInt(int syncId, ResourceLocation packetId, int value) {
-        PacketDistributor.SERVER.noArg().send(new SetInt(packetId, syncId, value));
+    private static void sendSetInt(int syncId, CustomPacketPayload.Type<SetInt> packetType, int value) {
+        PacketDistributor.sendToServer(new SetInt(packetType, syncId, value));
     }
 
     private static SetIntHandler createSetIntHandler(IntSetter setter) {
@@ -158,13 +165,11 @@ public class MdPackets {
         };
     }
 
-    public static void register(IPayloadRegistrar registrar) {
-        registrar.play(SetAttachmentUpgrades.ID, SetAttachmentUpgrades::read, builder -> {
-            builder.client(SetAttachmentUpgrades.HANDLER);
-        });
+    public static void register(PayloadRegistrar registrar) {
+        registrar.playToClient(SetAttachmentUpgrades.TYPE, SetAttachmentUpgrades.STREAM_CODEC, SetAttachmentUpgrades.HANDLER);
 
-        registrar.play(SetItemVariant.ID, SetItemVariant::read, handler(MdPackets::handleSetItemVariant));
-        registrar.play(SetFluidVariant.ID, SetFluidVariant::read, handler(MdPackets::handleSetFluidVariant));
+        registrar.playBidirectional(SetItemVariant.TYPE, SetItemVariant.STREAM_CODEC, handler(MdPackets::handleSetItemVariant));
+        registrar.playBidirectional(SetFluidVariant.TYPE, SetFluidVariant.STREAM_CODEC, handler(MdPackets::handleSetFluidVariant));
 
         registerSetEnum(registrar, SET_FILTER_MODE, FilterInversionMode.class, SET_FILTER_MODE_HANDLER);
         registerSetEnum(registrar, SET_FILTER_DAMAGE, FilterDamageMode.class, SET_FILTER_DAMAGE_HANDLER);
@@ -178,16 +183,16 @@ public class MdPackets {
         registerSetInt(registrar, MdPackets.SET_MAX_ITEMS_EXTRACTED, MdPackets.SET_MAX_ITEMS_EXTRACTED_HANDLER);
     }
 
-    private static <T extends Enum<T>> void registerSetEnum(IPayloadRegistrar registrar, ResourceLocation id, Class<T> enumClass,
+    private static <T extends Enum<T>> void registerSetEnum(PayloadRegistrar registrar, CustomPacketPayload.Type<SetEnum<T>> type, Class<T> enumClass,
             SetEnumHandler<T> handler) {
-        registrar.play(id, SetEnum.makeReader(id, enumClass), handler((player, payload) -> {
+        registrar.playBidirectional(type, SetEnum.codec(type, enumClass), handler((player, payload) -> {
             handler.handleSetEnum(player, payload.syncId(), payload.value());
         }));
 
     }
 
-    private static void registerSetInt(IPayloadRegistrar registrar, ResourceLocation id, SetIntHandler handler) {
-        registrar.play(id, SetInt.makeReader(id), handler((player, payload) -> {
+    private static void registerSetInt(PayloadRegistrar registrar, CustomPacketPayload.Type<SetInt> type, SetIntHandler handler) {
+        registrar.playBidirectional(type, SetInt.codec(type), handler((player, payload) -> {
             handler.handleSetInt(player, payload.syncId(), payload.value());
         }));
 
@@ -207,10 +212,8 @@ public class MdPackets {
         }
     }
 
-    private static <T extends CustomPacketPayload> IPlayPayloadHandler<T> handler(BiConsumer<Player, T> handler) {
-        return (payload, context) -> context.player().ifPresent(player -> context.workHandler().execute(() -> {
-            handler.accept(player, payload);
-        }));
+    private static <T extends CustomPacketPayload> IPayloadHandler<T> handler(BiConsumer<Player, T> handler) {
+        return (payload, context) -> handler.accept(context.player(), payload);
     }
 
     private interface EnumSetter<T extends Enum<T>, M extends AbstractContainerMenu> {

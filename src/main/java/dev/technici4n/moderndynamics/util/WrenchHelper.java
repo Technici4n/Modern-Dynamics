@@ -21,7 +21,7 @@ package dev.technici4n.moderndynamics.util;
 import dev.technici4n.moderndynamics.MdBlock;
 import dev.technici4n.moderndynamics.init.MdTags;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -67,7 +67,7 @@ public class WrenchHelper {
             var group = state.getSoundType();
             world.playSound(player, pos, group.getBreakSound(), SoundSource.BLOCKS, (group.getVolume() + 1.0F) / 2.0F,
                     group.getPitch() * 0.8F);
-            e.cancelWithResult(InteractionResult.sidedSuccess(world.isClientSide));
+            e.cancelWithResult(ItemInteractionResult.sidedSuccess(world.isClientSide));
         }
     }
 }

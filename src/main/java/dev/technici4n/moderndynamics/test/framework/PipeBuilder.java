@@ -40,11 +40,7 @@ public class PipeBuilder {
 
         for (var host : pipe.getHosts()) {
             if (host.acceptsAttachment(attachment, stack)) {
-                var initialData = stack.getTag();
-                if (initialData == null) {
-                    initialData = new CompoundTag();
-                }
-                host.setAttachment(direction, attachment, initialData);
+                host.setAttachment(direction, attachment, new CompoundTag(), pipe.getLevel().registryAccess());
                 helper.getLevel().blockUpdated(pipe.getBlockPos(), pipe.getBlockState().getBlock());
                 pipe.refreshHosts();
                 pipe.scheduleHostUpdates();

@@ -25,6 +25,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
@@ -57,6 +58,9 @@ public class LoadedUpgrades {
         playerList.broadcastAll(new ClientboundCustomPayloadPacket(new SetAttachmentUpgrades(holder)));
     }
 
+    public static final StreamCodec<FriendlyByteBuf, LoadedUpgrades> STREAM_CODEC = StreamCodec.ofMember(
+            LoadedUpgrades::toPacket, LoadedUpgrades::fromPacket);
+
     public final Map<Item, UpgradeType> map;
     public final List<Item> list;
 
@@ -65,7 +69,7 @@ public class LoadedUpgrades {
         this.list = Collections.unmodifiableList(list);
     }
 
-    public void toPacket(FriendlyByteBuf buf) {
+    private void toPacket(FriendlyByteBuf buf) {
         buf.writeVarInt(list.size());
         for (var upgradeItem : list) {
             buf.writeVarInt(Item.getId(upgradeItem));
@@ -73,7 +77,7 @@ public class LoadedUpgrades {
         }
     }
 
-    public static LoadedUpgrades fromPacket(FriendlyByteBuf buf) {
+    private static LoadedUpgrades fromPacket(FriendlyByteBuf buf) {
         int count = buf.readVarInt();
         Map<Item, UpgradeType> upgrades = new IdentityHashMap<>();
         List<Item> orderedUpgrades = new ArrayList<>();

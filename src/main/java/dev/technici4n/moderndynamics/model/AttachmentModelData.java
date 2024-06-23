@@ -38,7 +38,7 @@ public record AttachmentModelData(String modelId, Item item) {
     @Nullable
     public static AttachmentModelData from(CompoundTag tag) {
         var modelId = tag.getString("model");
-        var item = BuiltInRegistries.ITEM.get(new ResourceLocation(tag.getString("item")));
+        var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(tag.getString("item")));
         if (!modelId.isEmpty()) {
             return new AttachmentModelData(modelId, item);
         }

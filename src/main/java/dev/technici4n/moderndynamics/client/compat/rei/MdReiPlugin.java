@@ -20,6 +20,7 @@ package dev.technici4n.moderndynamics.client.compat.rei;
 
 import dev.architectury.event.CompoundEventResult;
 import dev.architectury.fluid.FluidStack;
+import dev.architectury.hooks.fluid.forge.FluidStackHooksForge;
 import dev.technici4n.moderndynamics.attachment.upgrade.LoadedUpgrades;
 import dev.technici4n.moderndynamics.client.screen.AttachedIoScreen;
 import dev.technici4n.moderndynamics.client.screen.FluidAttachedIoScreen;
@@ -80,12 +81,11 @@ public class MdReiPlugin implements REIClientPlugin {
     public void registerScreens(ScreenRegistry registry) {
         // Ensures that users can press R, U, etc... on fluid config slots.
         registry.registerFocusedStack((screen, mouse) -> {
-            if (screen instanceof AttachedIoScreen<?>ioScreen) {
+            if (screen instanceof AttachedIoScreen<?> ioScreen) {
                 if (ioScreen.getHoveredSlot() instanceof FluidConfigSlot fluidConfig) {
                     var variant = fluidConfig.getFilter();
                     if (!variant.isBlank()) {
-                        // TODO: use FluidStackHooks when REI uses a more up to date version of Architectury
-                        return CompoundEventResult.interruptTrue(EntryStacks.of(FluidStack.create(variant.getFluid(), 1, variant.getNbt())));
+                        return CompoundEventResult.interruptTrue(EntryStacks.of(FluidStackHooksForge.fromForge(variant.toStack(1))));
                     }
                 }
             }
@@ -100,7 +100,7 @@ public class MdReiPlugin implements REIClientPlugin {
 
             @Override
             public DraggedAcceptorResult acceptDraggedStack(DraggingContext<Screen> context, DraggableStack stack) {
-                FluidVariant fv = stack.getStack().getValue() instanceof FluidStack fs ? FluidVariant.of(fs.getFluid(), fs.getTag()) : null;
+                FluidVariant fv = stack.getStack().getValue() instanceof FluidStack fs ? FluidVariant.of(FluidStackHooksForge.toForge(fs)) : null;
                 ItemVariant iv = stack.getStack().getValue() instanceof ItemStack is ? ItemVariant.of(is) : null;
 
                 if (context.getScreen() instanceof ItemAttachedIoScreen ioScreen) {
@@ -126,7 +126,7 @@ public class MdReiPlugin implements REIClientPlugin {
 
             @Override
             public Stream<BoundsProvider> getDraggableAcceptingBounds(DraggingContext<Screen> context, DraggableStack stack) {
-                FluidVariant fv = stack.getStack().getValue() instanceof FluidStack fs ? FluidVariant.of(fs.getFluid(), fs.getTag()) : null;
+                FluidVariant fv = stack.getStack().getValue() instanceof FluidStack fs ? FluidVariant.of(FluidStackHooksForge.toForge(fs)) : null;
                 ItemVariant iv = stack.getStack().getValue() instanceof ItemStack is ? ItemVariant.of(is) : null;
 
                 if (context.getScreen() instanceof ItemAttachedIoScreen ioScreen && iv != null) {

@@ -20,10 +20,10 @@ package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.util.MdId;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
-@Mod.EventBusSubscriber(modid = MdId.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = MdId.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public class DataGenerators {
     @SubscribeEvent
     public static void onGatherData(GatherDataEvent event) {
@@ -37,7 +37,7 @@ public class DataGenerators {
 
         pack.addProvider(AttachmentUpgradesProvider::new);
         pack.addProvider(packOutput -> new ItemTagsProvider(packOutput, registries, existingFileHelper));
-        pack.addProvider(LootTablesProvider::create);
+        pack.addProvider(packOutput -> LootTablesProvider.create(packOutput, registries));
         pack.addProvider(packOutput -> new RecipesProvider(packOutput, registries));
 
         pack.addProvider(EmptyTestStructureGenerator::new);

@@ -1,13 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_ingot": {
+    "has_item_pipe": {
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:copper_ingot"
-            ]
+            "items": "moderndynamics:item_pipe"
           }
         ]
       },
@@ -15,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:fluid_pipe"
+        "recipe": "moderndynamics:inhibitor"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -23,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_ingot"
+      "has_item_pipe"
     ]
   ],
   "rewards": {
     "recipes": [
-      "moderndynamics:fluid_pipe"
+      "moderndynamics:inhibitor"
     ]
   }
 }

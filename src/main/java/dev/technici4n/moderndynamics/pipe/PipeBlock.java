@@ -25,6 +25,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -123,13 +124,11 @@ public class PipeBlock extends MdBlock implements EntityBlock, SimpleWaterlogged
         return drops;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public int getLightBlock(BlockState state, BlockGetter blockView, BlockPos pos) {
         return 0;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void neighborChanged(BlockState state, Level world, BlockPos pos, Block param4, BlockPos param5, boolean param6) {
         if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
@@ -142,7 +141,6 @@ public class PipeBlock extends MdBlock implements EntityBlock, SimpleWaterlogged
         return true;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext ctx) {
         if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
@@ -152,17 +150,25 @@ public class PipeBlock extends MdBlock implements EntityBlock, SimpleWaterlogged
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
-            return pipe.onUse(player, hand, hitResult);
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
+            BlockHitResult hitResult) {
+        if (level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+            return pipe.useItemOn(player, hand, hitResult);
+        } else {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+            return pipe.useWithoutItem(player, hitResult);
         } else {
             return InteractionResult.PASS;
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
         if (!state.is(newState.getBlock())) {

@@ -22,33 +22,25 @@ import dev.technici4n.moderndynamics.MdProxy;
 import dev.technici4n.moderndynamics.attachment.upgrade.LoadedUpgrades;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPlayPayloadHandler;
+import net.neoforged.neoforge.network.handling.IPayloadHandler;
 
 public record SetAttachmentUpgrades(LoadedUpgrades holder) implements CustomPacketPayload {
-    public static final ResourceLocation ID = MdId.of("set_attachment_upgrades");
+    public static final StreamCodec<FriendlyByteBuf, SetAttachmentUpgrades> STREAM_CODEC = StreamCodec.composite(
+            LoadedUpgrades.STREAM_CODEC,
+            SetAttachmentUpgrades::holder,
+            SetAttachmentUpgrades::new);
+    public static final Type<SetAttachmentUpgrades> TYPE = new Type<>(MdId.of("set_attachment_upgrades"));
 
     @Override
-    public void write(FriendlyByteBuf buffer) {
-        holder.toPacket(buffer);
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
-    public static SetAttachmentUpgrades read(FriendlyByteBuf buffer) {
-        return new SetAttachmentUpgrades(LoadedUpgrades.fromPacket(buffer));
-    }
-
-    @Override
-    public ResourceLocation id() {
-        return ID;
-    }
-
-    public static final IPlayPayloadHandler<SetAttachmentUpgrades> HANDLER = (payload, context) -> {
-        context.workHandler().execute(() -> {
-            if (!MdProxy.INSTANCE.isMemoryConnection()) {
-                LoadedUpgrades.trySet(payload.holder);
-            }
-        });
+    public static final IPayloadHandler<SetAttachmentUpgrades> HANDLER = (payload, context) -> {
+        if (!MdProxy.INSTANCE.isMemoryConnection()) {
+            LoadedUpgrades.trySet(payload.holder);
+        }
     };
-
 }

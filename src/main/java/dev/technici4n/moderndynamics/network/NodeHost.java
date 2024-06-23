@@ -26,6 +26,7 @@ import java.util.EnumSet;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -78,14 +79,14 @@ public abstract class NodeHost {
         return null;
     }
 
-    public final void setAttachment(Direction side, AttachmentItem item, CompoundTag data) {
+    public final void setAttachment(Direction side, AttachmentItem item, CompoundTag data, HolderLookup.Provider registries) {
         var current = attachments[side.get3DDataValue()];
         if (current != null && current.getItem() == item) {
             if (current.update(data)) {
                 scheduleUpdate();
             }
         } else {
-            attachments[side.get3DDataValue()] = item.createAttached(this, data);
+            attachments[side.get3DDataValue()] = item.createAttached(this, data, registries);
             scheduleUpdate();
             pipe.invalidateCapabilities();
         }
@@ -205,7 +206,7 @@ public abstract class NodeHost {
     }
 
     @MustBeInvokedByOverriders
-    public void writeNbt(CompoundTag tag) {
+    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
         // Only write a sub-tag if any attachments exist
         if (hasAttachments()) {
             var attachmentTags = new ListTag();
@@ -214,7 +215,7 @@ public abstract class NodeHost {
                 if (attachment != null) {
                     var id = BuiltInRegistries.ITEM.getKey(attachment.getItem());
                     attachmentTag.putString("#i", id.toString());
-                    attachment.writeConfigTag(attachmentTag);
+                    attachment.writeConfigTag(attachmentTag, registries);
                 }
                 attachmentTags.add(attachmentTag);
             }
@@ -223,7 +224,7 @@ public abstract class NodeHost {
     }
 
     @MustBeInvokedByOverriders
-    public void readNbt(CompoundTag tag) {
+    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
         if (tag.contains("attachments", Tag.TAG_LIST)) {
             var attachmentTags = tag.getList("attachments", Tag.TAG_COMPOUND);
             for (int i = 0; i < attachments.length; i++) {
@@ -231,9 +232,9 @@ public abstract class NodeHost {
 
                 if (i < attachmentTags.size()) {
                     var attachmentTag = attachmentTags.getCompound(i);
-                    var item = BuiltInRegistries.ITEM.get(new ResourceLocation(attachmentTag.getString("#i")));
+                    var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(attachmentTag.getString("#i")));
                     if ((item instanceof AttachmentItem attachmentItem)) {
-                        this.attachments[i] = attachmentItem.createAttached(this, attachmentTag);
+                        this.attachments[i] = attachmentItem.createAttached(this, attachmentTag, registries);
                     }
                 }
             }
@@ -241,11 +242,11 @@ public abstract class NodeHost {
     }
 
     @MustBeInvokedByOverriders
-    public void writeClientNbt(CompoundTag tag) {
+    public void writeClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
     }
 
     @MustBeInvokedByOverriders
-    public void readClientNbt(CompoundTag tag) {
+    public void readClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
     }
 
     public void clientTick() {

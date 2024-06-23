@@ -26,6 +26,7 @@ import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.List;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.BlockCapability;
@@ -99,14 +100,14 @@ public class MIEnergyHost extends NodeHost {
     }
 
     @Override
-    public void writeNbt(CompoundTag tag) {
-        super.writeNbt(tag);
+    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeNbt(tag, registries);
         tag.putLong("mi_energy", energy);
     }
 
     @Override
-    public void readNbt(CompoundTag tag) {
-        super.readNbt(tag);
+    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.readNbt(tag, registries);
         // Guard against max energy changes
         energy = Math.max(0, Math.min(tag.getLong("mi_energy"), getMaxEnergy()));
     }

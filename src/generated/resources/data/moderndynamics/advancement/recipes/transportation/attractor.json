@@ -1,13 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_hopper": {
+    "has_ender_pearl": {
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:hopper"
-            ]
+            "items": "minecraft:ender_pearl"
           }
         ]
       },
@@ -15,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:extractor"
+        "recipe": "moderndynamics:attractor"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -23,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_hopper"
+      "has_ender_pearl"
     ]
   ],
   "rewards": {
     "recipes": [
-      "moderndynamics:extractor"
+      "moderndynamics:attractor"
     ]
   }
 }

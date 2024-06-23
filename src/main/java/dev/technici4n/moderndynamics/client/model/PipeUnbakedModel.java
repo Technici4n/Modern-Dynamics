@@ -82,7 +82,7 @@ public class PipeUnbakedModel implements IUnbakedGeometry<PipeUnbakedModel> {
 
     @Override
     public BakedModel bake(IGeometryBakingContext context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter,
-            ModelState modelState, ItemOverrides overrides, ResourceLocation modelLocation) {
+            ModelState modelState, ItemOverrides overrides) {
 
         var bakedAttachments = attachmentModels.entrySet()
                 .stream()

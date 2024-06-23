@@ -1,13 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_lapis": {
+    "has_hopper": {
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:lapis_lazuli"
-            ]
+            "items": "minecraft:hopper"
           }
         ]
       },
@@ -15,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:filter"
+        "recipe": "moderndynamics:extractor"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -23,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_lapis"
+      "has_hopper"
     ]
   ],
   "rewards": {
     "recipes": [
-      "moderndynamics:filter"
+      "moderndynamics:extractor"
     ]
   }
 }

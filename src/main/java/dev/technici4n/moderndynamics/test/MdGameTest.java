@@ -30,6 +30,8 @@ public @interface MdGameTest {
 
     String batch() default "defaultBatch";
 
+    boolean skyAccess() default false;
+
     int rotationSteps() default 0;
 
     long setupTicks() default 0L;
@@ -39,4 +41,6 @@ public @interface MdGameTest {
     int requiredSuccesses() default 1;
 
     boolean required() default true;
+
+    boolean manualOnly() default false;
 }

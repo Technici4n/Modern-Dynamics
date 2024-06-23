@@ -27,13 +27,12 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
 
 public class IoAttachmentItem extends AttachmentItem {
     private final IoAttachmentType type;
@@ -48,11 +47,11 @@ public class IoAttachmentItem extends AttachmentItem {
     }
 
     @Override
-    public AttachedAttachment createAttached(NodeHost host, CompoundTag configTag) {
+    public AttachedAttachment createAttached(NodeHost host, CompoundTag configTag, HolderLookup.Provider registries) {
         if (host instanceof ItemHost) {
-            return new ItemAttachedIo(this, configTag, host.getPipe()::setChanged);
+            return new ItemAttachedIo(this, configTag, host.getPipe()::setChanged, registries);
         } else {
-            return new FluidAttachedIo(this, configTag, host.getPipe()::setChanged);
+            return new FluidAttachedIo(this, configTag, host.getPipe()::setChanged, registries);
         }
     }
 
@@ -84,7 +83,7 @@ public class IoAttachmentItem extends AttachmentItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         tooltipComponents
                 .add(Component.translatable("gui.moderndynamics.tooltip.attachment_upgrades").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
         /*

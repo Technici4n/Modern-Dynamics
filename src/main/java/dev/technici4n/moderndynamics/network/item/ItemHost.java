@@ -40,6 +40,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -49,7 +50,7 @@ import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.wrapper.EmptyHandler;
+import net.neoforged.neoforge.items.wrapper.EmptyItemHandler;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemHost extends NodeHost {
@@ -336,7 +337,7 @@ public class ItemHost extends NodeHost {
                 var side = travelingItem.path.path[newIndex];
                 var storage = getAdjacentStorage(side, checkAttachments);
                 if (storage == null) {
-                    storage = EmptyHandler.INSTANCE;
+                    storage = EmptyItemHandler.INSTANCE;
                 }
                 int inserted = 0;
                 // Check filter.
@@ -405,23 +406,23 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void writeNbt(CompoundTag tag) {
-        super.writeNbt(tag);
+    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeNbt(tag, registries);
         if (travelingItems.size() > 0) {
             ListTag list = new ListTag();
             for (var travelingItem : travelingItems) {
-                list.add(travelingItem.toNbt());
+                list.add(travelingItem.toNbt(registries));
             }
             tag.put("travelingItems", list);
         }
     }
 
     @Override
-    public void readNbt(CompoundTag tag) {
-        super.readNbt(tag);
+    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.readNbt(tag, registries);
         ListTag list = tag.getList("travelingItems", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); ++i) {
-            var item = TravelingItem.fromNbt(list.getCompound(i));
+            var item = TravelingItem.fromNbt(list.getCompound(i), registries);
 
             if (!item.variant.isBlank()) { // Guard against blank variants in case a mod is removed
                 travelingItems.add(item);
@@ -502,15 +503,15 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void writeClientNbt(CompoundTag tag) {
-        super.writeClientNbt(tag);
+    public void writeClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeClientNbt(tag, registries);
 
         if (travelingItems.size() > 0) {
             ListTag list = new ListTag();
             for (var travelingItem : travelingItems) {
                 CompoundTag compound = new CompoundTag();
                 compound.putInt("id", travelingItem.id);
-                compound.put("v", travelingItem.variant.toNbt());
+                compound.put("v", travelingItem.variant.toNbt(registries));
                 compound.putInt("a", travelingItem.amount);
                 compound.putDouble("td", travelingItem.getPathLength() - 1);
                 compound.putDouble("d", travelingItem.traveledDistance);
@@ -525,8 +526,8 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void readClientNbt(CompoundTag tag) {
-        super.readClientNbt(tag);
+    public void readClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.readClientNbt(tag, registries);
 
         clientTravelingItems.clear();
         ListTag list = tag.getList("travelingItems", Tag.TAG_COMPOUND);
@@ -534,7 +535,7 @@ public class ItemHost extends NodeHost {
             CompoundTag compound = list.getCompound(i);
             var newItem = new ClientTravelingItem(
                     compound.getInt("id"),
-                    ItemVariant.fromNbt(compound.getCompound("v")),
+                    ItemVariant.fromNbt(compound.getCompound("v"), registries),
                     compound.getInt("a"),
                     compound.getDouble("td"),
                     compound.getDouble("d"),

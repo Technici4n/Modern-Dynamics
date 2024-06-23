@@ -46,7 +46,7 @@ public class SpriteSourceProvider extends JsonCodecProvider<List<SpriteSource>> 
     @Override
     protected void gather() {
         unconditional(
-                new ResourceLocation("minecraft", "blocks"),
+                ResourceLocation.fromNamespaceAndPath("minecraft", "blocks"),
                 List.of(new DirectoryLister("pipe", "pipe/"), new DirectoryLister("attachment", "attachment/")));
     }
 

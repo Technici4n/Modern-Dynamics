@@ -20,6 +20,7 @@ package dev.technici4n.moderndynamics.attachment;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.network.NodeHost;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
 
@@ -31,5 +32,5 @@ public abstract class AttachmentItem extends Item {
         this.attachment = attachment;
     }
 
-    public abstract AttachedAttachment createAttached(NodeHost host, CompoundTag configTag);
+    public abstract AttachedAttachment createAttached(NodeHost host, CompoundTag configTag, HolderLookup.Provider registries);
 }

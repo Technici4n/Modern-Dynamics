@@ -33,6 +33,7 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.FluidVariant;
 import java.util.List;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.BlockCapability;
@@ -230,16 +231,16 @@ public class FluidHost extends NodeHost {
     }
 
     @Override
-    public void writeNbt(CompoundTag tag) {
-        super.writeNbt(tag);
+    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeNbt(tag, registries);
         tag.putInt("amount", amount);
-        tag.put("variant", variant.toNbt());
+        tag.put("variant", variant.toNbt(registries));
     }
 
     @Override
-    public void readNbt(CompoundTag tag) {
-        super.readNbt(tag);
-        variant = FluidVariant.fromNbt(tag.getCompound("variant"));
+    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.readNbt(tag, registries);
+        variant = FluidVariant.fromNbt(tag.getCompound("variant"), registries);
         // Guard against max changes
         amount = Math.max(0, Math.min(tag.getInt("amount"), Constants.Fluids.CAPACITY));
         // Guard against removed variant
@@ -249,16 +250,16 @@ public class FluidHost extends NodeHost {
     }
 
     @Override
-    public void writeClientNbt(CompoundTag tag) {
-        super.writeClientNbt(tag);
+    public void writeClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeClientNbt(tag, registries);
         tag.putInt("amount", amount);
-        tag.put("variant", variant.toNbt());
+        tag.put("variant", variant.toNbt(registries));
     }
 
     @Override
-    public void readClientNbt(CompoundTag tag) {
-        super.readClientNbt(tag);
-        variant = FluidVariant.fromNbt(tag.getCompound("variant"));
+    public void readClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.readClientNbt(tag, registries);
+        variant = FluidVariant.fromNbt(tag.getCompound("variant"), registries);
         amount = tag.getInt("amount");
     }
 

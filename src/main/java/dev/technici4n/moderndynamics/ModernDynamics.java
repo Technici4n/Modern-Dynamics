@@ -37,9 +37,9 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.TickEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlerEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,18 +50,16 @@ public class ModernDynamics {
 
     public ModernDynamics(IEventBus modEvents) {
         modEvents.addListener(RegisterEvent.class, this::register);
-        modEvents.addListener(RegisterPayloadHandlerEvent.class, this::registerPayloadHandler);
+        modEvents.addListener(RegisterPayloadHandlersEvent.class, this::registerPayloadHandlers);
 
         modEvents.addListener(MdBlockEntities::registerCapabilities);
         NeoForge.EVENT_BUS.addListener(ServerStoppedEvent.class, e -> {
             NetworkManager.onServerStopped();
             SimulatedInsertionTargets.clear();
         });
-        NeoForge.EVENT_BUS.addListener(TickEvent.ServerTickEvent.class, e -> {
-            if (e.phase == TickEvent.Phase.END) {
-                TickHelper.onEndTick();
-                NetworkManager.onEndTick();
-            }
+        NeoForge.EVENT_BUS.addListener(ServerTickEvent.Post.class, e -> {
+            TickHelper.onEndTick();
+            NetworkManager.onEndTick();
         });
         NeoForge.EVENT_BUS.addListener(WrenchHelper::handleEvent);
         AttachmentUpgradesLoader.setup();
@@ -88,7 +86,7 @@ public class ModernDynamics {
         }
     }
 
-    private void registerPayloadHandler(RegisterPayloadHandlerEvent e) {
+    private void registerPayloadHandlers(RegisterPayloadHandlersEvent e) {
         var registrar = e.registrar(MdId.MOD_ID);
         MdPackets.register(registrar);
     }

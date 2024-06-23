@@ -40,11 +40,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
@@ -84,15 +85,15 @@ public class ItemAttachedIo extends AttachedIo {
     @Nullable
     private ItemCachedFilter cachedFilter;
 
-    public ItemAttachedIo(IoAttachmentItem item, CompoundTag configData, Runnable setChangedCallback) {
-        super(item, configData, setChangedCallback);
+    public ItemAttachedIo(IoAttachmentItem item, CompoundTag configData, Runnable setChangedCallback, HolderLookup.Provider registries) {
+        super(item, configData, setChangedCallback, registries);
 
         this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, ItemVariant.blank());
         var filterTags = configData.getList("filters", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < this.filters.size(); i++) {
             var filterTag = filterTags.getCompound(i);
             if (!filterTag.isEmpty()) {
-                this.filters.set(i, ItemVariant.fromNbt(filterTag));
+                this.filters.set(i, ItemVariant.fromNbt(filterTag, registries));
             }
         }
 
@@ -114,8 +115,8 @@ public class ItemAttachedIo extends AttachedIo {
         var stuffedTag = configData.getList("stuffed", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < stuffedTag.size(); i++) {
             var compound = stuffedTag.getCompound(i);
-            var variant = ItemVariant.fromNbt(compound);
-            var amount = compound.getInt("#a");
+            var variant = ItemVariant.fromNbt(compound.getCompound("v"), registries);
+            var amount = compound.getInt("a");
 
             if (!variant.isBlank() && amount > 0) {
                 this.stuffedItems.put(variant, amount);
@@ -126,15 +127,15 @@ public class ItemAttachedIo extends AttachedIo {
     }
 
     @Override
-    public CompoundTag writeConfigTag(CompoundTag configData) {
-        super.writeConfigTag(configData);
+    public CompoundTag writeConfigTag(CompoundTag configData, HolderLookup.Provider registries) {
+        super.writeConfigTag(configData, registries);
 
         var filterTags = new ListTag();
         for (ItemVariant filter : this.filters) {
             if (filter.isBlank()) {
                 filterTags.add(new CompoundTag());
             } else {
-                filterTags.add(filter.toNbt());
+                filterTags.add(filter.toNbt(registries));
             }
         }
         configData.put("filters", filterTags);
@@ -158,8 +159,9 @@ public class ItemAttachedIo extends AttachedIo {
 
         var stuffedTag = new ListTag();
         for (var entry : stuffedItems.entrySet()) {
-            var compound = entry.getKey().toNbt();
-            compound.putInt("#a", entry.getValue());
+            var compound = new CompoundTag();
+            compound.put("v", entry.getKey().toNbt(registries));
+            compound.putInt("a", entry.getValue());
             stuffedTag.add(compound);
         }
         if (!stuffedTag.isEmpty()) {
@@ -217,7 +219,7 @@ public class ItemAttachedIo extends AttachedIo {
     public @Nullable ExtendedMenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
         return new ExtendedMenuProvider() {
             @Override
-            public void writeScreenOpeningData(FriendlyByteBuf buf) {
+            public void writeScreenOpeningData(RegistryFriendlyByteBuf buf) {
                 AttachmentMenuType.writeScreenOpeningData(pipe, side, ItemAttachedIo.this, buf);
             }
 
