@@ -22,6 +22,7 @@ import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.concurrent.atomic.AtomicInteger;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 
 public class TravelingItem {
@@ -61,9 +62,9 @@ public class TravelingItem {
         return speedMultiplier * Constants.Items.SPEED_IN_PIPES;
     }
 
-    public CompoundTag toNbt() {
+    public CompoundTag toNbt(HolderLookup.Provider registries) {
         CompoundTag nbt = new CompoundTag();
-        nbt.put("v", variant.toNbt());
+        nbt.put("v", variant.toNbt(registries));
         nbt.putInt("a", amount);
         nbt.put("start", SerializationHelper.posToNbt(path.startingPos));
         nbt.put("end", SerializationHelper.posToNbt(path.targetPos));
@@ -74,9 +75,9 @@ public class TravelingItem {
         return nbt;
     }
 
-    public static TravelingItem fromNbt(CompoundTag nbt) {
+    public static TravelingItem fromNbt(CompoundTag nbt, HolderLookup.Provider registries) {
         return new TravelingItem(
-                ItemVariant.fromNbt(nbt.getCompound("v")),
+                ItemVariant.fromNbt(nbt.getCompound("v"), registries),
                 nbt.getInt("a"),
                 new ItemPath(
                         SerializationHelper.posFromNbt(nbt.getCompound("start")),

@@ -20,5 +20,5 @@ package dev.technici4n.moderndynamics.client.screen;
 
 import net.minecraft.network.chat.Component;
 
-record CycleSetting<T> (T value, Component tooltip, int spriteX, int spriteY) {
+record CycleSetting<T>(T value, Component tooltip, int spriteX, int spriteY) {
 }

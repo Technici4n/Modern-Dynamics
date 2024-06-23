@@ -42,7 +42,7 @@ public class DropHelper {
 
     public static void splitIntoStacks(ItemVariant variant, long amount, Consumer<ItemStack> stackConsumer) {
         while (amount > 0) {
-            int dropped = (int) Math.min(amount, variant.getItem().getMaxStackSize());
+            int dropped = (int) Math.min(amount, variant.getMaxStackSize());
             stackConsumer.accept(variant.toStack(dropped));
             amount -= dropped;
         }

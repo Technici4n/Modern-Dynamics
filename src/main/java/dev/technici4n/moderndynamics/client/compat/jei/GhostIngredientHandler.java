@@ -49,7 +49,7 @@ class GhostIngredientHandler implements IGhostIngredientHandler<AttachedIoScreen
             }
         }
 
-        if (gui instanceof FluidAttachedIoScreen ioScreen && ingredient instanceof FluidStack) {
+        if (gui instanceof FluidAttachedIoScreen ioScreen && ingredient.getIngredient() instanceof FluidStack) {
             for (var s : ioScreen.getMenu().slots) {
                 if (s instanceof FluidConfigSlot slot && slot.isActive()) {
                     targets.add((Target<I>) new FluidSlotTarget(slot, ioScreen));

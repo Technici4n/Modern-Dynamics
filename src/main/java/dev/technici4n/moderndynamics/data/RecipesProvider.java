@@ -137,10 +137,10 @@ public class RecipesProvider extends RecipeProvider {
     }
 
     @Override
-    public CompletableFuture<?> run(CachedOutput output) {
+    public CompletableFuture<?> run(CachedOutput output, HolderLookup.Provider registries) {
         generateMiCableRecipes(output);
 
-        return super.run(output);
+        return super.run(output, registries);
     }
 
     private void generateMiCableRecipes(CachedOutput output) {

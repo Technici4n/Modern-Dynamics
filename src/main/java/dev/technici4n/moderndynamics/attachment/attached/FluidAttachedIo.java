@@ -26,10 +26,11 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
 import dev.technici4n.moderndynamics.util.FluidVariant;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -42,29 +43,29 @@ public class FluidAttachedIo extends AttachedIo {
     @Nullable
     private FluidCachedFilter cachedFilter = null;
 
-    public FluidAttachedIo(IoAttachmentItem item, CompoundTag configData, Runnable setChangedCallback) {
-        super(item, configData, setChangedCallback);
+    public FluidAttachedIo(IoAttachmentItem item, CompoundTag configData, Runnable setChangedCallback, HolderLookup.Provider registries) {
+        super(item, configData, setChangedCallback, registries);
 
         this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, FluidVariant.blank());
         var filterTags = configData.getList("filters", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < this.filters.size(); i++) {
             var filterTag = filterTags.getCompound(i);
             if (!filterTag.isEmpty()) {
-                this.filters.set(i, FluidVariant.fromNbt(filterTag));
+                this.filters.set(i, FluidVariant.fromNbt(filterTag, registries));
             }
         }
     }
 
     @Override
-    public CompoundTag writeConfigTag(CompoundTag configData) {
-        super.writeConfigTag(configData);
+    public CompoundTag writeConfigTag(CompoundTag configData, HolderLookup.Provider registries) {
+        super.writeConfigTag(configData, registries);
 
         var filterTags = new ListTag();
         for (FluidVariant filter : this.filters) {
             if (filter.isBlank()) {
                 filterTags.add(new CompoundTag());
             } else {
-                filterTags.add(filter.toNbt());
+                filterTags.add(filter.toNbt(registries));
             }
         }
         configData.put("filters", filterTags);
@@ -109,7 +110,7 @@ public class FluidAttachedIo extends AttachedIo {
     public @Nullable ExtendedMenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
         return new ExtendedMenuProvider() {
             @Override
-            public void writeScreenOpeningData(FriendlyByteBuf buf) {
+            public void writeScreenOpeningData(RegistryFriendlyByteBuf buf) {
                 AttachmentMenuType.writeScreenOpeningData(pipe, side, FluidAttachedIo.this, buf);
             }
 

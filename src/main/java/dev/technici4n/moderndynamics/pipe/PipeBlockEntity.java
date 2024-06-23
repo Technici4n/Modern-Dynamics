@@ -32,6 +32,7 @@ import dev.technici4n.moderndynamics.util.WrenchHelper;
 import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -39,6 +40,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -139,12 +141,12 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
     }
 
     @Override
-    public void toClientTag(CompoundTag tag) {
+    public void toClientTag(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putByte("connectionBlacklist", (byte) connectionBlacklist);
         tag.putByte("connections", (byte) getPipeConnections());
         tag.putByte("inventoryConnections", (byte) getInventoryConnections());
         for (var host : getHosts()) {
-            host.writeClientNbt(tag);
+            host.writeClientNbt(tag, registries);
         }
         var attachments = new ListTag();
         for (var direction : Direction.values()) {
@@ -159,15 +161,15 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
     }
 
     @Override
-    public void fromClientTag(CompoundTag tag) {
+    public void fromClientTag(CompoundTag tag, HolderLookup.Provider registries) {
         connectionBlacklist = tag.getByte("connectionBlacklist");
         byte connections = tag.getByte("connections");
         byte inventoryConnections = tag.getByte("inventoryConnections");
         var attachmentStacks = NonNullList.withSize(6, ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(tag, attachmentStacks);
+        ContainerHelper.loadAllItems(tag, attachmentStacks, registries);
 
         for (var host : getHosts()) {
-            host.readClientNbt(tag);
+            host.readClientNbt(tag, registries);
         }
 
         // remesh flag, a bit hacky but it should work ;)
@@ -196,7 +198,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
     }
 
     @Override
-    public void toTag(CompoundTag nbt) {
+    public void toTag(CompoundTag nbt, HolderLookup.Provider registries) {
         nbt.putByte("connectionBlacklist", (byte) connectionBlacklist);
 
         if (!level.isClientSide()) { // WTHIT calls this on the client side
@@ -205,13 +207,13 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                     host.separateNetwork();
                 }
 
-                host.writeNbt(nbt);
+                host.writeNbt(nbt, registries);
             }
         }
     }
 
     @Override
-    public void fromTag(CompoundTag nbt) {
+    public void fromTag(CompoundTag nbt, HolderLookup.Provider registries) {
         connectionBlacklist = nbt.getByte("connectionBlacklist");
 
         for (NodeHost host : getHosts()) {
@@ -219,7 +221,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                 host.separateNetwork();
             }
 
-            host.readNbt(nbt);
+            host.readNbt(nbt, registries);
         }
     }
 
@@ -357,7 +359,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
         // no need to sync(), that's already handled by the refresh or update if necessary
     }
 
-    public InteractionResult onUse(Player player, InteractionHand hand, BlockHitResult hitResult) {
+    public ItemInteractionResult useItemOn(Player player, InteractionHand hand, BlockHitResult hitResult) {
         var stack = player.getItemInHand(hand);
         Vec3 posInBlock = getPosInBlock(hitResult);
 
@@ -369,7 +371,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                         updateConnection(hitResult.getDirection(), true);
                     }
 
-                    return InteractionResult.sidedSuccess(level.isClientSide());
+                    return ItemInteractionResult.sidedSuccess(level.isClientSide());
                 }
             }
 
@@ -380,7 +382,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                         // We will either remove the attachment or clear out its stuffed items.
                         // In any case, for the client it's a success.
                         if (isClientSide()) {
-                            return InteractionResult.SUCCESS;
+                            return ItemInteractionResult.SUCCESS;
                         }
 
                         for (var host : getHosts()) {
@@ -388,7 +390,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                             if (attachment != null) {
                                 // Try to clear contents
                                 if (attachment.tryClearContents(this)) {
-                                    return InteractionResult.CONSUME;
+                                    return ItemInteractionResult.CONSUME;
                                 } else {
                                     // Remove attachment
                                     host.removeAttachment(side);
@@ -400,7 +402,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                                     scheduleHostUpdates();
                                     setChanged();
                                     sync();
-                                    return InteractionResult.CONSUME;
+                                    return ItemInteractionResult.CONSUME;
                                 }
                             }
                         }
@@ -409,12 +411,12 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                         // INVENTORY_CONNECTIONS contains both the pipe and the connector, so it will work in both cases
                         if (level.isClientSide()) {
                             if ((clientSideConnections & (1 << i)) > 0) {
-                                return InteractionResult.SUCCESS;
+                                return ItemInteractionResult.SUCCESS;
                             }
                         } else {
                             if ((getPipeConnections() & (1 << i)) > 0 || (getInventoryConnections() & (1 << i)) > 0) {
                                 updateConnection(Direction.from3DDataValue(i), false);
-                                return InteractionResult.CONSUME;
+                                return ItemInteractionResult.CONSUME;
                             }
                         }
                     }
@@ -438,11 +440,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                     for (var host : getHosts()) {
                         if (host.acceptsAttachment(attachmentItem, stack)) {
                             if (!level.isClientSide) {
-                                var initialData = stack.getTag();
-                                if (initialData == null) {
-                                    initialData = new CompoundTag();
-                                }
-                                host.setAttachment(hitSide, attachmentItem, initialData);
+                                host.setAttachment(hitSide, attachmentItem, new CompoundTag(), level.registryAccess());
                                 host.getAttachment(hitSide).onPlaced(player);
                                 level.blockUpdated(worldPosition, getBlockState().getBlock());
                                 refreshHosts();
@@ -453,12 +451,18 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                             if (!player.isCreative()) {
                                 stack.shrink(1);
                             }
-                            return InteractionResult.sidedSuccess(level.isClientSide);
+                            return ItemInteractionResult.sidedSuccess(level.isClientSide);
                         }
                     }
                 }
             }
         }
+
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    public InteractionResult useWithoutItem(Player player, BlockHitResult hitResult) {
+        Vec3 posInBlock = getPosInBlock(hitResult);
 
         // Handle click on attachment
         var hitSide = hitTestAttachments(posInBlock);

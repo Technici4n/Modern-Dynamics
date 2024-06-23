@@ -114,7 +114,7 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
             // Don't try to use moveItemStackTo, it's missing some checks.
             for (var otherSlot : slots) {
                 if (otherSlot instanceof UpgradeSlot && otherSlot.mayPlace(stack)) {
-                    if (ItemStack.isSameItemSameTags(otherSlot.getItem(), stack)) {
+                    if (ItemStack.isSameItemSameComponents(otherSlot.getItem(), stack)) {
                         int inserted = Math.min(stack.getCount(), otherSlot.getMaxStackSize() - otherSlot.getItem().getCount());
                         if (inserted > 0) {
                             stack.shrink(inserted);

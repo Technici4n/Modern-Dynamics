@@ -26,6 +26,7 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
 import java.util.List;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -48,16 +49,6 @@ public class AttachedAttachment {
 
     public AttachmentItem getItem() {
         return item;
-    }
-
-    public ItemStack toStack() {
-        var stack = new ItemStack(item);
-        var tag = stack.getOrCreateTag();
-        writeConfigTag(tag);
-        if (tag.isEmpty()) {
-            stack.setTag(null);
-        }
-        return stack;
     }
 
     public List<ItemStack> getDrops() {
@@ -97,7 +88,7 @@ public class AttachedAttachment {
     }
 
     @MustBeInvokedByOverriders
-    public CompoundTag writeConfigTag(CompoundTag configData) {
+    public CompoundTag writeConfigTag(CompoundTag configData, HolderLookup.Provider registries) {
         return configData;
     }
 

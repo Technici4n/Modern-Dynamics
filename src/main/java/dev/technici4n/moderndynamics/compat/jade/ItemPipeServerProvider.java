@@ -43,7 +43,7 @@ import snownee.jade.api.view.IServerExtensionProvider;
 import snownee.jade.api.view.ItemView;
 import snownee.jade.api.view.ViewGroup;
 
-public enum ItemPipeServerProvider implements IServerExtensionProvider<PipeBlockEntity, ItemStack>, IClientExtensionProvider<ItemStack, ItemView> {
+public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack>, IClientExtensionProvider<ItemStack, ItemView> {
     INSTANCE;
 
     @Override
@@ -52,7 +52,11 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<PipeBlock
     }
 
     @Override
-    public @Nullable List<ViewGroup<ItemStack>> getGroups(Accessor<?> accessor, PipeBlockEntity pipe) {
+    public @Nullable List<ViewGroup<ItemStack>> getGroups(Accessor<?> accessor) {
+        if (!(accessor.getTarget() instanceof PipeBlockEntity pipe)) {
+            return null;
+        }
+
         // Send attachment data here
         var itemHost = pipe.findHost(ItemHost.class);
         if (itemHost == null) {

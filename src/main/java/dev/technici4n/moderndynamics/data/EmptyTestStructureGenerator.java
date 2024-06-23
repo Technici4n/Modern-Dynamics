@@ -38,13 +38,13 @@ public class EmptyTestStructureGenerator implements DataProvider {
     private final PackOutput.PathProvider pathProvider;
 
     public EmptyTestStructureGenerator(PackOutput output) {
-        this.pathProvider = output.createPathProvider(PackOutput.Target.DATA_PACK, "structures");
+        this.pathProvider = output.createPathProvider(PackOutput.Target.DATA_PACK, "structure");
     }
 
     @Override
     public CompletableFuture<?> run(CachedOutput output) {
         String structureIn;
-        try (var in = getClass().getResourceAsStream("/data/moderndynamics/structures/empty.snbt")) {
+        try (var in = getClass().getResourceAsStream("/data/moderndynamics/structure/empty.snbt")) {
             structureIn = new String(in.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

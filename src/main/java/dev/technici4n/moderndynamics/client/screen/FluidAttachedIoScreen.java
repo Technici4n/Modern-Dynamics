@@ -22,7 +22,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
@@ -59,12 +58,12 @@ public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu>
         }
     }
 
-    public static void drawFluidInGui(PoseStack ms, FluidVariant fluid, int i, int j) {
-        drawFluidInGui(ms, fluid, i, j, 16, 1);
+    public static void drawFluidInGui(GuiGraphics guiGraphics, FluidVariant fluid, int i, int j) {
+        drawFluidInGui(guiGraphics, fluid, i, j, 16, 1);
         RenderSystem.enableDepthTest();
     }
 
-    public static void drawFluidInGui(PoseStack ms, FluidVariant fluid, float i, float j, int scale, float fractionUp) {
+    public static void drawFluidInGui(GuiGraphics guiGraphics, FluidVariant fluid, float i, float j, int scale, float fractionUp) {
         RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
         TextureAtlasSprite sprite = FluidRenderUtil.getStillSprite(fluid);
         int color = FluidRenderUtil.getTint(fluid);
@@ -77,9 +76,8 @@ public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu>
         float b = (color & 255) / 256f;
         RenderSystem.disableDepthTest();
 
-        RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
-        BufferBuilder bufferBuilder = Tesselator.getInstance().getBuilder();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR_TEX);
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
         float x0 = i;
         float y0 = j;
         float x1 = x0 + scale;
@@ -90,12 +88,12 @@ public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu>
         float v0 = v1 + (sprite.getV0() - v1) * fractionUp;
         float u1 = sprite.getU1();
 
-        Matrix4f model = ms.last().pose();
-        bufferBuilder.vertex(model, x0, y1, z).color(r, g, b, 1).uv(u0, v1).endVertex();
-        bufferBuilder.vertex(model, x1, y1, z).color(r, g, b, 1).uv(u1, v1).endVertex();
-        bufferBuilder.vertex(model, x1, y0, z).color(r, g, b, 1).uv(u1, v0).endVertex();
-        bufferBuilder.vertex(model, x0, y0, z).color(r, g, b, 1).uv(u0, v0).endVertex();
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        Matrix4f model = guiGraphics.pose().last().pose();
+        bufferBuilder.addVertex(model, x0, y1, z).setUv(u0, v1).setColor(r, g, b, 1);
+        bufferBuilder.addVertex(model, x1, y1, z).setUv(u1, v1).setColor(r, g, b, 1);
+        bufferBuilder.addVertex(model, x1, y0, z).setUv(u1, v0).setColor(r, g, b, 1);
+        bufferBuilder.addVertex(model, x0, y0, z).setUv(u0, v0).setColor(r, g, b, 1);
+        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
 
         RenderSystem.enableDepthTest();
     }

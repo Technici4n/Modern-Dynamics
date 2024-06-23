@@ -50,8 +50,10 @@ public class MdGameTests {
                             gametest.timeoutTicks(),
                             gametest.setupTicks(),
                             gametest.required(),
-                            gametest.requiredSuccesses(),
+                            gametest.manualOnly(),
                             gametest.attempts(),
+                            gametest.requiredSuccesses(),
+                            gametest.skyAccess(),
                             gameTestHelper -> {
                                 try {
                                     var testObject = testClass.getConstructor().newInstance();

@@ -32,8 +32,6 @@ import java.util.Set;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Nullable;
 
 public final class ItemCachedFilter {
@@ -127,23 +125,6 @@ public final class ItemCachedFilter {
     private static String getModId(FluidVariant variant) {
         // This returns "minecraft" if the item is unregistered
         return BuiltInRegistries.FLUID.getKey(variant.getFluid()).getNamespace();
-    }
-
-    private static boolean matchDamageIgnoreRest(@Nullable CompoundTag a, @Nullable CompoundTag b) {
-        return getDamage(a) == getDamage(b);
-    }
-
-    private static boolean matchIgnoringDamage(@Nullable CompoundTag a, @Nullable CompoundTag b) {
-        if (a == b) {
-            return true;
-        }
-
-        throw new NotImplementedException();
-
-    }
-
-    private static int getDamage(CompoundTag tag) {
-        return tag == null ? 0 : tag.getInt(ItemStack.TAG_DAMAGE);
     }
 
     @FunctionalInterface

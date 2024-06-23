@@ -143,13 +143,13 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
     @Override
     public void renderSlot(GuiGraphics guiGraphics, Slot slot) {
         // Skip disabled slots
-        if (slot instanceof ConfigSlot<?>configSlot && !configSlot.isActive()) {
+        if (slot instanceof ConfigSlot<?> configSlot && !configSlot.isActive()) {
             return;
         }
         if (slot instanceof FluidConfigSlot fluidConfigSlot) {
             var variant = fluidConfigSlot.getFilter();
             if (!variant.isBlank()) {
-                FluidAttachedIoScreen.drawFluidInGui(guiGraphics.pose(), fluidConfigSlot.getFilter(), slot.x, slot.y);
+                FluidAttachedIoScreen.drawFluidInGui(guiGraphics, fluidConfigSlot.getFilter(), slot.x, slot.y);
             }
         } else {
             super.renderSlot(guiGraphics, slot);
@@ -185,7 +185,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         // Draw each slot's background
         for (Slot slot : getMenu().slots) {
             if (slot instanceof ConfigSlot || slot instanceof UpgradeSlot) {
-                if (slot instanceof ConfigSlot<?>cfg && !cfg.isActive()) {
+                if (slot instanceof ConfigSlot<?> cfg && !cfg.isActive()) {
                     // Disabled slot
                     guiGraphics.blit(TEXTURE, leftPos + slot.x - 1, topPos + slot.y - 1, 216, 162, 18, 18);
                 } else {

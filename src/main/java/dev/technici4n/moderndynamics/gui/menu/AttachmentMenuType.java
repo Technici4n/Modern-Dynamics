@@ -25,10 +25,11 @@ import dev.technici4n.moderndynamics.attachment.attached.AttachedIo;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -45,7 +46,7 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
     }
 
     @Override
-    public T create(int windowId, Inventory inv, FriendlyByteBuf data) {
+    public T create(int windowId, Inventory inv, RegistryFriendlyByteBuf data) {
         var world = inv.player.level();
 
         var bet = BuiltInRegistries.BLOCK_ENTITY_TYPE.get(data.readResourceLocation());
@@ -57,7 +58,8 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
         }
         var tag = data.readNbt();
         // The cast is a bit ugly, but it just means that we trust the server to send the correct item.
-        var attachment = ((AttachmentFactory<A, AttachmentItem>) attachmentFactory).createAttachment(attachmentItem, tag, Runnables.doNothing());
+        var attachment = ((AttachmentFactory<A, AttachmentItem>) attachmentFactory).createAttachment(attachmentItem, tag, Runnables.doNothing(),
+                data.registryAccess());
 
         return world.getBlockEntity(pos, bet).map(blockEntity -> {
             if (blockEntity instanceof PipeBlockEntity pipe) {
@@ -76,18 +78,18 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
     }
 
     public interface AttachmentFactory<A extends AttachedAttachment, I extends AttachmentItem> {
-        A createAttachment(I item, CompoundTag configData, Runnable setChangedCallback);
+        A createAttachment(I item, CompoundTag configData, Runnable setChangedCallback, HolderLookup.Provider registries);
     }
 
     public interface MenuFactory<A extends AttachedAttachment, T extends AbstractContainerMenu> {
         T createMenu(int syncId, Inventory playerInventory, PipeBlockEntity pipe, Direction side, A attachment);
     }
 
-    public static void writeScreenOpeningData(PipeBlockEntity pipe, Direction side, AttachedIo attachment, FriendlyByteBuf buf) {
+    public static void writeScreenOpeningData(PipeBlockEntity pipe, Direction side, AttachedIo attachment, RegistryFriendlyByteBuf buf) {
         buf.writeResourceLocation(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(pipe.getType()));
         buf.writeEnum(side);
         buf.writeBlockPos(pipe.getBlockPos());
         buf.writeVarInt(BuiltInRegistries.ITEM.getId(attachment.getItem()));
-        buf.writeNbt(attachment.writeConfigTag(new CompoundTag()));
+        buf.writeNbt(attachment.writeConfigTag(new CompoundTag(), buf.registryAccess()));
     }
 }

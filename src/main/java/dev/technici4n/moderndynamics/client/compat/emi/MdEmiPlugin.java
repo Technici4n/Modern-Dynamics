@@ -47,13 +47,13 @@ public class MdEmiPlugin implements EmiPlugin {
         }
 
         registry.addGenericExclusionArea((screen, bounds) -> {
-            if (screen instanceof AttachedIoScreen<?>ioScreen) {
+            if (screen instanceof AttachedIoScreen<?> ioScreen) {
                 ioScreen.appendExclusionZones(r -> bounds.accept(new Bounds(r.getX(), r.getY(), r.getWidth(), r.getHeight())));
             }
         });
 
         registry.addGenericStackProvider((screen, mouseX, mouseY) -> {
-            if (screen instanceof AttachedIoScreen<?>ioScreen) {
+            if (screen instanceof AttachedIoScreen<?> ioScreen) {
                 // Ensures that users can press R, U, etc... on fluid config slots.
                 if (ioScreen.getHoveredSlot() instanceof FluidConfigSlot fluidConfig) {
                     var variant = fluidConfig.getFilter();

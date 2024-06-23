@@ -95,7 +95,7 @@ public class MdJeiPlugin implements IModPlugin {
                     var variant = fluidConfig.getFilter();
                     if (!variant.isBlank()) {
                         var ing = registration.getJeiHelpers().getIngredientManager();
-                        return ing.createTypedIngredient(platformFluidHelper.create(variant.getFluid(), 1, variant.getNbt()))
+                        return ing.createTypedIngredient(variant.toStack(1))
                                 .map(slotArea(screen, fluidConfig));
                     }
                 }

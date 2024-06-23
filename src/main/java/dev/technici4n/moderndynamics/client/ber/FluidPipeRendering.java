@@ -72,7 +72,7 @@ public class FluidPipeRendering {
             quad(emitter, direction, x, y, z, X, Y, Z);
             emitter.spriteBake(sprite, MutableQuadView.BAKE_LOCK_UV);
             emitter.color(-1, -1, -1, -1);
-            vc.putBulkData(ms.last(), emitter.toBakedQuad(sprite), r, g, b, FULL_LIGHT, OverlayTexture.NO_OVERLAY);
+            vc.putBulkData(ms.last(), emitter.toBakedQuad(sprite), r, g, b, 1, FULL_LIGHT, OverlayTexture.NO_OVERLAY);
         };
 
         /*

@@ -20,6 +20,7 @@ package dev.technici4n.moderndynamics;
 
 import com.google.common.base.Preconditions;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
@@ -48,13 +49,13 @@ public abstract class MdBlockEntity extends BlockEntity {
         sync(true);
     }
 
-    public abstract void toTag(CompoundTag tag);
+    public abstract void toTag(CompoundTag tag, HolderLookup.Provider registries);
 
-    public abstract void fromTag(CompoundTag tag);
+    public abstract void fromTag(CompoundTag tag, HolderLookup.Provider registries);
 
-    public abstract void toClientTag(CompoundTag tag);
+    public abstract void toClientTag(CompoundTag tag, HolderLookup.Provider registries);
 
-    public abstract void fromClientTag(CompoundTag tag);
+    public abstract void fromClientTag(CompoundTag tag, HolderLookup.Provider registries);
 
     @Override
     public final ClientboundBlockEntityDataPacket getUpdatePacket() {
@@ -62,28 +63,28 @@ public abstract class MdBlockEntity extends BlockEntity {
     }
 
     @Override
-    public final CompoundTag getUpdateTag() {
-        CompoundTag nbt = super.getUpdateTag();
-        toClientTag(nbt);
+    public final CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag nbt = super.getUpdateTag(registries);
+        toClientTag(nbt, registries);
         nbt.putBoolean("#c", shouldClientRemesh); // mark client tag
         shouldClientRemesh = false;
         return nbt;
     }
 
     @Override
-    protected final void saveAdditional(CompoundTag nbt) {
-        toTag(nbt);
+    protected final void saveAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
+        toTag(nbt, registries);
     }
 
     @Override
-    public final void load(CompoundTag nbt) {
+    public final void loadAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
         if (nbt.contains("#c")) {
-            fromClientTag(nbt);
+            fromClientTag(nbt, registries);
             if (nbt.getBoolean("#c")) {
                 remesh();
             }
         } else {
-            fromTag(nbt);
+            fromTag(nbt, registries);
         }
     }
 

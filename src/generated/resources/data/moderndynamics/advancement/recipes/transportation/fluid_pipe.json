@@ -1,13 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_ender_pearl": {
+    "has_ingot": {
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:ender_pearl"
-            ]
+            "items": "minecraft:copper_ingot"
           }
         ]
       },
@@ -15,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:attractor"
+        "recipe": "moderndynamics:fluid_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -23,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_ender_pearl"
+      "has_ingot"
     ]
   ],
   "rewards": {
     "recipes": [
-      "moderndynamics:attractor"
+      "moderndynamics:fluid_pipe"
     ]
   }
 }

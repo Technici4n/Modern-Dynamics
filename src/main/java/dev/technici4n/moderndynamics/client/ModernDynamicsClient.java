@@ -37,12 +37,12 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.HitResult;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderHighlightEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.TickEvent;
 
 public final class ModernDynamicsClient {
     public ModernDynamicsClient(IEventBus modEvents) {
@@ -62,11 +62,9 @@ public final class ModernDynamicsClient {
             e.register(MdMenus.FLUID_IO, FluidAttachedIoScreen::new);
         });
 
-        NeoForge.EVENT_BUS.addListener(TickEvent.ClientTickEvent.class, e -> {
-            if (e.phase == TickEvent.Phase.START) {
-                if (!Minecraft.getInstance().isPaused()) {
-                    ClientTravelingItemSmoothing.onUnpausedTick();
-                }
+        NeoForge.EVENT_BUS.addListener(ClientTickEvent.Pre.class, e -> {
+            if (!Minecraft.getInstance().isPaused()) {
+                ClientTravelingItemSmoothing.onUnpausedTick();
             }
         });
         NeoForge.EVENT_BUS.addListener(RenderHighlightEvent.Block.class, ModernDynamicsClient::renderPipeAttachmentOutline);

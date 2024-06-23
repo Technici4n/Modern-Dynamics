@@ -19,21 +19,21 @@
 package dev.technici4n.moderndynamics.packets;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 
-record SetEnum<T extends Enum<T>> (ResourceLocation id, int syncId, T value) implements CustomPacketPayload {
-    @Override
-    public void write(FriendlyByteBuf buf) {
-        buf.writeInt(syncId);
-        buf.writeEnum(value);
-    }
+record SetEnum<T extends Enum<T>>(Type<SetEnum<T>> type, int syncId, T value) implements CustomPacketPayload {
+    public static <T extends Enum<T>> StreamCodec<FriendlyByteBuf, SetEnum<T>> codec(Type<SetEnum<T>> type, Class<T> enumClass) {
+        StreamCodec<FriendlyByteBuf, T> enumCodec = StreamCodec.of(
+                FriendlyByteBuf::writeEnum,
+                buf -> buf.readEnum(enumClass));
 
-    public static <T extends Enum<T>> FriendlyByteBuf.Reader<SetEnum<T>> makeReader(ResourceLocation id, Class<T> enumClass) {
-        return buf -> {
-            var syncId = buf.readInt();
-            var value = buf.readEnum(enumClass);
-            return new SetEnum<>(id, syncId, value);
-        };
+        return StreamCodec.composite(
+                ByteBufCodecs.VAR_INT,
+                SetEnum::syncId,
+                enumCodec,
+                SetEnum::value,
+                (syncId, value) -> new SetEnum<>(type, syncId, value));
     }
 }

@@ -85,7 +85,7 @@ public class ModelsProvider extends BlockStateProvider {
         ResourceLocation id = Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(MdItems.WRENCH));
         itemModels().getBuilder(id.toString())
                 .parent(new ModelFile.UncheckedModelFile("item/handheld"))
-                .texture("layer0", new ResourceLocation(id.getNamespace(), "item/" + id.getPath()));
+                .texture("layer0", ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "item/" + id.getPath()));
     }
 
 }

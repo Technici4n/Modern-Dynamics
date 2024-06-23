@@ -35,6 +35,7 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.material.Fluid;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 class DragDropHandler implements EmiDragDropHandler<Screen> {
     private static Rect2i getSlotBounds(Slot slot, AttachedIoScreen<?> screen) {
@@ -58,7 +59,7 @@ class DragDropHandler implements EmiDragDropHandler<Screen> {
         if (gui instanceof FluidAttachedIoScreen ioScreen && ing.getKey() instanceof Fluid f) {
             for (var s : ioScreen.getMenu().slots) {
                 if (s instanceof FluidConfigSlot slot && slot.isActive() && getSlotBounds(s, ioScreen).contains(mouseX, mouseY)) {
-                    var fv = FluidVariant.of(f, ing.getNbt());
+                    var fv = FluidVariant.of(new FluidStack(f.builtInRegistryHolder(), 1, ing.getComponentChanges()));
                     ioScreen.getMenu().setFilter(slot.getConfigIdx(), fv, true);
                     return true;
                 }

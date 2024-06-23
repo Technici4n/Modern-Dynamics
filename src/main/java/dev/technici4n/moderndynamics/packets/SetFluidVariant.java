@@ -20,30 +20,25 @@ package dev.technici4n.moderndynamics.packets;
 
 import dev.technici4n.moderndynamics.util.FluidVariant;
 import dev.technici4n.moderndynamics.util.MdId;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 
 public record SetFluidVariant(int syncId, int configIdx, FluidVariant variant) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = MdId.of("set_fluid_variant");
+    public static final StreamCodec<RegistryFriendlyByteBuf, SetFluidVariant> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.VAR_INT,
+            SetFluidVariant::syncId,
+            ByteBufCodecs.VAR_INT,
+            SetFluidVariant::configIdx,
+            FluidVariant.STREAM_CODEC,
+            SetFluidVariant::variant,
+            SetFluidVariant::new);
+    public static final Type<SetFluidVariant> TYPE = new Type<>(MdId.of("set_fluid_variant"));
 
     @Override
-    public void write(FriendlyByteBuf buf) {
-        buf.writeInt(syncId);
-        buf.writeInt(configIdx);
-        variant.toPacket(buf);
-    }
-
-    public static SetFluidVariant read(FriendlyByteBuf buf) {
-        int syncId = buf.readInt();
-        int configIdx = buf.readInt();
-        FluidVariant variant = FluidVariant.fromPacket(buf);
-        return new SetFluidVariant(syncId, configIdx, variant);
-    }
-
-    @Override
-    public ResourceLocation id() {
-        return ID;
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

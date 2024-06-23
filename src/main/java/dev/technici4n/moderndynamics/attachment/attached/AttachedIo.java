@@ -31,6 +31,7 @@ import dev.technici4n.moderndynamics.util.WrenchHelper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
@@ -45,22 +46,22 @@ public abstract class AttachedIo extends AttachedAttachment {
     private RedstoneMode redstoneMode;
     protected final UpgradeContainer upgradeContainer = new UpgradeContainer();
 
-    public AttachedIo(AttachmentItem item, CompoundTag configData, Runnable setChangedCallback) {
+    public AttachedIo(AttachmentItem item, CompoundTag configData, Runnable setChangedCallback, HolderLookup.Provider registries) {
         super(item, configData);
 
         this.setChangedCallback = setChangedCallback;
         this.filterInversion = readEnum(FilterInversionMode.values(), configData, "filterInversion", FilterInversionMode.BLACKLIST);
         this.redstoneMode = readEnum(RedstoneMode.values(), configData, "redstoneMode", RedstoneMode.IGNORED);
-        this.upgradeContainer.readNbt(configData);
+        this.upgradeContainer.readNbt(configData, registries);
     }
 
     @Override
-    public CompoundTag writeConfigTag(CompoundTag configData) {
-        super.writeConfigTag(configData);
+    public CompoundTag writeConfigTag(CompoundTag configData, HolderLookup.Provider registries) {
+        super.writeConfigTag(configData, registries);
 
         writeEnum(this.filterInversion, configData, "filterInversion");
         writeEnum(this.redstoneMode, configData, "redstoneMode");
-        this.upgradeContainer.writeNbt(configData);
+        this.upgradeContainer.writeNbt(configData, registries);
 
         return configData;
     }
