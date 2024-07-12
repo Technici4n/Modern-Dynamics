@@ -161,7 +161,7 @@ public class RecipesProvider extends RecipeProvider {
                         ImmutableMap.of(
                                 "item", miCableItemId)),
                 "result", ImmutableMap.of(
-                        "item", mdCableItemId,
+                        "id", mdCableItemId,
                         "count", 4)),
                 condition);
 
@@ -171,7 +171,7 @@ public class RecipesProvider extends RecipeProvider {
                 "key", ImmutableMap.of(
                         "c", ImmutableMap.of("item", mdCableItemId)),
                 "result", ImmutableMap.of(
-                        "item", miCableItemId)),
+                        "id", miCableItemId)),
                 condition);
     }
 
