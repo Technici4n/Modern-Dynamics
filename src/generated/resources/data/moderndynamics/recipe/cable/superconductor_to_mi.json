@@ -10,7 +10,7 @@
     }
   },
   "result": {
-    "item": "modern_industrialization:superconductor_cable"
+    "id": "modern_industrialization:superconductor_cable"
   },
   "neoforge:conditions": [
     {

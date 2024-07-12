@@ -6,7 +6,7 @@
     }
   ],
   "result": {
-    "item": "moderndynamics:ev_cable",
+    "id": "moderndynamics:ev_cable",
     "count": 4
   },
   "neoforge:conditions": [

@@ -6,7 +6,7 @@
     }
   ],
   "result": {
-    "item": "moderndynamics:hv_cable",
+    "id": "moderndynamics:hv_cable",
     "count": 4
   },
   "neoforge:conditions": [
