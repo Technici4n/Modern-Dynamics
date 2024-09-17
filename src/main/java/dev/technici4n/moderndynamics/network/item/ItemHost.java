@@ -278,7 +278,7 @@ public class ItemHost extends NodeHost {
     private int move(IItemHandler from, IItemHandler to, Predicate<ItemVariant> predicate, int maxAmount) {
         var moved = 0;
         for (int i = 0; i < from.getSlots(); i++) {
-            var extracted = from.extractItem(i, maxAmount, true);
+            var extracted = from.extractItem(i, maxAmount - moved, true);
             if (!extracted.isEmpty()) {
                 var variant = ItemVariant.of(extracted);
                 if (predicate.test(variant)) {
