@@ -258,7 +258,7 @@ if (System.getenv("CURSEFORGE_API_KEY") && !version.endsWith("-SNAPSHOT")) {
             changelogType = "markdown"
             delegate.changelog = changelog
 
-            addGameVersion "1.21"
+            addGameVersion "1.21.1"
             addGameVersion "NeoForge"
             addGameVersion "Java 21"
 
@@ -284,7 +284,7 @@ if (System.getenv("MODRINTH_API_KEY") && !version.endsWith("-SNAPSHOT")) {
         delegate.changelog = changelog
         versionType = releaseChannel.toUpperCase()
         uploadFile = jar.archiveFile
-        gameVersions = ["1.21"]
+        gameVersions = ["1.21.1"]
         loaders = ["neoforge"]
     }
 }
