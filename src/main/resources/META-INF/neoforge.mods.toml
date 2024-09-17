@@ -4,7 +4,7 @@ issueTrackerURL="https://github.com/Technici4n/Modern-Dynamics"
 displayURL="https://www.curseforge.com/minecraft/mc-mods/modern-dynamics"
 logoFile="assets/moderndynamics/mdlogo.png"
 authors="Technici4n"
-license="MPLv2"
+license="LGPLv3"
 
 [[mods]]
 modId="moderndynamics"
@@ -15,9 +15,9 @@ description="Modern item, fluid and energy transport Minecraft mod."
 [[mixins]]
 config="moderndynamics.mixins.json"
 
-[[dependencies.ae2]]
-modId="minecraft"
+[[dependencies.moderndynamics]]
+modId="neoforge"
 type="REQUIRED"
-versionRange="1.20.4"
+versionRange="[21.1,)"
 ordering="NONE"
 side="BOTH"
