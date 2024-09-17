@@ -1,0 +1,14 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:directory",
+      "prefix": "pipe/",
+      "source": "pipe"
+    },
+    {
+      "type": "minecraft:directory",
+      "prefix": "attachment/",
+      "source": "attachment"
+    }
+  ]
+}

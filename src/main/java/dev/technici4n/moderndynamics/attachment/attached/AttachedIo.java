@@ -24,11 +24,14 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
+import dev.technici4n.moderndynamics.attachment.upgrade.LoadedUpgrades;
+import dev.technici4n.moderndynamics.attachment.upgrade.UpgradeType;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
@@ -43,22 +46,22 @@ public abstract class AttachedIo extends AttachedAttachment {
     private RedstoneMode redstoneMode;
     protected final UpgradeContainer upgradeContainer = new UpgradeContainer();
 
-    public AttachedIo(AttachmentItem item, CompoundTag configData, Runnable setChangedCallback) {
+    public AttachedIo(AttachmentItem item, CompoundTag configData, Runnable setChangedCallback, HolderLookup.Provider registries) {
         super(item, configData);
 
         this.setChangedCallback = setChangedCallback;
         this.filterInversion = readEnum(FilterInversionMode.values(), configData, "filterInversion", FilterInversionMode.BLACKLIST);
         this.redstoneMode = readEnum(RedstoneMode.values(), configData, "redstoneMode", RedstoneMode.IGNORED);
-        this.upgradeContainer.readNbt(configData);
+        this.upgradeContainer.readNbt(configData, registries);
     }
 
     @Override
-    public CompoundTag writeConfigTag(CompoundTag configData) {
-        super.writeConfigTag(configData);
+    public CompoundTag writeConfigTag(CompoundTag configData, HolderLookup.Provider registries) {
+        super.writeConfigTag(configData, registries);
 
         writeEnum(this.filterInversion, configData, "filterInversion");
         writeEnum(this.redstoneMode, configData, "redstoneMode");
-        this.upgradeContainer.writeNbt(configData);
+        this.upgradeContainer.writeNbt(configData, registries);
 
         return configData;
     }
@@ -96,7 +99,35 @@ public abstract class AttachedIo extends AttachedAttachment {
     }
 
     public boolean mayPlaceUpgrade(int slot, Item upgrade) {
-        return upgradeContainer.mayPlaceUpgrade(slot, upgrade);
+        if (!upgradeContainer.mayPlaceUpgrade(slot, upgrade)) {
+            // Duplicate upgrade
+            return false;
+        }
+
+        UpgradeType type = LoadedUpgrades.getType(upgrade);
+        if (type.getAddFilterSlots() > 0) {
+            return true;
+        }
+
+        if (this instanceof ItemAttachedIo) {
+            if (type.isEnableAdvancedBehavior() || type.getAddItemSpeed() > 0) {
+                return true;
+            }
+
+            if (getType() != IoAttachmentType.FILTER) {
+                if (type.getAddItemCount() > 0 || type.getAddItemTransferFrequency() > 0) {
+                    return true;
+                }
+            }
+        }
+
+        if (this instanceof FluidAttachedIo) {
+            if (type.getAddFluidTransfer() > 0 || type.getMultiplyFluidTransfer() > 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void onUpgradesChanged() {

@@ -18,19 +18,45 @@
  */
 package dev.technici4n.moderndynamics.data;
 
-import dev.technici4n.moderndynamics.init.MdBlocks;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
+import dev.technici4n.moderndynamics.MdBlock;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.PackOutput;
+import net.minecraft.data.loot.BlockLootSubProvider;
+import net.minecraft.data.loot.LootTableProvider;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 
-public class LootTablesProvider extends FabricBlockLootTableProvider {
-    protected LootTablesProvider(FabricDataGenerator dataGenerator) {
-        super(dataGenerator);
+public class LootTablesProvider extends BlockLootSubProvider {
+    public static LootTableProvider create(PackOutput pOutput, CompletableFuture<HolderLookup.Provider> registries) {
+        return new LootTableProvider(
+                pOutput,
+                Set.of(),
+                List.of(
+                        new LootTableProvider.SubProviderEntry(LootTablesProvider::new, LootContextParamSets.BLOCK)),
+                registries);
+    }
+
+    protected LootTablesProvider(HolderLookup.Provider registries) {
+        super(Set.of(), FeatureFlagSet.of(), registries);
     }
 
     @Override
-    protected void generateBlockLootTables() {
-        for (var block : MdBlocks.ALL_PIPES) {
-            dropSelf(block);
+    protected void generate() {
+    }
+
+    @Override
+    public void generate(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {
+        for (var block : BuiltInRegistries.BLOCK) {
+            if (block instanceof MdBlock) {
+                output.accept(block.getLootTable(), createSingleItemTable(block));
+            }
         }
     }
 }

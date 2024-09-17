@@ -1,0 +1,12 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "techreborn"
+    }
+  ],
+  "addFilterSlots": 2,
+  "addItemCount": 10,
+  "item": "techreborn:electronic_circuit",
+  "slotLimit": 6
+}

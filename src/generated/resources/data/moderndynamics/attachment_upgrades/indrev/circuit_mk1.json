@@ -1,0 +1,12 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "indrev"
+    }
+  ],
+  "addFilterSlots": 2,
+  "addItemCount": 10,
+  "item": "indrev:circuit_mk1",
+  "slotLimit": 6
+}

@@ -1,0 +1,13 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "addFilterSlots": 2,
+  "addFluidTransfer": 1,
+  "addItemCount": 10,
+  "item": "ae2:capacity_card",
+  "slotLimit": 6
+}

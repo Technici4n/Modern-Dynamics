@@ -22,6 +22,7 @@ import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.upgrade.LoadedUpgrades;
 import dev.technici4n.moderndynamics.attachment.upgrade.UpgradeType;
 import java.util.function.ToIntFunction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
@@ -32,12 +33,12 @@ import net.minecraft.world.item.ItemStack;
 class UpgradeContainer {
     final NonNullList<ItemStack> upgrades = NonNullList.withSize(AttachedIo.UPGRADE_SLOTS, ItemStack.EMPTY);
 
-    public void readNbt(CompoundTag tag) {
-        ContainerHelper.loadAllItems(tag, upgrades);
+    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        ContainerHelper.loadAllItems(tag, upgrades, registries);
     }
 
-    public void writeNbt(CompoundTag tag) {
-        ContainerHelper.saveAllItems(tag, upgrades);
+    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        ContainerHelper.saveAllItems(tag, upgrades, registries);
     }
 
     public boolean mayPlaceUpgrade(int slot, Item upgrade) {
@@ -75,8 +76,8 @@ class UpgradeContainer {
         return Mth.clamp(40 / (1 + reduce(UpgradeType::getAddItemTransferFrequency)), 1, 200);
     }
 
-    public long getFluidMaxIo() {
-        int totalAdd = 1 + reduce(UpgradeType::getAddItemTransferFrequency);
+    public int getFluidMaxIo() {
+        int totalAdd = 1 + reduce(UpgradeType::getAddFluidTransfer);
         int totalMultiply = 1 + reduce(UpgradeType::getMultiplyFluidTransfer);
         return Mth.clamp(totalAdd * totalMultiply, 1, 1_000_000) * Constants.Fluids.BASE_IO;
     }

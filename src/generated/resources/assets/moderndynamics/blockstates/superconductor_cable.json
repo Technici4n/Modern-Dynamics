@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "moderndynamics:block/superconductor_cable"
+    }
+  }
+}

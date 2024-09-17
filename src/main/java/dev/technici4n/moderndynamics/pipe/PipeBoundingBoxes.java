@@ -18,13 +18,14 @@
  */
 package dev.technici4n.moderndynamics.pipe;
 
+import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class PipeBoundingBoxes {
-    private static final double CORE_SIZE = 6.0 / 16;
-    private static final double CORE_START = (1 - CORE_SIZE) / 2;
-    private static final double CORE_END = CORE_START + CORE_SIZE;
+    public static final float CORE_SIZE = 6f / 16;
+    public static final float CORE_START = (1 - CORE_SIZE) / 2;
+    public static final float CORE_END = CORE_START + CORE_SIZE;
 
     public static final VoxelShape CORE_SHAPE = Shapes.box(CORE_START, CORE_START, CORE_START, CORE_END, CORE_END, CORE_END);
     public static final VoxelShape[] PIPE_CONNECTIONS = buildSideShapes(CORE_SIZE, CORE_START);
@@ -70,5 +71,36 @@ public class PipeBoundingBoxes {
         }
 
         return combinedShapes;
+    }
+
+    private static final ConcurrentHashMap<Integer, VoxelShape> pipeShapeCache = new ConcurrentHashMap<>();
+
+    public static VoxelShape getPipeShape(int pipeConnections, int inventoryConnections, int attachments) {
+        // Attachments force inventory connections
+        inventoryConnections |= attachments;
+
+        // Get shape from cache first
+        int cacheKey = pipeConnections | (inventoryConnections << 6);
+        var cachedShape = pipeShapeCache.get(cacheKey);
+        if (cachedShape != null) {
+            return cachedShape;
+        }
+
+        // Otherwise compute it
+        int allConnections = pipeConnections | inventoryConnections;
+
+        VoxelShape shape = CORE_SHAPE;
+        for (int i = 0; i < 6; ++i) {
+            if ((allConnections & (1 << i)) > 0) {
+                shape = Shapes.or(shape, PIPE_CONNECTIONS[i]);
+            }
+
+            if ((inventoryConnections & (1 << i)) > 0) {
+                shape = Shapes.or(shape, CONNECTOR_SHAPES[i]);
+            }
+        }
+
+        pipeShapeCache.put(cacheKey, shape);
+        return shape;
     }
 }

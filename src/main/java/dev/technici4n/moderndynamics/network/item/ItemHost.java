@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
+import dev.technici4n.moderndynamics.network.HostAdjacentCaps;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
@@ -31,23 +32,25 @@ import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItem;
 import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItemSmoothing;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import java.util.function.Predicate;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.wrapper.EmptyItemHandler;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemHost extends NodeHost {
@@ -55,7 +58,7 @@ public class ItemHost extends NodeHost {
     private final List<TravelingItem> travelingItems = new ArrayList<>();
     private final List<ClientTravelingItem> clientTravelingItems = new ArrayList<>();
     private final long[] lastOperationTick = new long[6];
-    private final int[] roundRobinIndex = new int[6];
+    private final HostAdjacentCaps<IItemHandler> adjacentCaps = new HostAdjacentCaps<>(this, Capabilities.ItemHandler.BLOCK);
 
     public ItemHost(PipeBlockEntity pipe) {
         super(pipe);
@@ -82,8 +85,8 @@ public class ItemHost extends NodeHost {
 
     @Override
     @Nullable
-    public Object getApiInstance(BlockApiLookup<?, Direction> lookup, Direction side) {
-        if (lookup == ItemStorage.SIDED && allowItemConnection(side)) {
+    public Object getApiInstance(BlockCapability<?, Direction> lookup, @Nullable Direction side) {
+        if (lookup == Capabilities.ItemHandler.BLOCK && side != null && allowItemConnection(side)) {
             return buildExternalNetworkInjectStorage(side);
         }
         return null;
@@ -98,33 +101,33 @@ public class ItemHost extends NodeHost {
     /**
      * Storage used for external injections (e.g. via hoppers), does not respect routing mode.
      */
-    private Storage<ItemVariant> buildExternalNetworkInjectStorage(Direction side) {
-        double speedupFactor = getAttachment(side) instanceof ItemAttachedIo io ? io.getItemSpeedupFactor() : 1;
-        return (InsertStorage) (resource, maxAmount, transaction) -> {
+    private IItemHandler buildExternalNetworkInjectStorage(Direction side) {
+        return new InsertionOnlyItemHandler((resource, maxAmount, simulate) -> {
             NetworkNode<ItemHost, ItemCache> node = findNode();
             if (node != null) {
                 var cache = node.getNetworkCache();
                 var paths = cache.pathCache.getPaths(node, side.getOpposite());
-                // The node can be null if the pipe was just placed, and not initialized yet.
-                return cache.insertList(node, paths, resource, maxAmount, transaction, speedupFactor);
+                double speedupFactor = getAttachment(side) instanceof ItemAttachedIo io ? io.getItemSpeedupFactor() : 1;
+                return cache.insertList(node, paths, resource, maxAmount, simulate, speedupFactor, null);
             } else {
+                // The node can be null if the pipe was just placed, and not initialized yet.
                 return 0;
             }
-        };
+        });
     }
 
     /**
      * Storage used by extractors. It respects routing mode.
      */
-    private Storage<ItemVariant> buildExtractorNetworkInjectStorage(Direction side, ItemAttachedIo extractor) {
+    private InsertionOnlyItemHandler buildExtractorNetworkInjectStorage(Direction side, ItemAttachedIo extractor,
+            @Nullable MaxParticipant maxIndexParticipant) {
         double speedupFactor = extractor.getItemSpeedupFactor();
         NetworkNode<ItemHost, ItemCache> node = findNode();
         var cache = node.getNetworkCache();
         var paths = rearrangePaths(cache.pathCache.getPaths(node, side.getOpposite()), extractor);
-        return (InsertStorage) (resource, maxAmount, transaction) -> {
-            // The node can be null if the pipe was just placed, and not initialized yet.
-            return cache.insertList(node, paths, resource, maxAmount, transaction, speedupFactor);
-        };
+        return new InsertionOnlyItemHandler((resource, maxAmount, simulate) -> {
+            return cache.insertList(node, paths, resource, maxAmount, simulate, speedupFactor, maxIndexParticipant);
+        });
     }
 
     protected EnumSet<Direction> getInventoryConnections() {
@@ -132,10 +135,10 @@ public class ItemHost extends NodeHost {
     }
 
     @Nullable
-    protected Storage<ItemVariant> getAdjacentStorage(Direction side, boolean checkAttachments) {
+    protected IItemHandler getAdjacentStorage(Direction side, boolean checkAttachments) {
         if ((inventoryConnections & (1 << side.get3DDataValue())) > 0 && (pipeConnections & (1 << side.get3DDataValue())) == 0
                 && (!checkAttachments || allowItemConnection(side))) {
-            return ItemStorage.SIDED.find(pipe.getLevel(), pipe.getBlockPos().relative(side), side.getOpposite());
+            return adjacentCaps.getCapability(side);
         }
         return null;
     }
@@ -171,98 +174,147 @@ public class ItemHost extends NodeHost {
                     continue;
                 lastOperationTick[side.get3DDataValue()] = currentTick;
                 if (itemAttachedIo.getType() == IoAttachmentType.EXTRACTOR) {
-                    if (itemAttachedIo.isStuffed()) {
-                        // Move from stuffed items to network
-                        if (itemAttachedIo.moveStuffedToStorage(buildExtractorNetworkInjectStorage(side, itemAttachedIo),
-                                itemAttachedIo.getMaxItemsExtracted()) > 0) {
-                            itemAttachedIo.incrementRoundRobin();
-                            pipe.setChanged();
-                            if (!itemAttachedIo.isStuffed()) {
-                                pipe.sync();
-                            }
-                        }
-                    } else {
-                        var adjStorage = getAdjacentStorage(side, false);
-                        if (adjStorage == null)
-                            continue;
-                        if (StorageUtil.move(
-                                adjStorage,
-                                buildExtractorNetworkInjectStorage(side, itemAttachedIo),
-                                itemAttachedIo::matchesItemFilter,
-                                itemAttachedIo.getMaxItemsExtracted(),
-                                null) > 0) {
-                            itemAttachedIo.incrementRoundRobin();
-                        }
-                    }
+                    tickExtractor(side, itemAttachedIo);
                 } else if (itemAttachedIo.getType() == IoAttachmentType.ATTRACTOR) {
-                    if (itemAttachedIo.isStuffed()) {
-                        // Move from stuffed items to target
-                        var adjStorage = getAdjacentStorage(side, false);
-                        if (adjStorage == null)
-                            continue;
-                        if (itemAttachedIo.moveStuffedToStorage(adjStorage, itemAttachedIo.getMaxItemsExtracted()) > 0) {
-                            pipe.setChanged();
-                            if (!itemAttachedIo.isStuffed()) {
-                                pipe.sync();
-                            }
-                        }
-                    } else {
-                        var insertTarget = SimulatedInsertionTargets.getTarget(pipe.getLevel(), pipe.getBlockPos().relative(side),
-                                side.getOpposite());
-                        if (!insertTarget.hasStorage())
-                            continue;
-
-                        NetworkNode<ItemHost, ItemCache> thisNode = findNode();
-                        var cache = thisNode.getNetworkCache();
-                        var pathCache = cache.pathCache;
-                        var paths = rearrangePaths(pathCache.getPaths(thisNode, side.getOpposite()), itemAttachedIo);
-
-                        long maxTransfer = itemAttachedIo.getMaxItemsExtracted();
-                        long toTransfer = maxTransfer;
-
-                        for (var path : paths) {
-                            var extractTarget = ItemStorage.SIDED.find(pipe.getLevel(), path.targetPos, path.getTargetBlockSide());
-                            if (extractTarget != null) {
-                                // Make sure to check the filter at the endpoint.
-                                var endpointFilter = path.getEndFilter(cache.level);
-
-                                var insertStorage = (InsertStorage) (variant, maxAmount, tx) -> {
-                                    return insertTarget.insert(variant, maxAmount, tx, (v, a) -> {
-                                        var reversedPath = path.reversed();
-                                        var travelingItem = reversedPath.makeTravelingItem(v, a, itemAttachedIo.getItemSpeedupFactor());
-                                        reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
-                                    });
-                                };
-                                toTransfer -= StorageUtil.move(
-                                        extractTarget,
-                                        insertStorage,
-                                        v -> itemAttachedIo.matchesItemFilter(v) && endpointFilter.test(v),
-                                        toTransfer,
-                                        null);
-                                if (toTransfer == 0)
-                                    break;
-                            }
-                        }
-
-                        if (toTransfer < maxTransfer) {
-                            itemAttachedIo.incrementRoundRobin();
-                        }
-                    }
+                    tickAttractor(side, itemAttachedIo);
                 }
             }
         }
     }
 
+    private void tickExtractor(Direction side, ItemAttachedIo extractor) {
+        if (extractor.isStuffed()) {
+            // Move from stuffed items to network
+            var maxParticipant = new MaxParticipant();
+
+            if (extractor.moveStuffedToStorage(buildExtractorNetworkInjectStorage(side, extractor, maxParticipant),
+                    extractor.getMaxItemsExtracted()) > 0) {
+                extractor.incrementRoundRobin(maxParticipant.getMax());
+                pipe.setChanged();
+                if (!extractor.isStuffed()) {
+                    pipe.sync();
+                }
+            }
+        } else {
+            var adjStorage = getAdjacentStorage(side, false);
+            if (adjStorage == null)
+                return;
+
+            var maxParticipant = new MaxParticipant();
+
+            if (move(
+                    adjStorage,
+                    buildExtractorNetworkInjectStorage(side, extractor, maxParticipant),
+                    extractor::matchesItemFilter,
+                    extractor.getMaxItemsExtracted()) > 0) {
+                extractor.incrementRoundRobin(maxParticipant.getMax());
+            }
+        }
+    }
+
+    public void tickAttractor(Direction side, ItemAttachedIo attractor) {
+        if (attractor.isStuffed()) {
+            // Move from stuffed items to target
+            var adjStorage = getAdjacentStorage(side, false);
+            if (adjStorage == null)
+                return;
+            if (attractor.moveStuffedToStorage(adjStorage, attractor.getMaxItemsExtracted()) > 0) {
+                pipe.setChanged();
+                if (!attractor.isStuffed()) {
+                    pipe.sync();
+                }
+            }
+        } else {
+            var insertTarget = SimulatedInsertionTargets.getTarget(pipe.getLevel(), pipe.getBlockPos().relative(side),
+                    side.getOpposite());
+            if (!insertTarget.hasStorage())
+                return;
+
+            NetworkNode<ItemHost, ItemCache> thisNode = findNode();
+            var cache = thisNode.getNetworkCache();
+            var pathCache = cache.pathCache;
+            var paths = rearrangePaths(pathCache.getPaths(thisNode, side.getOpposite()), attractor);
+
+            int maxTransfer = attractor.getMaxItemsExtracted();
+            int toTransfer = maxTransfer;
+
+            int nextPathIndex = 0;
+            for (var path : paths) {
+                nextPathIndex++;
+
+                // Don't allow attractors to pull from other attractors
+                if (path.getEndAttachment(cache.level) instanceof ItemAttachedIo io && io.getType() == IoAttachmentType.ATTRACTOR) {
+                    continue;
+                }
+
+                var extractTarget = pipe.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, path.targetPos, path.getTargetBlockSide());
+                if (extractTarget != null) {
+                    // Make sure to check the filter at the endpoint.
+                    var endpointFilter = path.getEndFilter(cache.level);
+
+                    InsertionOnlyItemHandler insertStorage = new InsertionOnlyItemHandler((variant, maxAmount, simulate) -> {
+                        return insertTarget.insert(variant, maxAmount, simulate, (v, a) -> {
+                            var reversedPath = path.reversed();
+                            var travelingItem = reversedPath.makeTravelingItem(v, a, attractor.getItemSpeedupFactor());
+                            reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
+                        });
+                    });
+                    toTransfer -= move(
+                            extractTarget,
+                            insertStorage,
+                            v -> attractor.matchesItemFilter(v) && endpointFilter.test(v),
+                            toTransfer);
+                    if (toTransfer == 0)
+                        break;
+                }
+            }
+
+            if (toTransfer < maxTransfer) {
+                attractor.incrementRoundRobin(nextPathIndex);
+            }
+        }
+    }
+
+    private int move(IItemHandler from, IItemHandler to, Predicate<ItemVariant> predicate, int maxAmount) {
+        var moved = 0;
+        for (int i = 0; i < from.getSlots(); i++) {
+            var extracted = from.extractItem(i, maxAmount, true);
+            if (!extracted.isEmpty()) {
+                var variant = ItemVariant.of(extracted);
+                if (predicate.test(variant)) {
+                    var overflow = ItemHandlerHelper.insertItemStacked(to, extracted, true);
+                    var likelyToFit = extracted.getCount() - overflow.getCount();
+                    if (likelyToFit > 0) {
+                        extracted = from.extractItem(i, likelyToFit, false);
+                        overflow = ItemHandlerHelper.insertItemStacked(to, extracted, false);
+                        moved += extracted.getCount() - overflow.getCount();
+                    }
+                }
+            }
+        }
+        return moved;
+    }
+
     public void tickMovingItems() {
-        if (travelingItems.size() == 0) {
+        if (travelingItems.isEmpty()) {
             return;
         }
+
+        long curTick = getLevel().getGameTime();
 
         // List of items that moved out of this pipe.
         List<TravelingItem> movedOut = new ArrayList<>();
 
         for (var iterator = travelingItems.iterator(); iterator.hasNext();) {
             var travelingItem = iterator.next();
+
+            // Make sure we only update items once per tick.
+            // This makes sure that we don't update items twice if they get moved to another pipe.
+            if (travelingItem.lastTick == curTick) {
+                continue;
+            }
+            travelingItem.lastTick = curTick;
+
             // Calculate in which path segment the item is now, and in which segment it is after moving it
             int currentIndex = (int) travelingItem.traveledDistance;
             travelingItem.traveledDistance += travelingItem.getSpeed();
@@ -285,16 +337,14 @@ public class ItemHost extends NodeHost {
                 var side = travelingItem.path.path[newIndex];
                 var storage = getAdjacentStorage(side, checkAttachments);
                 if (storage == null) {
-                    storage = Storage.empty();
+                    storage = EmptyItemHandler.INSTANCE;
                 }
-                long inserted = 0;
+                int inserted = 0;
                 // Check filter.
                 if (!checkAttachments || !(getAttachment(side) instanceof ItemAttachedIo io) ||
                         io.matchesItemFilter(travelingItem.variant) && io.isEnabledViaRedstone(pipe)) {
-                    try (var transaction = Transaction.openOuter()) {
-                        inserted = storage.insert(travelingItem.variant, travelingItem.amount, transaction);
-                        transaction.commit();
-                    }
+                    var overflow = ItemHandlerHelper.insertItemStacked(storage, travelingItem.variant.toStack(travelingItem.amount), false);
+                    inserted = travelingItem.amount - overflow.getCount();
                 }
                 finishTravel(travelingItem, inserted);
             } else {
@@ -326,16 +376,16 @@ public class ItemHost extends NodeHost {
         pipe.sync(false);
     }
 
-    private void finishTravel(TravelingItem item, long inserted) {
+    private void finishTravel(TravelingItem item, int inserted) {
         // In any case, remove the item from the simulated insertion target
         item.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(item.variant, item.amount);
-        long leftover = item.amount - inserted;
+        int leftover = item.amount - inserted;
 
         // Try to stuff first!
         var attachment = getAttachment(item.path.path[item.getPathLength() - 1]);
         if (leftover > 0 && attachment instanceof ItemAttachedIo io && io.getType() != IoAttachmentType.FILTER) {
             boolean wasStuffed = io.isStuffed();
-            io.getStuffedItems().merge(item.variant, item.amount, Long::sum);
+            io.getStuffedItems().merge(item.variant, item.amount, Integer::sum);
             pipe.setChanged();
             if (wasStuffed != io.isStuffed()) {
                 pipe.sync();
@@ -356,23 +406,23 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void writeNbt(CompoundTag tag) {
-        super.writeNbt(tag);
+    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeNbt(tag, registries);
         if (travelingItems.size() > 0) {
             ListTag list = new ListTag();
             for (var travelingItem : travelingItems) {
-                list.add(travelingItem.toNbt());
+                list.add(travelingItem.toNbt(registries));
             }
             tag.put("travelingItems", list);
         }
     }
 
     @Override
-    public void readNbt(CompoundTag tag) {
-        super.readNbt(tag);
+    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.readNbt(tag, registries);
         ListTag list = tag.getList("travelingItems", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); ++i) {
-            var item = TravelingItem.fromNbt(list.getCompound(i));
+            var item = TravelingItem.fromNbt(list.getCompound(i), registries);
 
             if (!item.variant.isBlank()) { // Guard against blank variants in case a mod is removed
                 travelingItems.add(item);
@@ -422,7 +472,7 @@ public class ItemHost extends NodeHost {
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
                 Direction dir = Direction.from3DDataValue(i);
-                Storage<ItemVariant> adjacentCap = ItemStorage.SIDED.find(pipe.getLevel(), pipe.getBlockPos().relative(dir), dir.getOpposite());
+                var adjacentCap = adjacentCaps.getCapability(dir);
 
                 if (adjacentCap == null) {
                     // Remove the direction from the bitmask
@@ -453,16 +503,16 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void writeClientNbt(CompoundTag tag) {
-        super.writeClientNbt(tag);
+    public void writeClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeClientNbt(tag, registries);
 
         if (travelingItems.size() > 0) {
             ListTag list = new ListTag();
             for (var travelingItem : travelingItems) {
                 CompoundTag compound = new CompoundTag();
                 compound.putInt("id", travelingItem.id);
-                compound.put("v", travelingItem.variant.toNbt());
-                compound.putLong("a", travelingItem.amount);
+                compound.put("v", travelingItem.variant.toNbt(registries));
+                compound.putInt("a", travelingItem.amount);
                 compound.putDouble("td", travelingItem.getPathLength() - 1);
                 compound.putDouble("d", travelingItem.traveledDistance);
                 int currentBlock = (int) Math.floor(travelingItem.traveledDistance);
@@ -476,8 +526,8 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void readClientNbt(CompoundTag tag) {
-        super.readClientNbt(tag);
+    public void readClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
+        super.readClientNbt(tag, registries);
 
         clientTravelingItems.clear();
         ListTag list = tag.getList("travelingItems", Tag.TAG_COMPOUND);
@@ -485,8 +535,8 @@ public class ItemHost extends NodeHost {
             CompoundTag compound = list.getCompound(i);
             var newItem = new ClientTravelingItem(
                     compound.getInt("id"),
-                    ItemVariant.fromNbt(compound.getCompound("v")),
-                    compound.getLong("a"),
+                    ItemVariant.fromNbt(compound.getCompound("v"), registries),
+                    compound.getInt("a"),
                     compound.getDouble("td"),
                     compound.getDouble("d"),
                     Direction.from3DDataValue(compound.getByte("in")),
@@ -499,9 +549,20 @@ public class ItemHost extends NodeHost {
 
     @Override
     public void clientTick() {
+        long curTick = getLevel().getGameTime();
+
         for (var it = clientTravelingItems.iterator(); it.hasNext();) {
             ClientTravelingItem travelingItem = it.next();
+
+            // Make sure we only update items once per tick.
+            // This makes sure that we don't update items twice if they get moved to another pipe.
+            if (travelingItem.lastTick == curTick) {
+                continue;
+            }
+            travelingItem.lastTick = curTick;
+
             travelingItem.traveledDistance += travelingItem.speed();
+            ClientTravelingItemSmoothing.onTickItem(travelingItem);
 
             if (Mth.frac(travelingItem.traveledDistance) < travelingItem.speed()) {
                 // Goes out of this pipe!

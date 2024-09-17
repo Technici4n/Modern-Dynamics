@@ -26,10 +26,10 @@ import dev.technici4n.moderndynamics.attachment.settings.FilterNbtMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterSimilarMode;
 import dev.technici4n.moderndynamics.attachment.settings.OversendingMode;
 import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
-import dev.technici4n.moderndynamics.gui.MdPackets;
 import dev.technici4n.moderndynamics.init.MdMenus;
+import dev.technici4n.moderndynamics.packets.MdPackets;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -59,7 +59,7 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
 
     @Override
     public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
-        if (slotIndex >= 0 && getSlot(slotIndex) instanceof ItemConfigSlot configSlot && configSlot.isEnabled()) {
+        if (slotIndex >= 0 && getSlot(slotIndex) instanceof ItemConfigSlot configSlot && configSlot.isActive()) {
             attachment.setFilter(configSlot.getConfigIdx(), ItemVariant.of(getCarried()));
         } else {
             super.clicked(slotIndex, button, actionType, player);

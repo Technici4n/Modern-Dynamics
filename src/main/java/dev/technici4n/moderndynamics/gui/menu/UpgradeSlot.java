@@ -47,11 +47,6 @@ public class UpgradeSlot extends Slot {
     }
 
     @Override
-    public void initialize(ItemStack stack) {
-        set(stack);
-    }
-
-    @Override
     public ItemStack remove(int amount) {
         return io.removeUpgrade(slot, amount);
     }

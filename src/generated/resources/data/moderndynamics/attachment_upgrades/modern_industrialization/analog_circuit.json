@@ -1,0 +1,12 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "modern_industrialization"
+    }
+  ],
+  "addFilterSlots": 2,
+  "enableAdvancedBehavior": true,
+  "item": "modern_industrialization:analog_circuit",
+  "slotLimit": 6
+}

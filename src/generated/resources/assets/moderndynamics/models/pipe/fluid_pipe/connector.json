@@ -1,0 +1,6 @@
+{
+  "parent": "moderndynamics:base/connector_transparent",
+  "textures": {
+    "0": "moderndynamics:pipe/fluid_pipe/connector"
+  }
+}

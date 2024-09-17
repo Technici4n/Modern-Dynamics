@@ -20,6 +20,7 @@ package dev.technici4n.moderndynamics.attachment;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedInhibitor;
 import dev.technici4n.moderndynamics.network.NodeHost;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 
 public class InhibitorAttachmentItem extends AttachmentItem {
@@ -28,7 +29,7 @@ public class InhibitorAttachmentItem extends AttachmentItem {
     }
 
     @Override
-    public AttachedInhibitor createAttached(NodeHost host, CompoundTag configTag) {
+    public AttachedInhibitor createAttached(NodeHost host, CompoundTag configTag, HolderLookup.Provider registries) {
         return new AttachedInhibitor(this, configTag);
     }
 }

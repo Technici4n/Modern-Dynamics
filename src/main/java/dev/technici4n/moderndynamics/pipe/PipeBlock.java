@@ -19,17 +19,20 @@
 package dev.technici4n.moderndynamics.pipe;
 
 import com.google.common.base.Preconditions;
+import dev.technici4n.moderndynamics.MdBlock;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
@@ -42,24 +45,23 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class PipeBlock extends Block implements EntityBlock, SimpleWaterloggedBlock {
+public class PipeBlock extends MdBlock implements EntityBlock, SimpleWaterloggedBlock {
     private static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
-    public final String id;
     private PipeItem item;
-    private BlockEntityType<PipeBlockEntity> blockEntityType;
+    private boolean transparent = true;
 
     public PipeBlock(String id) {
-        super(Properties.of(Material.METAL).noOcclusion().isRedstoneConductor((state, world, pos) -> false));
-        this.id = id;
+        super(id, Properties.of().mapColor(MapColor.METAL).noOcclusion().isRedstoneConductor((state, world, pos) -> false).destroyTime(0.2f));
         this.registerDefaultState(this.defaultBlockState().setValue(WATERLOGGED, false));
     }
 
@@ -73,19 +75,13 @@ public class PipeBlock extends Block implements EntityBlock, SimpleWaterloggedBl
         this.item = item;
     }
 
-    @Nullable
-    public BlockEntityType<PipeBlockEntity> getBlockEntityTypeNullable() {
-        return this.blockEntityType;
+    public PipeBlock setTransparent(boolean transparent) {
+        this.transparent = transparent;
+        return this;
     }
 
-    public BlockEntityType<PipeBlockEntity> getBlockEntityType() {
-        Preconditions.checkState(this.blockEntityType != null, "Block entity type has not been set on %s", this);
-        return this.blockEntityType;
-    }
-
-    public void setBlockEntityProvider(BlockEntityType<PipeBlockEntity> blockEntityType) {
-        Preconditions.checkState(this.blockEntityType == null, "blockEntityType has already been set on %s", this);
-        this.blockEntityType = blockEntityType;
+    public boolean isTransparent() {
+        return this.transparent;
     }
 
     @Override
@@ -118,9 +114,9 @@ public class PipeBlock extends Block implements EntityBlock, SimpleWaterloggedBl
     }
 
     @Override
-    public List<ItemStack> getDrops(BlockState state, LootContext.Builder builder) {
-        var drops = super.getDrops(state, builder);
-        if (builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof PipeBlockEntity pipe) {
+    public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        var drops = super.getDrops(state, params);
+        if (params.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof PipeBlockEntity pipe) {
             for (var host : pipe.getHosts()) {
                 host.addDrops(drops);
             }
@@ -128,13 +124,11 @@ public class PipeBlock extends Block implements EntityBlock, SimpleWaterloggedBl
         return drops;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public int getLightBlock(BlockState state, BlockGetter blockView, BlockPos pos) {
         return 0;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void neighborChanged(BlockState state, Level world, BlockPos pos, Block param4, BlockPos param5, boolean param6) {
         if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
@@ -147,7 +141,6 @@ public class PipeBlock extends Block implements EntityBlock, SimpleWaterloggedBl
         return true;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext ctx) {
         if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
@@ -157,17 +150,25 @@ public class PipeBlock extends Block implements EntityBlock, SimpleWaterloggedBl
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
-            return pipe.onUse(player, hand, hitResult);
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
+            BlockHitResult hitResult) {
+        if (level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+            return pipe.useItemOn(player, hand, hitResult);
+        } else {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+            return pipe.useWithoutItem(player, hitResult);
         } else {
             return InteractionResult.PASS;
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
         if (!state.is(newState.getBlock())) {
@@ -180,16 +181,21 @@ public class PipeBlock extends Block implements EntityBlock, SimpleWaterloggedBl
 
     @Nullable
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return blockEntityType.create(pos, state);
-    }
-
-    @Nullable
-    @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
         if (level.isClientSide()) {
             return (l, p, s, pipeBe) -> ((PipeBlockEntity) pipeBe).clientTick();
         }
         return null;
+    }
+
+    @Override
+    public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level, BlockPos pos, Player player) {
+        if (level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+            var result = pipe.overridePickBlock(target);
+            if (!result.isEmpty()) {
+                return result;
+            }
+        }
+        return super.getCloneItemStack(state, target, level, pos, player);
     }
 }

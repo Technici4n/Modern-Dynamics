@@ -27,11 +27,14 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
  * Also keeps track of a client tick counter.
  */
 public class ClientTravelingItemSmoothing {
-
     public static void onUnpausedTick() {
-        // Cleanup items that are not used anymore
         for (var it = INFOS.values().iterator(); it.hasNext();) {
             SmoothingInfo info = it.next();
+
+            // Apply 1 tick worth of smoothing
+            info.wrongOffset *= smooth(1);
+
+            // Cleanup items that are not used anymore
             info.deadTimer--;
             if (info.deadTimer <= 0) {
                 it.remove();
@@ -55,16 +58,30 @@ public class ClientTravelingItemSmoothing {
         info.resetTimer();
     }
 
-    public static double getAndUpdateDistanceDelta(ClientTravelingItem item) {
+    public static void onTickItem(ClientTravelingItem item) {
+        var info = INFOS.get(item.id);
+        if (info == null) {
+            return;
+        }
+        info.resetTimer();
+        info.lastTraveledDistance = item.traveledDistance;
+    }
+
+    public static double getDistanceDelta(ClientTravelingItem item, float partialTick) {
         var info = INFOS.get(item.id);
         if (info == null) {
             return 0;
         }
-        info.resetTimer();
-        info.lastTraveledDistance = item.traveledDistance;
-        double offset = info.wrongOffset;
-        info.wrongOffset *= 0.95; // might want to adjust based on FPS or similar
-        return offset;
+        return info.wrongOffset * smooth(partialTick);
+    }
+
+    /**
+     * Smoothing constant. It takes ~1 second to smooth out 95% of the offset.
+     */
+    private static final double SMOOTHING_EXP = 0.15;
+
+    private static double smooth(double ticks) {
+        return Math.exp(-SMOOTHING_EXP * ticks);
     }
 
     public static long getClientTick() {

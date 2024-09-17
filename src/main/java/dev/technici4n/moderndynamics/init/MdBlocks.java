@@ -18,18 +18,34 @@
  */
 package dev.technici4n.moderndynamics.init;
 
+import dev.technici4n.moderndynamics.extender.MachineExtenderBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 public class MdBlocks {
 
     public static final PipeBlock ITEM_PIPE = new PipeBlock("item_pipe");
     public static final PipeBlock FLUID_PIPE = new PipeBlock("fluid_pipe");
 
+    public static final PipeBlock LV_CABLE = new PipeBlock("lv_cable").setTransparent(false);
+    public static final PipeBlock MV_CABLE = new PipeBlock("mv_cable").setTransparent(false);
+    public static final PipeBlock HV_CABLE = new PipeBlock("hv_cable").setTransparent(false);
+    public static final PipeBlock EV_CABLE = new PipeBlock("ev_cable").setTransparent(false);
+    public static final PipeBlock SUPERCONDUCTOR_CABLE = new PipeBlock("superconductor_cable").setTransparent(false);
+
+    public static final MachineExtenderBlock MACHINE_EXTENDER = new MachineExtenderBlock();
+
     public static final PipeBlock[] ALL_PIPES = new PipeBlock[] {
             ITEM_PIPE,
             FLUID_PIPE,
+            // MI energy cables
+            LV_CABLE,
+            MV_CABLE,
+            HV_CABLE,
+            EV_CABLE,
+            SUPERCONDUCTOR_CABLE,
     };
 
     /*
@@ -92,8 +108,10 @@ public class MdBlocks {
 
     public static void init() {
         for (var block : ALL_PIPES) {
-            Registry.register(Registry.BLOCK, MdId.of(block.id), block);
+            Registry.register(BuiltInRegistries.BLOCK, MdId.of(block.id), block);
         }
+
+        Registry.register(BuiltInRegistries.BLOCK, MdId.of(MACHINE_EXTENDER.id), MACHINE_EXTENDER);
     }
 
 }

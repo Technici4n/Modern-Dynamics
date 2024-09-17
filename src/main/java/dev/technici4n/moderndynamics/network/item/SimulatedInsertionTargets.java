@@ -20,29 +20,28 @@ package dev.technici4n.moderndynamics.network.item;
 
 import java.util.HashMap;
 import java.util.Map;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiCache;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
+import net.neoforged.neoforge.capabilities.Capabilities;
 
 public class SimulatedInsertionTargets {
     private static final Map<Coord, SimulatedInsertionTarget> TARGETS = new HashMap<>();
 
-    private record Coord(ServerLevel world, BlockPos pos, Direction direction) {
+    record Coord(ServerLevel world, BlockPos pos, Direction direction) {
     }
 
     public static SimulatedInsertionTarget getTarget(Level w, BlockPos pos, Direction side) {
         ServerLevel world = (ServerLevel) w;
         return TARGETS.computeIfAbsent(new Coord(world, pos, side), coord -> {
-            var cache = BlockApiCache.create(ItemStorage.SIDED, world, pos);
-            return new SimulatedInsertionTarget(() -> cache.find(side));
+            var cache = BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, world, pos, side);
+            return new SimulatedInsertionTarget(coord, cache::getCapability);
         });
     }
 
-    static {
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> TARGETS.clear());
+    public static void clear() {
+        TARGETS.clear();
     }
 }

@@ -1,0 +1,11 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "modern_industrialization"
+    }
+  ],
+  "addItemCount": 16,
+  "item": "modern_industrialization:robot_arm",
+  "slotLimit": 10
+}

@@ -22,11 +22,10 @@ import com.google.common.base.Preconditions;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkCache;
 import dev.technici4n.moderndynamics.network.NetworkNode;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import java.util.List;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.server.level.ServerLevel;
+import org.jetbrains.annotations.Nullable;
 
 public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
     private boolean inserting = false;
@@ -51,9 +50,13 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
         }
     }
 
-    protected long insertList(NetworkNode<ItemHost, ItemCache> startingPoint, Iterable<ItemPath> paths, ItemVariant variant,
-            long maxAmount, TransactionContext transaction, double speedMultiplier) {
-        StoragePreconditions.notBlankNotNegative(variant, maxAmount);
+    /**
+     * @param checkedPathsConsumer Accepts how many paths were evaluated if not null. Ignored if null.
+     */
+    protected int insertList(NetworkNode<ItemHost, ItemCache> startingPoint, Iterable<ItemPath> paths, ItemVariant variant,
+            int maxAmount, boolean simulate, double speedMultiplier, @Nullable MaxParticipant checkedPathsConsumer) {
+        Preconditions.checkArgument(!variant.isBlank(), "blank variant");
+        Preconditions.checkArgument(maxAmount >= 0);
         Preconditions.checkArgument(startingPoint.getNetworkCache() == this, "Tried to insert into another network!");
 
         if (inserting) {
@@ -62,8 +65,11 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
 
         inserting = true;
         try {
-            long totalInserted = 0;
+            int totalInserted = 0;
+            int nextPathIndex = 0;
             for (var path : paths) {
+                nextPathIndex++;
+
                 // Check possible filter at the endpoint.
                 if (!path.getEndFilter(level).test(variant)) {
                     continue;
@@ -75,14 +81,19 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
 
                 var simulatedTarget = path.getInsertionTarget(startingPoint.getHost().getPipe().getLevel());
 
-                totalInserted += simulatedTarget.insert(variant, maxAmount - totalInserted, transaction, (v, amount) -> {
+                totalInserted += simulatedTarget.insert(variant, maxAmount - totalInserted, simulate, (v, amount) -> {
                     var travelingItem = path.makeTravelingItem(v, amount, speedMultiplier);
                     startingPoint.getHost().addTravelingItem(travelingItem);
                 });
                 if (totalInserted == maxAmount) {
-                    return totalInserted;
+                    break;
                 }
             }
+
+            if (checkedPathsConsumer != null) {
+                checkedPathsConsumer.addEntry(nextPathIndex, simulate);
+            }
+
             return totalInserted;
         } finally {
             inserting = false;

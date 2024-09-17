@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "b": {
+      "item": "minecraft:iron_bars"
+    },
+    "f": {
+      "item": "moderndynamics:fluid_pipe"
+    },
+    "i": {
+      "item": "moderndynamics:item_pipe"
+    }
+  },
+  "pattern": [
+    "bbb",
+    "ibf",
+    "bbb"
+  ],
+  "result": {
+    "count": 4,
+    "id": "moderndynamics:machine_extender"
+  }
+}

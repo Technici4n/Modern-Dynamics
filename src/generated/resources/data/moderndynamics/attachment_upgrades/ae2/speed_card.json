@@ -1,0 +1,13 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "addItemSpeed": 1,
+  "addItemTransferFrequency": 1,
+  "item": "ae2:speed_card",
+  "multiplyFluidTransfer": 1,
+  "slotLimit": 3
+}

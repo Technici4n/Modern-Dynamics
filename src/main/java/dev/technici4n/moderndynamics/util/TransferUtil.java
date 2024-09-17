@@ -18,40 +18,22 @@
  */
 package dev.technici4n.moderndynamics.util;
 
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
-public class TransferUtil {
-    public static final SingleSlotStorage<FluidVariant> EMPTY_SLOT = new SingleSlotStorage<>() {
-        @Override
-        public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            return 0;
-        }
+public final class TransferUtil {
+    private TransferUtil() {
+    }
 
-        @Override
-        public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            return 0;
-        }
+    public static int insertItemStacked(IItemHandler handler, ItemVariant variant, int amount) {
+        return insertItemStacked(handler, variant, amount, false);
+    }
 
-        @Override
-        public boolean isResourceBlank() {
-            return true;
-        }
+    public static int insertItemStacked(IItemHandler handler, ItemVariant variant, int amount, boolean simulate) {
+        var stack = variant.toStack(amount);
 
-        @Override
-        public FluidVariant getResource() {
-            return FluidVariant.blank();
-        }
+        var remainder = ItemHandlerHelper.insertItem(handler, stack, simulate);
+        return amount - remainder.getCount();
+    }
 
-        @Override
-        public long getAmount() {
-            return 0;
-        }
-
-        @Override
-        public long getCapacity() {
-            return 0;
-        }
-    };
 }

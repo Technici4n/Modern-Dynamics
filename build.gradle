@@ -1,27 +1,18 @@
 plugins {
-    id 'fabric-loom' version '0.12-SNAPSHOT'
+    id 'net.neoforged.moddev'
     id 'maven-publish'
-    id 'com.diffplug.spotless' version '5.14.0'
-    id 'com.matthewprenger.cursegradle' version '1.4.0'
-    id "com.modrinth.minotaur" version "1.2.1"
+    id 'com.diffplug.spotless'
+    id 'com.matthewprenger.cursegradle'
+    id "com.modrinth.minotaur"
 }
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
-
-archivesBaseName = project.archives_base_name
+def archivesBaseName = project.archives_base_name
 version = System.getenv("MOD_VERSION")
         ? System.getenv("MOD_VERSION")
-        : "local"
+        : "0.0.0"
 group = project.maven_group
 
 repositories {
-    maven {
-        url "https://maven.parchmentmc.net/"
-        content {
-            includeGroup "org.parchmentmc.data"
-        }
-    }
     maven {
         url "https://maven.shedaniel.me"
         content {
@@ -29,6 +20,13 @@ repositories {
             includeGroup "me.shedaniel.cloth"
             includeGroup "me.shedaniel"
             includeGroup "dev.architectury"
+        }
+    }
+    maven {
+        url "https://maven.terraformersmc.com"
+        content {
+            includeGroup "com.terraformersmc"
+            includeGroup "dev.emi"
         }
     }
     maven {
@@ -45,50 +43,54 @@ repositories {
             includeGroup "mezz.jei"
         }
     }
+    maven {
+        url "https://www.cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
 }
 
 dependencies {
-    // To change the versions see the gradle.properties file
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.layered() {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-1.18.2:2022.05.02@zip")
-    }
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    include modImplementation("teamreborn:energy:${project.energy_version}")
-
     if (project.runtime_itemlist_mod == "jei") {
-        modImplementation("mezz.jei:jei-${jei_minecraft_version}-fabric:${jei_version}") {
+        implementation("mezz.jei:jei-${project.jei_minecraft_version}-neoforge:${project.jei_version}") {
             exclude group: "mezz.jei"
-        }
-
-        modCompileOnly("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
-            exclude group: "net.fabricmc.fabric-api"
-        }
-    } else if (project.runtime_itemlist_mod == "rei") {
-        modCompileOnly("mezz.jei:jei-${jei_minecraft_version}-fabric:${jei_version}") {
-            exclude group: "mezz.jei"
-        }
-
-        modImplementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
-            exclude group: "net.fabricmc.fabric-api"
         }
     } else {
+        compileOnly("mezz.jei:jei-${project.jei_minecraft_version}-neoforge:${project.jei_version}") {
+            exclude group: "mezz.jei"
+        }
+    }
+
+    if (project.runtime_itemlist_mod == "rei") {
+        implementation("me.shedaniel:RoughlyEnoughItems-neoforge:${project.rei_version}")
+    } else {
+        compileOnly("me.shedaniel:RoughlyEnoughItems-neoforge:${project.rei_version}")
+    }
+
+    if (project.runtime_itemlist_mod == "emi") {
+        implementation("dev.emi:emi-neoforge:${project.emi_version}+${project.emi_minecraft_version}")
+        // Add JEI at runtime to activate EMI's builtin JEI compat
+        runtimeOnly("mezz.jei:jei-${project.jei_minecraft_version}-neoforge:${project.jei_version}") {
+            exclude group: "mezz.jei"
+        }
+    } else {
+        compileOnly("dev.emi:emi-neoforge:${project.emi_version}+${project.emi_minecraft_version}")
+    }
+
+    if (!(project.runtime_itemlist_mod in ["jei", "rei", "emi"])) {
         throw new GradleException("Invalid runtime_itemlist_mod value: " + project.runtime_itemlist_mod)
     }
 
-    modRuntimeOnly("mcp.mobius.waila:wthit:fabric-${project.wthit_version}") {
-        exclude group: "net.fabricmc.fabric-api"
-    }
+    implementation("curse.maven:jade-324717:${project.jade_file_id}")
 }
 
 processResources {
-    inputs.property "version", project.version
+    def version = project.version
+    inputs.property "version", version
 
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand "version": version
     }
 }
 
@@ -98,73 +100,66 @@ sourceSets {
             srcDir "src/generated/resources"
         }
     }
-    gametest {
-        compileClasspath += main.compileClasspath
-        runtimeClasspath += main.runtimeClasspath
-        compileClasspath += main.output
-        runtimeClasspath += main.output
-    }
 }
 
-loom {
-    accessWidenerPath = file("src/main/resources/moderndynamics.accesswidener")
-
-    splitEnvironmentSourceSets()
+neoForge {
+    version = project.neoforge_version
 
     mods {
         moderndynamics {
             sourceSet sourceSets.main
-            sourceSet sourceSets.client
         }
     }
 
     runs {
-        datagenClient {
+        client {
             client()
-            name "Data Generation"
-            vmArg "-Dfabric-api.datagen"
-            vmArg "-Dfabric-api.datagen.output-dir=${file("src/generated/resources")}"
-
-            ideConfigGenerated = true
-            runDir "build/datagen"
+        }
+        gametestWorld {
+            client()
+            programArguments.addAll("--username", "MDDev", "--quickPlaySingleplayer", "GametestWorld")
+        }
+        server {
+            server()
+        }
+        data {
+            data()
+            programArguments = [
+                    '--mod', 'moderndynamics',
+                    '--all',
+                    '--output', file('src/generated/resources/').absolutePath,
+                    '--existing', file('src/main/resources').absolutePath
+            ]
         }
         // Use to run the tests
         gametest {
-            server()
-            name "Game Test"
-            vmArg "-Dfabric-api.gametest"
-            vmArg "-Dfabric-api.gametest.report-file=${project.buildDir}/junit.xml"
-            runDir "build/gametest"
-            source sourceSets.gametest
-        }
-
-        // Use to debug tests
-        gametestClient {
-            client()
-            name "Game Test Client"
-            source sourceSets.gametest
+            type = "gameTestServer"
+            gameDirectory = project.file("build/gametest")
         }
     }
 }
-assemble.dependsOn runDatagenClient
-// TODO: re-enable tests when we add one
-//test.dependsOn runGametest
 
-tasks.withType(JavaCompile).configureEach {
-    // Minecraft 1.18 (1.18-pre2) upwards uses Java 17.
-    it.options.release = 17
-}
+test.dependsOn runGametest
 
 java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
     // if it is present.
     // If you remove this line, sources will not be generated.
     withSourcesJar()
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.deprecation = false
+    options.compilerArgs << "-Xmaxerrs" << "9999"
+}
+
 jar {
     from("LICENSE") {
-        rename { "${it}_${project.archivesBaseName}"}
+        rename { "${it}_${archivesBaseName}"}
     }
 }
 
@@ -263,15 +258,11 @@ if (System.getenv("CURSEFORGE_API_KEY") && !version.endsWith("-SNAPSHOT")) {
             changelogType = "markdown"
             delegate.changelog = changelog
 
-            addGameVersion "1.19.1"
-            addGameVersion "1.19.2"
-            addGameVersion "Fabric"
-            addGameVersion "Java 17"
+            addGameVersion "1.21"
+            addGameVersion "NeoForge"
+            addGameVersion "Java 21"
 
-            relations {
-                requiredDependency "fabric-api"
-            }
-            mainArtifact(remapJar.archiveFile) {
+            mainArtifact(jar.archiveFile) {
                 displayName = "Modern Dynamics v${version}"
             }
         }
@@ -279,25 +270,21 @@ if (System.getenv("CURSEFORGE_API_KEY") && !version.endsWith("-SNAPSHOT")) {
             forgeGradleIntegration = false
         }
         afterEvaluate {
-            tasks.getByName("curseforge${project.curseforge_project}").dependsOn remapJar
+            tasks.getByName("curseforge${project.curseforge_project}").dependsOn jar
         }
     }
 }
 
-import com.modrinth.minotaur.TaskModrinthUpload
-
-task publishModrinth (type: TaskModrinthUpload){
-    onlyIf {
-        System.getenv("MODRINTH_API_KEY") && !version.endsWith("-SNAPSHOT")
+if (System.getenv("MODRINTH_API_KEY") && !version.endsWith("-SNAPSHOT")) {
+    modrinth {
+        token = System.getenv("MODRINTH_API_KEY")
+        projectId = project.modrinth_project
+        versionNumber = version
+        versionName = "Modern Dynamics v${version}"
+        delegate.changelog = changelog
+        versionType = releaseChannel.toUpperCase()
+        uploadFile = jar.archiveFile
+        gameVersions = ["1.21"]
+        loaders = ["neoforge"]
     }
-    token = System.getenv("MODRINTH_API_KEY")
-    projectId = project.modrinth_project
-    versionNumber = version
-    versionName = "Modern Dynamics v${version}"
-    delegate.changelog = changelog
-    versionType = releaseChannel.toUpperCase()
-    uploadFile = remapJar.archiveFile
-    addGameVersion "1.19.1"
-    addGameVersion "1.19.2"
-    addLoader "fabric"
 }

@@ -23,11 +23,12 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.model.AttachmentModelData;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
 import java.util.List;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
@@ -50,18 +51,18 @@ public class AttachedAttachment {
         return item;
     }
 
-    public ItemStack toStack() {
-        var stack = new ItemStack(item);
-        var tag = stack.getOrCreateTag();
-        writeConfigTag(tag);
-        if (tag.isEmpty()) {
-            stack.setTag(null);
-        }
-        return stack;
-    }
-
     public List<ItemStack> getDrops() {
         return List.of(new ItemStack(item));
+    }
+
+    /**
+     * Try to clear contents of the attachment,
+     * for example when the player right-clicks with a wrench.
+     *
+     * @return {@code true} if there was something to clear
+     */
+    public boolean tryClearContents(PipeBlockEntity pipe) {
+        return false;
     }
 
     public Component getDisplayName() {
@@ -87,7 +88,7 @@ public class AttachedAttachment {
     }
 
     @MustBeInvokedByOverriders
-    public CompoundTag writeConfigTag(CompoundTag configData) {
+    public CompoundTag writeConfigTag(CompoundTag configData, HolderLookup.Provider registries) {
         return configData;
     }
 
@@ -96,7 +97,7 @@ public class AttachedAttachment {
     }
 
     @Nullable
-    public MenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
+    public ExtendedMenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
         return null;
     }
 

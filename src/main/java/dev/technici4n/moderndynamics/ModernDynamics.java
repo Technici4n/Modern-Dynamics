@@ -19,7 +19,7 @@
 package dev.technici4n.moderndynamics;
 
 import dev.technici4n.moderndynamics.attachment.upgrade.AttachmentUpgradesLoader;
-import dev.technici4n.moderndynamics.gui.MdPackets;
+import dev.technici4n.moderndynamics.client.ModernDynamicsClient;
 import dev.technici4n.moderndynamics.init.MdAttachments;
 import dev.technici4n.moderndynamics.init.MdBlockEntities;
 import dev.technici4n.moderndynamics.init.MdBlocks;
@@ -27,46 +27,67 @@ import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.TickHelper;
+import dev.technici4n.moderndynamics.network.item.SimulatedInsertionTargets;
+import dev.technici4n.moderndynamics.packets.MdPackets;
+import dev.technici4n.moderndynamics.util.MdId;
 import dev.technici4n.moderndynamics.util.MdItemGroup;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class ModernDynamics implements ModInitializer {
+@Mod(MdId.MOD_ID)
+public class ModernDynamics {
     public static final Logger LOGGER = LogManager.getLogger("Modern Dynamics");
 
-    @Override
-    public void onInitialize() {
-        MdItemGroup.init();
+    public ModernDynamics(IEventBus modEvents) {
+        modEvents.addListener(RegisterEvent.class, this::register);
+        modEvents.addListener(RegisterPayloadHandlersEvent.class, this::registerPayloadHandlers);
 
-        MdBlocks.init();
-        MdItems.init();
-        MdBlockEntities.init();
-        MdAttachments.init();
-        MdMenus.init();
-
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> NetworkManager.onServerStopped());
-        ServerTickEvents.END_SERVER_TICK.register(server -> TickHelper.onEndTick());
-        ServerTickEvents.END_SERVER_TICK.register(server -> NetworkManager.onEndTick());
-        WrenchHelper.registerEvents();
+        modEvents.addListener(MdBlockEntities::registerCapabilities);
+        NeoForge.EVENT_BUS.addListener(ServerStoppedEvent.class, e -> {
+            NetworkManager.onServerStopped();
+            SimulatedInsertionTargets.clear();
+        });
+        NeoForge.EVENT_BUS.addListener(ServerTickEvent.Post.class, e -> {
+            TickHelper.onEndTick();
+            NetworkManager.onEndTick();
+        });
+        NeoForge.EVENT_BUS.addListener(WrenchHelper::handleEvent);
         AttachmentUpgradesLoader.setup();
 
-        MdProxy.INSTANCE.registerPacketHandler(MdPackets.SET_ITEM_VARIANT, MdPackets.SET_ITEM_VARIANT_HANDLER);
-        MdProxy.INSTANCE.registerPacketHandler(MdPackets.SET_FLUID_VARIANT, MdPackets.SET_FLUID_VARIANT_HANDLER);
-        MdProxy.INSTANCE.registerPacketHandler(MdPackets.SET_FILTER_MODE, MdPackets.SET_FILTER_MODE_HANDLER);
-        MdProxy.INSTANCE.registerPacketHandler(MdPackets.SET_FILTER_DAMAGE, MdPackets.SET_FILTER_DAMAGE_HANDLER);
-        MdProxy.INSTANCE.registerPacketHandler(MdPackets.SET_FILTER_NBT, MdPackets.SET_FILTER_NBT_HANDLER);
-        MdProxy.INSTANCE.registerPacketHandler(MdPackets.SET_FILTER_MOD, MdPackets.SET_FILTER_MOD_HANDLER);
-        MdProxy.INSTANCE.registerPacketHandler(MdPackets.SET_FILTER_SIMILAR, MdPackets.SET_FILTER_SIMILAR_HANDLER);
-        MdProxy.INSTANCE.registerPacketHandler(MdPackets.SET_ROUTING_MODE, MdPackets.SET_ROUTING_MODE_HANDLER);
-        MdProxy.INSTANCE.registerPacketHandler(MdPackets.SET_OVERSENDING_MODE, MdPackets.SET_OVERSENDING_MODE_HANDLER);
-        MdProxy.INSTANCE.registerPacketHandler(MdPackets.SET_REDSTONE_MODE, MdPackets.SET_REDSTONE_MODE_HANDLER);
-        MdProxy.INSTANCE.registerPacketHandler(MdPackets.SET_MAX_ITEMS_IN_INVENTORY, MdPackets.SET_MAX_ITEMS_IN_INVENTORY_HANDLER);
-        MdProxy.INSTANCE.registerPacketHandler(MdPackets.SET_MAX_ITEMS_EXTRACTED, MdPackets.SET_MAX_ITEMS_EXTRACTED_HANDLER);
-
+        if (FMLLoader.getDist().isClient()) {
+            new ModernDynamicsClient(modEvents);
+        }
         LOGGER.info("Successfully loaded Modern Dynamics!");
+    }
+
+    private void register(RegisterEvent registerEvent) {
+        var registryKey = registerEvent.getRegistryKey();
+        if (registryKey == Registries.BLOCK) {
+            MdBlocks.init();
+        } else if (registryKey == Registries.ITEM) {
+            MdItems.init();
+            MdAttachments.init();
+        } else if (registryKey == Registries.BLOCK_ENTITY_TYPE) {
+            MdBlockEntities.init();
+        } else if (registryKey == Registries.MENU) {
+            MdMenus.init();
+        } else if (registryKey == Registries.CREATIVE_MODE_TAB) {
+            MdItemGroup.init();
+        }
+    }
+
+    private void registerPayloadHandlers(RegisterPayloadHandlersEvent e) {
+        var registrar = e.registrar(MdId.MOD_ID);
+        MdPackets.register(registrar);
     }
 }

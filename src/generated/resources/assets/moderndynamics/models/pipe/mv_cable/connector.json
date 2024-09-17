@@ -1,0 +1,6 @@
+{
+  "parent": "moderndynamics:base/connector",
+  "textures": {
+    "0": "moderndynamics:pipe/mv_cable/connector"
+  }
+}

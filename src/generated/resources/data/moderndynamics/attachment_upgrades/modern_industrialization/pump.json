@@ -1,0 +1,12 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "modern_industrialization"
+    }
+  ],
+  "addFluidTransfer": 1,
+  "item": "modern_industrialization:pump",
+  "multiplyFluidTransfer": 1,
+  "slotLimit": 9
+}

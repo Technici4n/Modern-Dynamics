@@ -24,10 +24,10 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.EnumSet;
 import java.util.List;
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -35,6 +35,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.capabilities.BlockCapability;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,15 +79,16 @@ public abstract class NodeHost {
         return null;
     }
 
-    public final void setAttachment(Direction side, AttachmentItem item, CompoundTag data) {
+    public final void setAttachment(Direction side, AttachmentItem item, CompoundTag data, HolderLookup.Provider registries) {
         var current = attachments[side.get3DDataValue()];
         if (current != null && current.getItem() == item) {
             if (current.update(data)) {
                 scheduleUpdate();
             }
         } else {
-            attachments[side.get3DDataValue()] = item.createAttached(this, data);
+            attachments[side.get3DDataValue()] = item.createAttached(this, data, registries);
             scheduleUpdate();
+            pipe.invalidateCapabilities();
         }
     }
 
@@ -142,7 +144,7 @@ public abstract class NodeHost {
     }
 
     @Nullable
-    public abstract Object getApiInstance(BlockApiLookup<?, Direction> lookup, Direction side);
+    public abstract Object getApiInstance(BlockCapability<?, Direction> lookup, @Nullable Direction side);
 
     @SuppressWarnings("unchecked")
     @Nullable
@@ -203,16 +205,17 @@ public abstract class NodeHost {
         return false;
     }
 
-    public void writeNbt(CompoundTag tag) {
+    @MustBeInvokedByOverriders
+    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
         // Only write a sub-tag if any attachments exist
         if (hasAttachments()) {
             var attachmentTags = new ListTag();
             for (var attachment : attachments) {
                 var attachmentTag = new CompoundTag();
                 if (attachment != null) {
-                    var id = Registry.ITEM.getKey(attachment.getItem());
+                    var id = BuiltInRegistries.ITEM.getKey(attachment.getItem());
                     attachmentTag.putString("#i", id.toString());
-                    attachment.writeConfigTag(attachmentTag);
+                    attachment.writeConfigTag(attachmentTag, registries);
                 }
                 attachmentTags.add(attachmentTag);
             }
@@ -220,7 +223,8 @@ public abstract class NodeHost {
         }
     }
 
-    public void readNbt(CompoundTag tag) {
+    @MustBeInvokedByOverriders
+    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
         if (tag.contains("attachments", Tag.TAG_LIST)) {
             var attachmentTags = tag.getList("attachments", Tag.TAG_COMPOUND);
             for (int i = 0; i < attachments.length; i++) {
@@ -228,9 +232,9 @@ public abstract class NodeHost {
 
                 if (i < attachmentTags.size()) {
                     var attachmentTag = attachmentTags.getCompound(i);
-                    var item = Registry.ITEM.get(new ResourceLocation(attachmentTag.getString("#i")));
+                    var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(attachmentTag.getString("#i")));
                     if ((item instanceof AttachmentItem attachmentItem)) {
-                        this.attachments[i] = attachmentItem.createAttached(this, attachmentTag);
+                        this.attachments[i] = attachmentItem.createAttached(this, attachmentTag, registries);
                     }
                 }
             }
@@ -238,11 +242,11 @@ public abstract class NodeHost {
     }
 
     @MustBeInvokedByOverriders
-    public void writeClientNbt(CompoundTag tag) {
+    public void writeClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
     }
 
     @MustBeInvokedByOverriders
-    public void readClientNbt(CompoundTag tag) {
+    public void readClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
     }
 
     public void clientTick() {

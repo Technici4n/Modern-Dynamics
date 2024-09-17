@@ -1,9 +1,12 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "dev.technici4n.moderndynamics.hooks.mixin",
+  "package": "dev.technici4n.moderndynamics.mixins",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+  ],
+  "client": [
+    "TextureAtlasMixin"
   ],
   "injectors": {
     "defaultRequire": 1

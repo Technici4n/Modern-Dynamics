@@ -1,0 +1,11 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "indrev"
+    }
+  ],
+  "enableAdvancedBehavior": true,
+  "item": "indrev:circuit_mk3",
+  "slotLimit": 1
+}

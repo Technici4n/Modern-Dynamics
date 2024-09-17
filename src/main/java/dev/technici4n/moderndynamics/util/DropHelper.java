@@ -20,7 +20,6 @@ package dev.technici4n.moderndynamics.util;
 
 import java.util.List;
 import java.util.function.Consumer;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -43,7 +42,7 @@ public class DropHelper {
 
     public static void splitIntoStacks(ItemVariant variant, long amount, Consumer<ItemStack> stackConsumer) {
         while (amount > 0) {
-            int dropped = (int) Math.min(amount, variant.getItem().getMaxStackSize());
+            int dropped = (int) Math.min(amount, variant.getMaxStackSize());
             stackConsumer.accept(variant.toStack(dropped));
             amount -= dropped;
         }

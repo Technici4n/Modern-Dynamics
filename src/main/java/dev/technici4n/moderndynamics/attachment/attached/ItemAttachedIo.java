@@ -27,30 +27,37 @@ import dev.technici4n.moderndynamics.attachment.settings.FilterNbtMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterSimilarMode;
 import dev.technici4n.moderndynamics.attachment.settings.OversendingMode;
 import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
-import dev.technici4n.moderndynamics.init.MdMenus;
+import dev.technici4n.moderndynamics.gui.menu.AttachmentMenuType;
+import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import dev.technici4n.moderndynamics.model.AttachmentModelData;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
+import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
+import dev.technici4n.moderndynamics.util.ItemVariant;
+import dev.technici4n.moderndynamics.util.TransferUtil;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemAttachedIo extends AttachedIo {
 
-    private final Map<ItemVariant, Long> stuffedItems = new LinkedHashMap<>();
+    private final Map<ItemVariant, Integer> stuffedItems = new LinkedHashMap<>();
     private int roundRobinIndex;
 
     private final NonNullList<ItemVariant> filters;
@@ -78,15 +85,15 @@ public class ItemAttachedIo extends AttachedIo {
     @Nullable
     private ItemCachedFilter cachedFilter;
 
-    public ItemAttachedIo(IoAttachmentItem item, CompoundTag configData, Runnable setChangedCallback) {
-        super(item, configData, setChangedCallback);
+    public ItemAttachedIo(IoAttachmentItem item, CompoundTag configData, Runnable setChangedCallback, HolderLookup.Provider registries) {
+        super(item, configData, setChangedCallback, registries);
 
         this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, ItemVariant.blank());
         var filterTags = configData.getList("filters", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < this.filters.size(); i++) {
             var filterTag = filterTags.getCompound(i);
             if (!filterTag.isEmpty()) {
-                this.filters.set(i, ItemVariant.fromNbt(filterTag));
+                this.filters.set(i, ItemVariant.fromNbt(filterTag, registries));
             }
         }
 
@@ -108,8 +115,8 @@ public class ItemAttachedIo extends AttachedIo {
         var stuffedTag = configData.getList("stuffed", CompoundTag.TAG_COMPOUND);
         for (int i = 0; i < stuffedTag.size(); i++) {
             var compound = stuffedTag.getCompound(i);
-            var variant = ItemVariant.fromNbt(compound);
-            var amount = compound.getLong("#a");
+            var variant = ItemVariant.fromNbt(compound.getCompound("v"), registries);
+            var amount = compound.getInt("a");
 
             if (!variant.isBlank() && amount > 0) {
                 this.stuffedItems.put(variant, amount);
@@ -120,15 +127,15 @@ public class ItemAttachedIo extends AttachedIo {
     }
 
     @Override
-    public CompoundTag writeConfigTag(CompoundTag configData) {
-        super.writeConfigTag(configData);
+    public CompoundTag writeConfigTag(CompoundTag configData, HolderLookup.Provider registries) {
+        super.writeConfigTag(configData, registries);
 
         var filterTags = new ListTag();
         for (ItemVariant filter : this.filters) {
             if (filter.isBlank()) {
                 filterTags.add(new CompoundTag());
             } else {
-                filterTags.add(filter.toNbt());
+                filterTags.add(filter.toNbt(registries));
             }
         }
         configData.put("filters", filterTags);
@@ -152,8 +159,9 @@ public class ItemAttachedIo extends AttachedIo {
 
         var stuffedTag = new ListTag();
         for (var entry : stuffedItems.entrySet()) {
-            var compound = entry.getKey().toNbt();
-            compound.putLong("#a", entry.getValue());
+            var compound = new CompoundTag();
+            compound.put("v", entry.getKey().toNbt(registries));
+            compound.putInt("a", entry.getValue());
             stuffedTag.add(compound);
         }
         if (!stuffedTag.isEmpty()) {
@@ -208,8 +216,24 @@ public class ItemAttachedIo extends AttachedIo {
     }
 
     @Override
-    public @Nullable MenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
-        return MdMenus.ITEM_IO.createMenu(pipe, side, this);
+    public @Nullable ExtendedMenuProvider createMenu(PipeBlockEntity pipe, Direction side) {
+        return new ExtendedMenuProvider() {
+            @Override
+            public void writeScreenOpeningData(RegistryFriendlyByteBuf buf) {
+                AttachmentMenuType.writeScreenOpeningData(pipe, side, ItemAttachedIo.this, buf);
+            }
+
+            @Override
+            public Component getDisplayName() {
+                return ItemAttachedIo.this.getDisplayName();
+            }
+
+            @Nullable
+            @Override
+            public AbstractContainerMenu createMenu(int syncId, Inventory pPlayerInventory, Player pPlayer) {
+                return new ItemAttachedIoMenu(syncId, pPlayerInventory, pipe, side, ItemAttachedIo.this);
+            }
+        };
     }
 
     @Override
@@ -229,14 +253,30 @@ public class ItemAttachedIo extends AttachedIo {
         return drops;
     }
 
+    @Override
+    public boolean tryClearContents(PipeBlockEntity pipe) {
+        if (isStuffed()) {
+            List<ItemStack> drops = new ArrayList<>();
+            for (var entry : stuffedItems.entrySet()) {
+                DropHelper.splitIntoStacks(entry.getKey(), entry.getValue(), drops::add);
+            }
+            stuffedItems.clear();
+            DropHelper.dropStacks(pipe, drops);
+            pipe.setChanged();
+            pipe.sync();
+            return true;
+        }
+        return super.tryClearContents(pipe);
+    }
+
     public boolean isStuffed() {
-        return stuffedItems.size() > 0;
+        return !stuffedItems.isEmpty();
     }
 
     /**
      * Returns the raw map of stuffed items, be careful.
      */
-    public Map<ItemVariant, Long> getStuffedItems() {
+    public Map<ItemVariant, Integer> getStuffedItems() {
         return stuffedItems;
     }
 
@@ -345,34 +385,34 @@ public class ItemAttachedIo extends AttachedIo {
         return roundRobinIndex;
     }
 
-    public void incrementRoundRobin() {
+    /**
+     * Ideally the increment size should correspond to the number of paths that were iterated through this time around.
+     * This will ensure uniform distribution even if some paths are blocked.
+     */
+    public void incrementRoundRobin(int incrementSize) {
         if (getRoutingMode() == RoutingMode.ROUND_ROBIN) {
-            roundRobinIndex++;
+            roundRobinIndex += incrementSize;
             setChangedCallback.run();
         }
     }
 
-    public long moveStuffedToStorage(Storage<ItemVariant> targetStorage, long maxAmount) {
-        long totalMoved = 0;
+    public int moveStuffedToStorage(IItemHandler targetStorage, int maxAmount) {
+        int totalMoved = 0;
 
-        try (var tx = Transaction.openOuter()) {
-            for (var it = stuffedItems.entrySet().iterator(); it.hasNext() && totalMoved < maxAmount;) {
-                var entry = it.next();
-                long stuffedAmount = entry.getValue();
-                long inserted = targetStorage.insert(entry.getKey(), Math.min(stuffedAmount, maxAmount - totalMoved), tx);
+        for (var it = stuffedItems.entrySet().iterator(); it.hasNext() && totalMoved < maxAmount;) {
+            var entry = it.next();
+            int stuffedAmount = entry.getValue();
+            int inserted = TransferUtil.insertItemStacked(targetStorage, entry.getKey(), Math.min(stuffedAmount, maxAmount - totalMoved));
 
-                if (inserted > 0) {
-                    totalMoved += inserted;
+            if (inserted > 0) {
+                totalMoved += inserted;
 
-                    if (inserted < stuffedAmount) {
-                        entry.setValue(stuffedAmount - inserted);
-                    } else {
-                        it.remove();
-                    }
+                if (inserted < stuffedAmount) {
+                    entry.setValue(stuffedAmount - inserted);
+                } else {
+                    it.remove();
                 }
             }
-
-            tx.commit();
         }
 
         return totalMoved;

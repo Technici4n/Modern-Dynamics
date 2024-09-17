@@ -22,7 +22,7 @@ import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedIo;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
-import dev.technici4n.moderndynamics.gui.MdPackets;
+import dev.technici4n.moderndynamics.packets.MdPackets;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.function.BiConsumer;
 import java.util.function.IntSupplier;
@@ -36,7 +36,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-// TODO: need to sync item and fluid filter changes done by other players
+// TODO: need to sync item and item filter changes done by other players
 public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu {
     public final PipeBlockEntity pipe;
     public final Direction side;
@@ -114,7 +114,7 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
             // Don't try to use moveItemStackTo, it's missing some checks.
             for (var otherSlot : slots) {
                 if (otherSlot instanceof UpgradeSlot && otherSlot.mayPlace(stack)) {
-                    if (ItemStack.isSameItemSameTags(otherSlot.getItem(), stack)) {
+                    if (ItemStack.isSameItemSameComponents(otherSlot.getItem(), stack)) {
                         int inserted = Math.min(stack.getCount(), otherSlot.getMaxStackSize() - otherSlot.getItem().getCount());
                         if (inserted > 0) {
                             stack.shrink(inserted);
@@ -168,7 +168,7 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
             return true;
 
         var pos = pipe.getBlockPos();
-        if (player.getLevel().getBlockEntity(pos) != pipe) {
+        if (player.level().getBlockEntity(pos) != pipe) {
             return false;
         }
         if (player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) > 64.0D) {

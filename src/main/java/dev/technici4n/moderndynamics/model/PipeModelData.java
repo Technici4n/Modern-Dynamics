@@ -19,10 +19,13 @@
 package dev.technici4n.moderndynamics.model;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
+import net.neoforged.neoforge.client.model.data.ModelProperty;
 import org.jetbrains.annotations.Nullable;
 
 public record PipeModelData(byte pipeConnections, byte inventoryConnections,
-        AttachmentModelData @Nullable [] attachments) {
+        @Nullable AttachmentModelData[] attachments) {
+
+    public static ModelProperty<PipeModelData> PIPE_DATA = new ModelProperty<>();
 
     public static final PipeModelData DEFAULT = new PipeModelData((byte) 0, (byte) 0, new AttachmentModelData[6]);
 

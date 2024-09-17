@@ -21,86 +21,75 @@ package dev.technici4n.moderndynamics.gui.menu;
 import com.google.common.util.concurrent.Runnables;
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
+import dev.technici4n.moderndynamics.attachment.attached.AttachedIo;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.MdId;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.inventory.MenuType;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
+import net.neoforged.neoforge.network.IContainerFactory;
 
-public class AttachmentMenuType<A extends AttachedAttachment, T extends AbstractContainerMenu> extends ExtendedScreenHandlerType<T> {
+public class AttachmentMenuType<A extends AttachedAttachment, T extends AbstractContainerMenu> implements IContainerFactory<T> {
+    private final AttachmentFactory<A, ? extends AttachmentItem> attachmentFactory;
     private final MenuFactory<A, T> menuFactory;
 
-    private <I extends AttachmentItem> AttachmentMenuType(AttachmentFactory<A, I> attachmentFactory, MenuFactory<A, T> menuFactory) {
-        super((int syncId, Inventory playerInventory, FriendlyByteBuf packetByteBuf) -> {
-            var world = playerInventory.player.level;
-
-            var bet = Registry.BLOCK_ENTITY_TYPE.get(packetByteBuf.readResourceLocation());
-            var side = packetByteBuf.readEnum(Direction.class);
-            var pos = packetByteBuf.readBlockPos();
-            var item = Registry.ITEM.byId(packetByteBuf.readVarInt());
-            if (!(item instanceof AttachmentItem attachmentItem)) {
-                throw new IllegalStateException("Server sent a non-attachment item as menu host: " + item);
-            }
-            var tag = packetByteBuf.readNbt();
-            // The cast is a bit ugly, but it just means that we trust the server to send the correct item.
-            var attachment = ((AttachmentFactory<A, AttachmentItem>) attachmentFactory).createAttachment(attachmentItem, tag, Runnables.doNothing());
-
-            return world.getBlockEntity(pos, bet).map(blockEntity -> {
-                if (blockEntity instanceof PipeBlockEntity pipe) {
-                    return menuFactory.createMenu(syncId, playerInventory, pipe, side, attachment);
-                }
-                return null;
-            }).orElse(null);
-        });
-
+    public AttachmentMenuType(AttachmentFactory<A, ? extends AttachmentItem> attachmentFactory, MenuFactory<A, T> menuFactory) {
+        this.attachmentFactory = attachmentFactory;
         this.menuFactory = menuFactory;
     }
 
-    public static <A extends AttachedAttachment, T extends AbstractContainerMenu, I extends AttachmentItem> AttachmentMenuType<A, T> create(
+    @Override
+    public T create(int windowId, Inventory inv, RegistryFriendlyByteBuf data) {
+        var world = inv.player.level();
+
+        var bet = BuiltInRegistries.BLOCK_ENTITY_TYPE.get(data.readResourceLocation());
+        var side = data.readEnum(Direction.class);
+        var pos = data.readBlockPos();
+        var item = BuiltInRegistries.ITEM.byId(data.readVarInt());
+        if (!(item instanceof AttachmentItem attachmentItem)) {
+            throw new IllegalStateException("Server sent a non-attachment item as menu host: " + item);
+        }
+        var tag = data.readNbt();
+        // The cast is a bit ugly, but it just means that we trust the server to send the correct item.
+        var attachment = ((AttachmentFactory<A, AttachmentItem>) attachmentFactory).createAttachment(attachmentItem, tag, Runnables.doNothing(),
+                data.registryAccess());
+
+        return world.getBlockEntity(pos, bet).map(blockEntity -> {
+            if (blockEntity instanceof PipeBlockEntity pipe) {
+                return menuFactory.createMenu(windowId, inv, pipe, side, attachment);
+            }
+            return null;
+        }).orElse(null);
+    }
+
+    public static <A extends AttachedAttachment, T extends AbstractContainerMenu, I extends AttachmentItem> MenuType<T> create(
             String id, AttachmentFactory<A, I> attachmentFactory, MenuFactory<A, T> menuFactory) {
         var type = new AttachmentMenuType<>(attachmentFactory, menuFactory);
-        Registry.register(Registry.MENU, MdId.of(id), type);
-        return type;
+        var menuType = IMenuTypeExtension.create(type);
+        Registry.register(BuiltInRegistries.MENU, MdId.of(id), menuType);
+        return menuType;
     }
 
     public interface AttachmentFactory<A extends AttachedAttachment, I extends AttachmentItem> {
-        A createAttachment(I item, CompoundTag configData, Runnable setChangedCallback);
+        A createAttachment(I item, CompoundTag configData, Runnable setChangedCallback, HolderLookup.Provider registries);
     }
 
     public interface MenuFactory<A extends AttachedAttachment, T extends AbstractContainerMenu> {
         T createMenu(int syncId, Inventory playerInventory, PipeBlockEntity pipe, Direction side, A attachment);
     }
 
-    public ExtendedScreenHandlerFactory createMenu(PipeBlockEntity pipe, Direction side, A attachment) {
-        return new ExtendedScreenHandlerFactory() {
-            @Override
-            public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
-                buf.writeResourceLocation(Registry.BLOCK_ENTITY_TYPE.getKey(pipe.getType()));
-                buf.writeEnum(side);
-                buf.writeBlockPos(pipe.getBlockPos());
-                buf.writeVarInt(Registry.ITEM.getId(attachment.getItem()));
-                buf.writeNbt(attachment.writeConfigTag(new CompoundTag()));
-            }
-
-            @Override
-            public Component getDisplayName() {
-                return attachment.getDisplayName();
-            }
-
-            @Nullable
-            @Override
-            public AbstractContainerMenu createMenu(int syncId, Inventory inventory, Player player) {
-                return menuFactory.createMenu(syncId, inventory, pipe, side, attachment);
-            }
-        };
+    public static void writeScreenOpeningData(PipeBlockEntity pipe, Direction side, AttachedIo attachment, RegistryFriendlyByteBuf buf) {
+        buf.writeResourceLocation(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(pipe.getType()));
+        buf.writeEnum(side);
+        buf.writeBlockPos(pipe.getBlockPos());
+        buf.writeVarInt(BuiltInRegistries.ITEM.getId(attachment.getItem()));
+        buf.writeNbt(attachment.writeConfigTag(new CompoundTag(), buf.registryAccess()));
     }
 }

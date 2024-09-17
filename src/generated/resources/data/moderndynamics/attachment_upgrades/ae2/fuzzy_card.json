@@ -1,0 +1,11 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "enableAdvancedBehavior": true,
+  "item": "ae2:fuzzy_card",
+  "slotLimit": 1
+}

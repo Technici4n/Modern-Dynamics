@@ -1,0 +1,13 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "techreborn"
+    }
+  ],
+  "addItemSpeed": 1,
+  "addItemTransferFrequency": 1,
+  "item": "techreborn:overclocker_upgrade",
+  "multiplyFluidTransfer": 1,
+  "slotLimit": 3
+}

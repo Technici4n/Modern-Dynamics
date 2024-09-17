@@ -27,6 +27,6 @@ public final class MdId {
     public static final String MOD_ID = "moderndynamics";
 
     public static ResourceLocation of(String path) {
-        return new ResourceLocation(MOD_ID, path);
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
 }

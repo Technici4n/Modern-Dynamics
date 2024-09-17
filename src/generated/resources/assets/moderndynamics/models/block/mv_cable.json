@@ -1,0 +1,5 @@
+{
+  "loader": "moderndynamics:pipe",
+  "pipeType": "mv_cable",
+  "transparent": false
+}

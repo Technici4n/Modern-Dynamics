@@ -22,18 +22,16 @@ import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterNbtMode;
+import dev.technici4n.moderndynamics.util.FluidVariant;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Nullable;
 
 public final class ItemCachedFilter {
@@ -121,29 +119,12 @@ public final class ItemCachedFilter {
 
     private static String getModId(ItemVariant variant) {
         // This returns "minecraft" if the item is unregistered
-        return Registry.ITEM.getKey(variant.getItem()).getNamespace();
+        return BuiltInRegistries.ITEM.getKey(variant.getItem()).getNamespace();
     }
 
     private static String getModId(FluidVariant variant) {
-        // This returns "minecraft" if the fluid is unregistered
-        return Registry.FLUID.getKey(variant.getFluid()).getNamespace();
-    }
-
-    private static boolean matchDamageIgnoreRest(@Nullable CompoundTag a, @Nullable CompoundTag b) {
-        return getDamage(a) == getDamage(b);
-    }
-
-    private static boolean matchIgnoringDamage(@Nullable CompoundTag a, @Nullable CompoundTag b) {
-        if (a == b) {
-            return true;
-        }
-
-        throw new NotImplementedException();
-
-    }
-
-    private static int getDamage(CompoundTag tag) {
-        return tag == null ? 0 : tag.getInt(ItemStack.TAG_DAMAGE);
+        // This returns "minecraft" if the item is unregistered
+        return BuiltInRegistries.FLUID.getKey(variant.getFluid()).getNamespace();
     }
 
     @FunctionalInterface

@@ -32,4 +32,4 @@ bin/
 
 run/
 logs/
-src/generated
+src/generated/resources/.cache

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "h": {
+      "item": "minecraft:hopper"
+    },
+    "m": {
+      "item": "minecraft:iron_ingot"
+    },
+    "p": {
+      "item": "minecraft:paper"
+    },
+    "r": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    " h ",
+    "mrm",
+    " p "
+  ],
+  "result": {
+    "count": 1,
+    "id": "moderndynamics:extractor"
+  }
+}

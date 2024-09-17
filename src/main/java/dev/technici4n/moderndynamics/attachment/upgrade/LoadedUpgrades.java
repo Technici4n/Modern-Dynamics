@@ -18,16 +18,17 @@
  */
 package dev.technici4n.moderndynamics.attachment.upgrade;
 
-import dev.technici4n.moderndynamics.gui.MdPackets;
+import dev.technici4n.moderndynamics.packets.SetAttachmentUpgrades;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,10 +51,15 @@ public class LoadedUpgrades {
     }
 
     public static void syncToClient(ServerPlayer player) {
-        var buf = PacketByteBufs.create();
-        holder.toPacket(buf);
-        ServerPlayNetworking.send(player, MdPackets.SET_ATTACHMENT_UPGRADES, buf);
+        player.connection.send(new SetAttachmentUpgrades(holder));
     }
+
+    public static void syncToAllClients(PlayerList playerList) {
+        playerList.broadcastAll(new ClientboundCustomPayloadPacket(new SetAttachmentUpgrades(holder)));
+    }
+
+    public static final StreamCodec<FriendlyByteBuf, LoadedUpgrades> STREAM_CODEC = StreamCodec.ofMember(
+            LoadedUpgrades::toPacket, LoadedUpgrades::fromPacket);
 
     public final Map<Item, UpgradeType> map;
     public final List<Item> list;
@@ -63,7 +69,7 @@ public class LoadedUpgrades {
         this.list = Collections.unmodifiableList(list);
     }
 
-    public void toPacket(FriendlyByteBuf buf) {
+    private void toPacket(FriendlyByteBuf buf) {
         buf.writeVarInt(list.size());
         for (var upgradeItem : list) {
             buf.writeVarInt(Item.getId(upgradeItem));
@@ -71,7 +77,7 @@ public class LoadedUpgrades {
         }
     }
 
-    public static LoadedUpgrades fromPacket(FriendlyByteBuf buf) {
+    private static LoadedUpgrades fromPacket(FriendlyByteBuf buf) {
         int count = buf.readVarInt();
         Map<Item, UpgradeType> upgrades = new IdentityHashMap<>();
         List<Item> orderedUpgrades = new ArrayList<>();

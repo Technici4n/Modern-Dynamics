@@ -23,11 +23,12 @@ import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.gui.menu.AttachmentMenuType;
 import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
+import net.minecraft.world.inventory.MenuType;
 
 public class MdMenus {
-    public static final AttachmentMenuType<ItemAttachedIo, ItemAttachedIoMenu> ITEM_IO = AttachmentMenuType.create("item_io", ItemAttachedIo::new,
+    public static final MenuType<ItemAttachedIoMenu> ITEM_IO = AttachmentMenuType.create("item_io", ItemAttachedIo::new,
             ItemAttachedIoMenu::new);
-    public static final AttachmentMenuType<FluidAttachedIo, FluidAttachedIoMenu> FLUID_IO = AttachmentMenuType.create("fluid_io",
+    public static final MenuType<FluidAttachedIoMenu> FLUID_IO = AttachmentMenuType.create("fluid_io",
             FluidAttachedIo::new, FluidAttachedIoMenu::new);
 
     public static void init() {

@@ -86,6 +86,6 @@ public class NetworkNode<H extends NodeHost, C extends NetworkCache<H, C>> {
         host.setConnections(connections);
     }
 
-    public record Connection<H extends NodeHost, C extends NetworkCache<H, C>> (Direction direction, NetworkNode<H, C> target) {
+    public record Connection<H extends NodeHost, C extends NetworkCache<H, C>>(Direction direction, NetworkNode<H, C> target) {
     }
 }
