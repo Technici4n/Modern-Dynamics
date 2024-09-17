@@ -29,7 +29,7 @@ record SetInt(Type<SetInt> type, int syncId, int value) implements CustomPacketP
                 ByteBufCodecs.VAR_INT,
                 SetInt::syncId,
                 ByteBufCodecs.VAR_INT,
-                SetInt::syncId,
+                SetInt::value,
                 (syncId, value) -> new SetInt(type, syncId, value));
     }
 }
