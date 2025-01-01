@@ -34,6 +34,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -141,7 +142,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
     }
 
     @Override
-    public void toClientTag(CompoundTag tag, HolderLookup.Provider registries) {
+    public void toClientTag(CompoundTag tag, RegistryAccess registries) {
         tag.putByte("connectionBlacklist", (byte) connectionBlacklist);
         tag.putByte("connections", (byte) getPipeConnections());
         tag.putByte("inventoryConnections", (byte) getInventoryConnections());
@@ -161,7 +162,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
     }
 
     @Override
-    public void fromClientTag(CompoundTag tag, HolderLookup.Provider registries) {
+    public void fromClientTag(CompoundTag tag, RegistryAccess registries) {
         connectionBlacklist = tag.getByte("connectionBlacklist");
         byte connections = tag.getByte("connections");
         byte inventoryConnections = tag.getByte("inventoryConnections");
