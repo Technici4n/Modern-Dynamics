@@ -19,6 +19,7 @@
 package dev.technici4n.moderndynamics.compat.jade;
 
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
+import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.network.item.ItemHost;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.ItemVariant;
@@ -80,7 +81,7 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
         // We need to run on the client side to add client traveling items on the client side,
         // even if the server doesn't provide any stack.
         var dummyGroup = new ViewGroup<ItemStack>(new ArrayList<>());
-        dummyGroup.views.add(ItemStack.EMPTY);
+        dummyGroup.views.add(MdItems.WRENCH.getDefaultInstance());
         dummyGroup.id = "dummy";
         groups.add(dummyGroup);
 
