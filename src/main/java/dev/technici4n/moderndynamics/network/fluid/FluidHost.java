@@ -34,6 +34,7 @@ import dev.technici4n.moderndynamics.util.FluidVariant;
 import java.util.List;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.BlockCapability;
@@ -250,14 +251,14 @@ public class FluidHost extends NodeHost {
     }
 
     @Override
-    public void writeClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
+    public void writeClientNbt(CompoundTag tag, RegistryAccess registries) {
         super.writeClientNbt(tag, registries);
         tag.putInt("amount", amount);
         tag.put("variant", variant.toNbt(registries));
     }
 
     @Override
-    public void readClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
+    public void readClientNbt(CompoundTag tag, RegistryAccess registries) {
         super.readClientNbt(tag, registries);
         variant = FluidVariant.fromNbt(tag.getCompound("variant"), registries);
         amount = tag.getInt("amount");

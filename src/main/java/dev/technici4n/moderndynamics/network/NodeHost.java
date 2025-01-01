@@ -27,6 +27,7 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -242,11 +243,11 @@ public abstract class NodeHost {
     }
 
     @MustBeInvokedByOverriders
-    public void writeClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
+    public void writeClientNbt(CompoundTag tag, RegistryAccess registries) {
     }
 
     @MustBeInvokedByOverriders
-    public void readClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
+    public void readClientNbt(CompoundTag tag, RegistryAccess registries) {
     }
 
     public void clientTick() {

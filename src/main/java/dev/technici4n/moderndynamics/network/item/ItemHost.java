@@ -34,6 +34,7 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
+import io.netty.buffer.Unpooled;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -41,9 +42,10 @@ import java.util.List;
 import java.util.function.Predicate;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.BlockCapability;
@@ -51,6 +53,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.wrapper.EmptyItemHandler;
+import net.neoforged.neoforge.network.connection.ConnectionType;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemHost extends NodeHost {
@@ -503,47 +506,43 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void writeClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
+    public void writeClientNbt(CompoundTag tag, RegistryAccess registries) {
         super.writeClientNbt(tag, registries);
 
-        if (travelingItems.size() > 0) {
-            ListTag list = new ListTag();
-            for (var travelingItem : travelingItems) {
-                CompoundTag compound = new CompoundTag();
-                compound.putInt("id", travelingItem.id);
-                compound.put("v", travelingItem.variant.toNbt(registries));
-                compound.putInt("a", travelingItem.amount);
-                compound.putDouble("td", travelingItem.getPathLength() - 1);
-                compound.putDouble("d", travelingItem.traveledDistance);
-                int currentBlock = (int) Math.floor(travelingItem.traveledDistance);
-                compound.putByte("in", (byte) travelingItem.path.path[currentBlock].get3DDataValue());
-                compound.putByte("out", (byte) travelingItem.path.path[currentBlock + 1].get3DDataValue());
-                compound.putDouble("s", travelingItem.getSpeed());
-                list.add(compound);
+        if (!travelingItems.isEmpty()) {
+            var buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), registries, ConnectionType.NEOFORGE);
+            try {
+                buf.writeInt(travelingItems.size());
+                for (var travelingItem : travelingItems) {
+                    travelingItem.writeClient(buf);
+                }
+                byte[] bytes = new byte[buf.readableBytes()];
+                buf.readBytes(bytes);
+                tag.putByteArray("items", bytes);
+            } finally {
+                buf.release();
             }
-            tag.put("travelingItems", list);
         }
     }
 
     @Override
-    public void readClientNbt(CompoundTag tag, HolderLookup.Provider registries) {
+    public void readClientNbt(CompoundTag tag, RegistryAccess registries) {
         super.readClientNbt(tag, registries);
 
         clientTravelingItems.clear();
-        ListTag list = tag.getList("travelingItems", Tag.TAG_COMPOUND);
-        for (int i = 0; i < list.size(); ++i) {
-            CompoundTag compound = list.getCompound(i);
-            var newItem = new ClientTravelingItem(
-                    compound.getInt("id"),
-                    ItemVariant.fromNbt(compound.getCompound("v"), registries),
-                    compound.getInt("a"),
-                    compound.getDouble("td"),
-                    compound.getDouble("d"),
-                    Direction.from3DDataValue(compound.getByte("in")),
-                    Direction.from3DDataValue(compound.getByte("out")),
-                    compound.getDouble("s"));
-            clientTravelingItems.add(newItem);
-            ClientTravelingItemSmoothing.onReceiveItem(newItem);
+        byte[] bytes = tag.getByteArray("items");
+        if (bytes.length > 0) {
+            var buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(bytes), registries, ConnectionType.NEOFORGE);
+            try {
+                int count = buf.readInt();
+                for (int i = 0; i < count; i++) {
+                    var newItem = TravelingItem.readClient(buf);
+                    clientTravelingItems.add(newItem);
+                    ClientTravelingItemSmoothing.onReceiveItem(newItem);
+                }
+            } finally {
+                buf.release();
+            }
         }
     }
 

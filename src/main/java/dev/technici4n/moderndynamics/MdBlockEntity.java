@@ -21,6 +21,7 @@ package dev.technici4n.moderndynamics;
 import com.google.common.base.Preconditions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
@@ -53,9 +54,9 @@ public abstract class MdBlockEntity extends BlockEntity {
 
     public abstract void fromTag(CompoundTag tag, HolderLookup.Provider registries);
 
-    public abstract void toClientTag(CompoundTag tag, HolderLookup.Provider registries);
+    public abstract void toClientTag(CompoundTag tag, RegistryAccess registries);
 
-    public abstract void fromClientTag(CompoundTag tag, HolderLookup.Provider registries);
+    public abstract void fromClientTag(CompoundTag tag, RegistryAccess registries);
 
     @Override
     public final ClientboundBlockEntityDataPacket getUpdatePacket() {
@@ -65,7 +66,7 @@ public abstract class MdBlockEntity extends BlockEntity {
     @Override
     public final CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag nbt = super.getUpdateTag(registries);
-        toClientTag(nbt, registries);
+        toClientTag(nbt, (RegistryAccess) registries);
         nbt.putBoolean("#c", shouldClientRemesh); // mark client tag
         shouldClientRemesh = false;
         return nbt;
@@ -79,7 +80,7 @@ public abstract class MdBlockEntity extends BlockEntity {
     @Override
     public final void loadAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
         if (nbt.contains("#c")) {
-            fromClientTag(nbt, registries);
+            fromClientTag(nbt, (RegistryAccess) registries);
             if (nbt.getBoolean("#c")) {
                 remesh();
             }

@@ -22,6 +22,7 @@ import dev.technici4n.moderndynamics.MdBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -110,10 +111,10 @@ public class MachineExtenderBlockEntity extends MdBlockEntity {
     }
 
     @Override
-    public void toClientTag(CompoundTag tag, HolderLookup.Provider registries) {
+    public void toClientTag(CompoundTag tag, RegistryAccess registries) {
     }
 
     @Override
-    public void fromClientTag(CompoundTag tag, HolderLookup.Provider registries) {
+    public void fromClientTag(CompoundTag tag, RegistryAccess registries) {
     }
 }
