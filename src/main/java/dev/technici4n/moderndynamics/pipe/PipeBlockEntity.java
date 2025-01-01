@@ -321,10 +321,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
         cachedShape = PipeBoundingBoxes.getPipeShape(pipeConnections, inventoryConnections, attachments);
     }
 
-    /**
-     * Update connection blacklist for a side, and schedule a node update, on the server side.
-     */
-    protected void updateConnection(Direction side, boolean addConnection) {
+    private void updateConnectionBlacklist(Direction side, boolean addConnection) {
         if (level.isClientSide()) {
             throw new IllegalStateException("updateConnections() should not be called client-side.");
         }
@@ -347,6 +344,13 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
             }
             neighborPipe.setChanged();
         }
+    }
+
+    /**
+     * Update connection blacklist for a side, and schedule a node update, on the server side.
+     */
+    protected void updateConnection(Direction side, boolean addConnection) {
+        updateConnectionBlacklist(side, addConnection);
 
         // Schedule inventory and network updates.
         refreshHosts();
@@ -441,6 +445,11 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                     for (var host : getHosts()) {
                         if (host.acceptsAttachment(attachmentItem, stack)) {
                             if (!level.isClientSide) {
+                                // Re-enable connection when an attachment is added to it if was previously disabled.
+                                // (Attachments on disabled connections don't work as expected,
+                                // yet there is no visual indication. So we just disallow that.)
+                                updateConnectionBlacklist(hitSide, true);
+
                                 host.setAttachment(hitSide, attachmentItem, new CompoundTag(), level.registryAccess());
                                 host.getAttachment(hitSide).onPlaced(player);
                                 level.blockUpdated(worldPosition, getBlockState().getBlock());
