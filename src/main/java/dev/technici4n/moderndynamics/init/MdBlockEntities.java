@@ -27,6 +27,7 @@ import dev.technici4n.moderndynamics.network.energy.EnergyPipeTier;
 import dev.technici4n.moderndynamics.network.mienergy.MICableTier;
 import dev.technici4n.moderndynamics.pipe.*;
 import dev.technici4n.moderndynamics.util.MdId;
+import facadelib.api.FacadeContainer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -125,6 +126,7 @@ public final class MdBlockEntities {
         capRegistrations.add(evt -> registerLookup(evt, Capabilities.ItemHandler.BLOCK, type));
         capRegistrations.add(evt -> registerLookup(evt, Capabilities.FluidHandler.BLOCK, type));
         capRegistrations.add(evt -> registerLookup(evt, Capabilities.EnergyStorage.BLOCK, type));
+        capRegistrations.add(evt -> evt.registerBlockEntity(FacadeContainer.CAPABILITY, type, (be, ignored) -> be.getFacadeContainer()));
 
         return type;
     }

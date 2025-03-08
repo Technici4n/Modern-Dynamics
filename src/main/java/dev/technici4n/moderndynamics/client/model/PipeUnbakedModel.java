@@ -22,6 +22,8 @@ import dev.technici4n.moderndynamics.util.MdId;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import facadelib.api.client.FacadeBakedModel;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
@@ -95,6 +97,7 @@ public class PipeUnbakedModel implements IUnbakedGeometry<PipeUnbakedModel> {
                 loadRotatedModels(connector, baker),
                 loadRotatedModels(straightLine, baker),
                 bakedAttachments,
-                transparent);
+                transparent,
+                FacadeBakedModel.newInstance(baker, spriteGetter));
     }
 }

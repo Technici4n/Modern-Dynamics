@@ -49,6 +49,7 @@ repositories {
             includeGroup "curse.maven"
         }
     }
+    mavenLocal()
 }
 
 dependencies {
@@ -83,6 +84,8 @@ dependencies {
     }
 
     implementation("curse.maven:jade-324717:${project.jade_file_id}")
+
+    implementation("org.appliedenergistics:facadelib:0.0.0-SNAPSHOT")
 }
 
 processResources {

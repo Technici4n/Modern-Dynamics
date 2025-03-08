@@ -30,6 +30,11 @@ import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.ShapeHelper;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
 import java.util.Objects;
+
+import facadelib.api.FacadeContainer;
+import facadelib.api.FacadeHelper;
+import facadelib.api.FacadeHost;
+import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -38,6 +43,8 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -51,9 +58,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.network.connection.ConnectionType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,6 +73,28 @@ import org.jetbrains.annotations.Nullable;
 public abstract class PipeBlockEntity extends MdBlockEntity {
     public PipeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+        this.facadeContainer = FacadeHelper.newFacadeContainer(new FacadeHost() {
+            @Override
+            public boolean canPlaceFacade() {
+                return true;
+            }
+
+            @Override
+            public BlockEntity getBlockEntity() {
+                return PipeBlockEntity.this;
+            }
+
+            @Override
+            public void facadeUpdated(Direction direction) {
+                setChanged();
+                // TODO: are both necessary?
+                if (getLevel() instanceof ServerLevel) {
+                    sync(true);
+                } else {
+                    level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 0);
+                }
+            }
+        });
     }
 
     private NodeHost[] hosts;
@@ -72,6 +103,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
     private VoxelShape cachedShape = PipeBoundingBoxes.CORE_SHAPE;
     /* client side stuff */
     private ModelData clientModelData = ModelData.EMPTY;
+    private final FacadeContainer facadeContainer;
 
     private int clientSideConnections = 0;
 
@@ -159,6 +191,11 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
             }
         }
         tag.put("attachments", attachments);
+
+        var facadeData = new RegistryFriendlyByteBuf(Unpooled.buffer(), registries, ConnectionType.NEOFORGE);
+        facadeContainer.writeToStream(facadeData);
+        facadeData.capacity(facadeData.readableBytes());
+        tag.putByteArray("facades", facadeData.array());
     }
 
     @Override
@@ -173,9 +210,12 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
             host.readClientNbt(tag, registries);
         }
 
+        var facadeData = tag.getByteArray("facades");
+        var facadesUpdated = facadeData.length != 0 && facadeContainer.readFromStream(new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(facadeData), registries, ConnectionType.NEOFORGE));
+
         // remesh flag, a bit hacky but it should work ;)
         // the second check ensures that the very first packet is processed even though it doesn't have the remesh flag
-        if (tag.getBoolean("#c") || clientModelData == ModelData.EMPTY) {
+        if (tag.getBoolean("#c") || clientModelData == ModelData.EMPTY || facadesUpdated) {
             var attachmentTags = tag.getList("attachments", Tag.TAG_COMPOUND);
             var attachments = new AttachmentModelData[6];
             for (var direction : Direction.values()) {
@@ -183,9 +223,11 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                 attachments[direction.get3DDataValue()] = AttachmentModelData.from(attachmentTag);
             }
 
-            clientModelData = ModelData.builder()
-                    .with(PipeModelData.PIPE_DATA, new PipeModelData(connections, inventoryConnections, attachments))
-                    .build();
+            var modelDataBuilder = ModelData.builder()
+                    .with(PipeModelData.PIPE_DATA, new PipeModelData(connections, inventoryConnections, attachments));
+            facadeContainer.putModelData(modelDataBuilder);
+
+            clientModelData = modelDataBuilder.build();
             clientSideConnections = connections | inventoryConnections;
             requestModelDataUpdate();
 
@@ -210,6 +252,8 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
 
                 host.writeNbt(nbt, registries);
             }
+
+            facadeContainer.writeToNBT(nbt, registries);
         }
     }
 
@@ -224,6 +268,8 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
 
             host.readNbt(nbt, registries);
         }
+
+        facadeContainer.readFromNBT(nbt, registries);
     }
 
     public void scheduleHostUpdates() {
@@ -318,7 +364,10 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
             }
         }
 
-        cachedShape = PipeBoundingBoxes.getPipeShape(pipeConnections, inventoryConnections, attachments);
+        var pipeShape = PipeBoundingBoxes.getPipeShape(pipeConnections, inventoryConnections, attachments);
+        var facadeShape = facadeContainer.createShape(0);
+        // TODO: potentially cache this?
+        cachedShape = facadeShape.isEmpty() ? pipeShape : Shapes.or(pipeShape, facadeShape);
     }
 
     private void updateConnectionBlacklist(Direction side, boolean addConnection) {
@@ -534,5 +583,9 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
         for (var host : getHosts()) {
             host.clientTick();
         }
+    }
+
+    public FacadeContainer getFacadeContainer() {
+        return facadeContainer;
     }
 }

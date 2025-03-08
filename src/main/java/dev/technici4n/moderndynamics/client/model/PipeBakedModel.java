@@ -33,14 +33,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+
+import facadelib.api.client.FacadeBakedModel;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
 import net.neoforged.neoforge.client.model.data.ModelData;
@@ -55,15 +59,17 @@ public class PipeBakedModel implements BakedModel {
     private final BakedModel[] straightLineModels;
     private final Map<String, BakedModel[]> attachments;
     private final boolean transparent;
+    private final FacadeBakedModel facadeModel;
 
     public PipeBakedModel(TextureAtlasSprite baseSprite, BakedModel[] connectorModels, BakedModel[] straightLineModels,
-            Map<String, BakedModel[]> attachments, boolean transparent) {
+            Map<String, BakedModel[]> attachments, boolean transparent, FacadeBakedModel facadeModel) {
         this.baseSprite = baseSprite;
         this.connectorModels = connectorModels;
         this.straightLineModels = straightLineModels;
         this.attachments = attachments;
 
         this.transparent = transparent;
+        this.facadeModel = facadeModel;
         this.baseMeshes = new Mesh[1 << 6];
 
         var meshBuilder = new MeshBuilderImpl();
@@ -146,6 +152,11 @@ public class PipeBakedModel implements BakedModel {
     }
 
     @Override
+    public ModelData getModelData(BlockAndTintGetter level, BlockPos pos, BlockState state, ModelData modelData) {
+        return facadeModel.getModelData(level, pos, state, modelData);
+    }
+
+    @Override
     public List<BakedQuad> getQuads(@Nullable BlockState pState, @Nullable Direction pDirection, RandomSource pRandom) {
         return getQuads(pState, pDirection, pRandom, ITEM_MODEL_DATA, null);
     }
@@ -153,6 +164,10 @@ public class PipeBakedModel implements BakedModel {
     @Override
     public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand,
             @NotNull ModelData data, @Nullable RenderType renderType) {
+        if (renderType != null && renderType != RenderType.cutout()) {
+            return this.facadeModel.getQuads(side, rand, data, renderType);
+        }
+
         var pipeData = data.get(PipeModelData.PIPE_DATA);
         if (pipeData == null) {
             pipeData = PipeModelData.DEFAULT;
@@ -203,6 +218,8 @@ public class PipeBakedModel implements BakedModel {
             }
         }
 
+        result.addAll(facadeModel.getQuads(side, rand, data, renderType));
+
         return result;
     }
 
@@ -226,6 +243,6 @@ public class PipeBakedModel implements BakedModel {
 
     @Override
     public ChunkRenderTypeSet getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, @NotNull ModelData data) {
-        return CUTOUT_RENDER_TYPES;
+        return ChunkRenderTypeSet.all();
     }
 }

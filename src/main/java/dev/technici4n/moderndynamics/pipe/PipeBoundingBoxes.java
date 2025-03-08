@@ -19,6 +19,8 @@
 package dev.technici4n.moderndynamics.pipe;
 
 import java.util.concurrent.ConcurrentHashMap;
+
+import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -92,13 +94,15 @@ public class PipeBoundingBoxes {
         VoxelShape shape = CORE_SHAPE;
         for (int i = 0; i < 6; ++i) {
             if ((allConnections & (1 << i)) > 0) {
-                shape = Shapes.or(shape, PIPE_CONNECTIONS[i]);
+                shape = Shapes.joinUnoptimized(shape, PIPE_CONNECTIONS[i], BooleanOp.OR);
             }
 
             if ((inventoryConnections & (1 << i)) > 0) {
-                shape = Shapes.or(shape, CONNECTOR_SHAPES[i]);
+                shape = Shapes.joinUnoptimized(shape, CONNECTOR_SHAPES[i], BooleanOp.OR);
             }
         }
+
+        shape = shape.optimize();
 
         pipeShapeCache.put(cacheKey, shape);
         return shape;
