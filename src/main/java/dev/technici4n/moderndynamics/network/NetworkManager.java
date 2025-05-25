@@ -87,8 +87,10 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
 
         NetworkNode<H, C> newNode = new NetworkNode<>(host);
 
-        if (worldNodes.put(pos.asLong(), newNode) != null) {
-            throw new IllegalArgumentException("Node at position " + pos + " in world " + world + " already exists.");
+        var prevNode = worldNodes.putIfAbsent(pos.asLong(), newNode);
+        if (prevNode != null) {
+            throw new IllegalArgumentException("Node at position %s in world %s already exists. Existing host: %s. New host: %s.".formatted(pos,
+                    world, prevNode.getHost(), host));
         }
 
         pendingUpdates.add(newNode);

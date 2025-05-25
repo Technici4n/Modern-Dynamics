@@ -263,6 +263,14 @@ public abstract class NodeHost {
                 drops.addAll(attachment.getDrops());
             }
         }
+    }
 
+    @Override
+    public String toString() {
+        return super.toString() + "{" +
+                "pipe entity=" + pipe +
+                ", pipe pos=" + pipe.getBlockPos() +
+                ", pipe level=" + pipe.getLevel() +
+                '}';
     }
 }
