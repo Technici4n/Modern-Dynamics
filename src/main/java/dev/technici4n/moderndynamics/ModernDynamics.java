@@ -33,6 +33,7 @@ import dev.technici4n.moderndynamics.util.MdId;
 import dev.technici4n.moderndynamics.util.MdItemGroup;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
 import net.minecraft.core.registries.Registries;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLLoader;
@@ -53,6 +54,7 @@ public class ModernDynamics {
         modEvents.addListener(RegisterPayloadHandlersEvent.class, this::registerPayloadHandlers);
 
         modEvents.addListener(MdBlockEntities::registerCapabilities);
+        modEvents.addListener(EventPriority.LOW, MdBlockEntities::registerLowPriorityCapabilities);
         NeoForge.EVENT_BUS.addListener(ServerStoppedEvent.class, e -> {
             NetworkManager.onServerStopped();
             SimulatedInsertionTargets.clear();

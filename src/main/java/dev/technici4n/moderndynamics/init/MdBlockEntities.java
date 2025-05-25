@@ -57,16 +57,22 @@ public final class MdBlockEntities {
             MdBlocks.MACHINE_EXTENDER);
 
     public static void registerCapabilities(RegisterCapabilitiesEvent evt) {
-        // Extender API forwarding
-        var type = MACHINE_EXTENDER;
-        MachineExtenderBlockEntity.forwardApi(evt, type, Capabilities.ItemHandler.BLOCK);
-        MachineExtenderBlockEntity.forwardApi(evt, type, Capabilities.FluidHandler.BLOCK);
-        MachineExtenderBlockEntity.forwardApi(evt, type, Capabilities.EnergyStorage.BLOCK);
-        MachineExtenderBlockEntity.forwardApi(evt, type, MIProxy.INSTANCE.getLookup());
-
         for (var capRegistration : capRegistrations) {
             capRegistration.accept(evt);
         }
+    }
+
+    public static void registerLowPriorityCapabilities(RegisterCapabilitiesEvent evt) {
+        // Extender API forwarding
+        var type = MACHINE_EXTENDER;
+        for (var proxyableCapability : BlockCapability.getAllProxyable()) {
+            if (proxyableCapability.contextClass() == Direction.class) {
+                // noinspection unchecked
+                MachineExtenderBlockEntity.forwardApi(evt, type, (BlockCapability<?, Direction>) proxyableCapability);
+            }
+        }
+        // TODO: remove once we MI marks its caps as proxyable
+        MachineExtenderBlockEntity.forwardApi(evt, type, MIProxy.INSTANCE.getLookup());
     }
 
     /*
