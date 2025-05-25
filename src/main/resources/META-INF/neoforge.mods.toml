@@ -18,6 +18,6 @@ config="moderndynamics.mixins.json"
 [[dependencies.moderndynamics]]
 modId="neoforge"
 type="REQUIRED"
-versionRange="[21.1,)"
+versionRange="[21.1.169,)"
 ordering="NONE"
 side="BOTH"
