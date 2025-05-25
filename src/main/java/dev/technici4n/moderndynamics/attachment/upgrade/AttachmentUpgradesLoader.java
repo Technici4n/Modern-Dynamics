@@ -43,7 +43,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
-import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<List<JsonObject>> {
@@ -103,7 +103,7 @@ public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<Lis
         NeoForge.EVENT_BUS.addListener(AddReloadListenerEvent.class, e -> {
             e.addListener(new AttachmentUpgradesLoader());
         });
-        NeoForge.EVENT_BUS.addListener(ServerStartingEvent.class, e -> {
+        NeoForge.EVENT_BUS.addListener(ServerAboutToStartEvent.class, e -> {
             var server = e.getServer();
             LoadedUpgrades.trySet(LOADED_UPGRADES.remove(server.getResourceManager()));
         });
