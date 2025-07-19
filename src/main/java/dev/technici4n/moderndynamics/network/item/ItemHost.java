@@ -113,7 +113,7 @@ public class ItemHost extends NodeHost {
                 double speedupFactor = getAttachment(side) instanceof ItemAttachedIo io ? io.getItemSpeedupFactor() : 1;
                 return cache.insertList(node, paths, resource, maxAmount, simulate, speedupFactor, null);
             } else {
-                // The node can be null if the pipe was just placed, and not initialized yet.
+                // The node can be null on the client or if the pipe was just placed and not initialized yet.
                 return 0;
             }
         });
@@ -125,7 +125,7 @@ public class ItemHost extends NodeHost {
     private InsertionOnlyItemHandler buildExtractorNetworkInjectStorage(Direction side, ItemAttachedIo extractor,
             @Nullable MaxParticipant maxIndexParticipant) {
         double speedupFactor = extractor.getItemSpeedupFactor();
-        NetworkNode<ItemHost, ItemCache> node = findNode();
+        NetworkNode<ItemHost, ItemCache> node = findNodeOnServer();
         var cache = node.getNetworkCache();
         var paths = rearrangePaths(cache.pathCache.getPaths(node, side.getOpposite()), extractor);
         return new InsertionOnlyItemHandler((resource, maxAmount, simulate) -> {
@@ -233,7 +233,7 @@ public class ItemHost extends NodeHost {
             if (!insertTarget.hasStorage())
                 return;
 
-            NetworkNode<ItemHost, ItemCache> thisNode = findNode();
+            NetworkNode<ItemHost, ItemCache> thisNode = findNodeOnServer();
             var cache = thisNode.getNetworkCache();
             var pathCache = cache.pathCache;
             var paths = rearrangePaths(pathCache.getPaths(thisNode, side.getOpposite()), attractor);
@@ -356,7 +356,7 @@ public class ItemHost extends NodeHost {
 
                 @Nullable
                 ItemHost adjacentItemHost = null;
-                NetworkNode<ItemHost, ItemCache> ownNode = findNode();
+                NetworkNode<ItemHost, ItemCache> ownNode = findNodeOnServer();
                 for (var connection : ownNode.getConnections()) {
                     if (connection.direction() == adjPipeDirection) {
                         adjacentItemHost = connection.target().getHost();
@@ -486,7 +486,7 @@ public class ItemHost extends NodeHost {
 
         if (oldConnections != inventoryConnections) {
             pipe.sync();
-            NetworkNode<ItemHost, ItemCache> node = findNode();
+            NetworkNode<ItemHost, ItemCache> node = findNodeOnServer();
             node.getNetworkCache().pathCache.invalidate();
         }
     }
