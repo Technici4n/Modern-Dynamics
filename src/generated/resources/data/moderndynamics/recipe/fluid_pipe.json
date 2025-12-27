@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "g": {
-      "item": "minecraft:glass"
-    },
-    "i": {
-      "item": "minecraft:copper_ingot"
-    }
+    "g": "minecraft:glass",
+    "i": "minecraft:copper_ingot"
   },
   "pattern": [
     "igi"

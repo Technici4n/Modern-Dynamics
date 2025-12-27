@@ -29,6 +29,9 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
+
+import net.minecraft.client.data.models.model.ModelLocationUtils;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
@@ -54,7 +57,7 @@ public class PipeModelsProvider implements DataProvider {
     }
 
     private void registerPipeModels(BiConsumer<JsonElement, Path> saver) {
-        for (var pipe : MdBlocks.ALL_PIPES) {
+        for (var pipe : MdBlocks.getAllPipes()) {
             registerPipeModel(pipe, saver);
         }
 
@@ -87,7 +90,7 @@ public class PipeModelsProvider implements DataProvider {
     }
 
     private void registerPipeModel(PipeBlock pipe, BiConsumer<JsonElement, Path> saver) {
-        var baseFolder = dataOutput.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(MdId.MOD_ID, pipe.id));
+        var baseFolder = dataOutput.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(MdId.MOD_ID, BuiltInRegistries.BLOCK.getKey(pipe).getPath()));
 
         registerPipePart(baseFolder, pipe, "connector", saver);
         registerPipePart(baseFolder, pipe, "straight", saver);
@@ -101,7 +104,7 @@ public class PipeModelsProvider implements DataProvider {
         obj.addProperty("parent", MdId.of("base/%s%s".formatted(kind, pipe.isTransparent() ? "_transparent" : "")).toString());
         var textures = new JsonObject();
         obj.add("textures", textures);
-        textures.addProperty("0", MdId.of("pipe/%s/%s".formatted(pipe.id, kind)).toString());
+        textures.addProperty("0", MdId.of("pipe/%s/%s".formatted(BuiltInRegistries.BLOCK.getKey(pipe).getPath(), kind)).toString());
 
         saver.accept(obj, baseFolder.resolve(kind + ".json"));
     }

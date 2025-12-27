@@ -1,10 +1,7 @@
 {
   "variants": {
-    "top=false": {
-      "model": "moderndynamics:block/machine_extender_normal"
-    },
-    "top=true": {
-      "model": "moderndynamics:block/machine_extender_top"
+    "": {
+      "model": "moderndynamics:block/machine_extender"
     }
   }
 }

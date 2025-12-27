@@ -34,6 +34,8 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+
+import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.GsonHelper;
@@ -41,7 +43,7 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.conditions.ICondition;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -100,8 +102,8 @@ public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<Lis
     }
 
     public static void setup() {
-        NeoForge.EVENT_BUS.addListener(AddReloadListenerEvent.class, e -> {
-            e.addListener(new AttachmentUpgradesLoader());
+        NeoForge.EVENT_BUS.addListener(AddServerReloadListenersEvent.class, e -> {
+            e.addListener(MdId.of("attachment_upgrades"), new AttachmentUpgradesLoader());
         });
         NeoForge.EVENT_BUS.addListener(ServerAboutToStartEvent.class, e -> {
             var server = e.getServer();

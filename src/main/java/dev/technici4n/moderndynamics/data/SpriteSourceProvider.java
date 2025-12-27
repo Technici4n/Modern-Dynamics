@@ -19,34 +19,31 @@
 package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.util.MdId;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import net.minecraft.client.renderer.texture.atlas.SpriteSource;
 import net.minecraft.client.renderer.texture.atlas.SpriteSources;
 import net.minecraft.client.renderer.texture.atlas.sources.DirectoryLister;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackType;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.data.JsonCodecProvider;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 public class SpriteSourceProvider extends JsonCodecProvider<List<SpriteSource>> {
-    public SpriteSourceProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries, ExistingFileHelper existingFileHelper) {
+    public SpriteSourceProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
         super(packOutput,
                 PackOutput.Target.RESOURCE_PACK,
                 "atlases",
-                PackType.CLIENT_RESOURCES,
                 SpriteSources.FILE_CODEC,
                 registries,
-                MdId.MOD_ID,
-                existingFileHelper);
+                MdId.MOD_ID);
     }
 
     @Override
     protected void gather() {
         unconditional(
-                ResourceLocation.fromNamespaceAndPath("minecraft", "blocks"),
+                Identifier.fromNamespaceAndPath("minecraft", "blocks"),
                 List.of(new DirectoryLister("pipe", "pipe/"), new DirectoryLister("attachment", "attachment/")));
     }
 

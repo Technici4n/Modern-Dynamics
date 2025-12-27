@@ -1,7 +1,9 @@
 {
   "variants": {
     "": {
-      "model": "moderndynamics:block/item_pipe"
+      "type": "moderndynamics:pipe",
+      "pipeType": "item_pipe",
+      "transparent": true
     }
   }
 }

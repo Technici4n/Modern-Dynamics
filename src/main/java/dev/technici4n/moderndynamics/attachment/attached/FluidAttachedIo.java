@@ -18,6 +18,8 @@
  */
 package dev.technici4n.moderndynamics.attachment.attached;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.gui.menu.AttachmentMenuType;
@@ -25,8 +27,8 @@ import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
 import dev.technici4n.moderndynamics.util.FluidVariant;
+import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -35,42 +37,32 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 // TODO: also allow nbt filtering
 public class FluidAttachedIo extends AttachedIo {
+    private static final Codec<List<FluidVariant>> FILTER_LIST_CODEC = FluidVariant.CODEC.listOf(0, Constants.Upgrades.MAX_FILTER);
+
     private final NonNullList<FluidVariant> filters;
     @Nullable
     private FluidCachedFilter cachedFilter = null;
 
-    public FluidAttachedIo(IoAttachmentItem item, CompoundTag configData, Runnable setChangedCallback, HolderLookup.Provider registries) {
-        super(item, configData, setChangedCallback, registries);
+    public FluidAttachedIo(IoAttachmentItem item, ValueInput configData, Runnable setChangedCallback) {
+        super(item, configData, setChangedCallback);
 
         this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, FluidVariant.blank());
-        var filterTags = configData.getList("filters", CompoundTag.TAG_COMPOUND);
-        for (int i = 0; i < this.filters.size(); i++) {
-            var filterTag = filterTags.getCompound(i);
-            if (!filterTag.isEmpty()) {
-                this.filters.set(i, FluidVariant.fromNbt(filterTag, registries));
-            }
-        }
+        var filterTags = configData.read("filters", FILTER_LIST_CODEC);
+        filterTags.ifPresent(filters::addAll);
     }
 
     @Override
-    public CompoundTag writeConfigTag(CompoundTag configData, HolderLookup.Provider registries) {
-        super.writeConfigTag(configData, registries);
-
-        var filterTags = new ListTag();
-        for (FluidVariant filter : this.filters) {
-            if (filter.isBlank()) {
-                filterTags.add(new CompoundTag());
-            } else {
-                filterTags.add(filter.toNbt(registries));
-            }
-        }
-        configData.put("filters", filterTags);
-
-        return configData;
+    public void writeConfigTag(ValueOutput output) {
+        super.writeConfigTag(output);
+        output.store("filters", FILTER_LIST_CODEC, filters);
     }
 
     @Override

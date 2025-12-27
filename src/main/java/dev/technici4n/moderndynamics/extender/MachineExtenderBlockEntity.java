@@ -21,12 +21,11 @@ package dev.technici4n.moderndynamics.extender;
 import dev.technici4n.moderndynamics.MdBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.ICapabilityInvalidationListener;
@@ -103,18 +102,18 @@ public class MachineExtenderBlockEntity extends MdBlockEntity {
     }
 
     @Override
-    public void toTag(CompoundTag tag, HolderLookup.Provider registries) {
+    public void toTag(ValueOutput output) {
     }
 
     @Override
-    public void fromTag(CompoundTag tag, HolderLookup.Provider registries) {
+    public void fromTag(ValueInput input) {
     }
 
     @Override
-    public void toClientTag(CompoundTag tag, RegistryAccess registries) {
+    public void toClientTag(ValueOutput output) {
     }
 
     @Override
-    public void fromClientTag(CompoundTag tag, RegistryAccess registries) {
+    public void fromClientTag(ValueInput input) {
     }
 }

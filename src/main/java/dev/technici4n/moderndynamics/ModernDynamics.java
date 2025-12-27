@@ -36,6 +36,7 @@ import net.minecraft.core.registries.Registries;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
@@ -50,6 +51,8 @@ public class ModernDynamics {
     public static final Logger LOGGER = LogManager.getLogger("Modern Dynamics");
 
     public ModernDynamics(IEventBus modEvents) {
+        MdBlocks.DR.register(modEvents);
+        MdItems.DR.register(modEvents);
         modEvents.addListener(RegisterEvent.class, this::register);
         modEvents.addListener(RegisterPayloadHandlersEvent.class, this::registerPayloadHandlers);
 
@@ -65,21 +68,14 @@ public class ModernDynamics {
         });
         NeoForge.EVENT_BUS.addListener(WrenchHelper::handleEvent);
         AttachmentUpgradesLoader.setup();
+        MdAttachments.init();
 
-        if (FMLLoader.getDist().isClient()) {
-            new ModernDynamicsClient(modEvents);
-        }
         LOGGER.info("Successfully loaded Modern Dynamics!");
     }
 
     private void register(RegisterEvent registerEvent) {
         var registryKey = registerEvent.getRegistryKey();
-        if (registryKey == Registries.BLOCK) {
-            MdBlocks.init();
-        } else if (registryKey == Registries.ITEM) {
-            MdItems.init();
-            MdAttachments.init();
-        } else if (registryKey == Registries.BLOCK_ENTITY_TYPE) {
+        if (registryKey == Registries.BLOCK_ENTITY_TYPE) {
             MdBlockEntities.init();
         } else if (registryKey == Registries.MENU) {
             MdMenus.init();

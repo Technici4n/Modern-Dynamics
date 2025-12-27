@@ -32,6 +32,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.storage.ValueInput;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -99,16 +100,6 @@ public interface ItemVariant extends TransferVariant<Item> {
     @Override
     default Tag toNbt(HolderLookup.Provider registries) {
         return CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), this).getOrThrow();
-    }
-
-    /**
-     * Deserialize a variant from an NBT compound tag, assuming it was serialized using
-     * {@link #toNbt}. If an error occurs during deserialization, it will be logged
-     * with the DEBUG level, and a blank variant will be returned.
-     */
-    static ItemVariant fromNbt(CompoundTag nbt, HolderLookup.Provider registries) {
-        return CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE), nbt).resultOrPartial(ModernDynamics.LOGGER::error)
-                .orElse(blank());
     }
 
     @Override

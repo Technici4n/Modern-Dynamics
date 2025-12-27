@@ -26,19 +26,22 @@ import dev.technici4n.moderndynamics.network.item.ItemHost;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.storage.ValueInput;
 
 public class IoAttachmentItem extends AttachmentItem {
     private final IoAttachmentType type;
 
-    public IoAttachmentItem(RenderedAttachment attachment, IoAttachmentType type) {
-        super(attachment);
+    public IoAttachmentItem(Item.Properties properties, RenderedAttachment attachment, IoAttachmentType type) {
+        super(properties, attachment);
         this.type = type;
     }
 
@@ -47,11 +50,11 @@ public class IoAttachmentItem extends AttachmentItem {
     }
 
     @Override
-    public AttachedAttachment createAttached(NodeHost host, CompoundTag configTag, HolderLookup.Provider registries) {
+    public AttachedAttachment createAttached(NodeHost host, ValueInput input) {
         if (host instanceof ItemHost) {
-            return new ItemAttachedIo(this, configTag, host.getPipe()::setChanged, registries);
+            return new ItemAttachedIo(this, input, host.getPipe()::setChanged);
         } else {
-            return new FluidAttachedIo(this, configTag, host.getPipe()::setChanged, registries);
+            return new FluidAttachedIo(this, input, host.getPipe()::setChanged);
         }
     }
 
@@ -83,9 +86,9 @@ public class IoAttachmentItem extends AttachmentItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
-        tooltipComponents
-                .add(Component.translatable("gui.moderndynamics.tooltip.attachment_upgrades").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
+    public void appendHoverText(ItemStack itemStack, TooltipContext context, TooltipDisplay display, Consumer<Component> builder, TooltipFlag tooltipFlag) {
+        builder
+                .accept(Component.translatable("gui.moderndynamics.tooltip.attachment_upgrades").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
         /*
          * if (level != null && level.isClientSide()) {
          * if (MdProxy.INSTANCE.isShiftDown()) {

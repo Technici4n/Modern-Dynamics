@@ -21,21 +21,25 @@ package dev.technici4n.moderndynamics.extender;
 import dev.technici4n.moderndynamics.MdBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.redstone.Orientation;
 import org.jetbrains.annotations.Nullable;
 
 public class MachineExtenderBlock extends MdBlock {
     public static final BooleanProperty TOP = BooleanProperty.create("top");
 
-    public MachineExtenderBlock() {
-        super("machine_extender", Properties.of().mapColor(MapColor.METAL).destroyTime(0.2f));
+    public MachineExtenderBlock(Properties props) {
+        super(props.mapColor(MapColor.METAL).destroyTime(0.2f));
 
         registerDefaultState(defaultBlockState().setValue(TOP, false));
     }
@@ -46,13 +50,12 @@ public class MachineExtenderBlock extends MdBlock {
     }
 
     @Override
-    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos currentPos,
-            BlockPos neighborPos) {
-        if (direction.getAxis().isVertical()) {
-            return state.setValue(TOP, !level.getBlockState(currentPos.above()).is(this));
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
+        if (directionToNeighbour.getAxis().isVertical()) {
+            return state.setValue(TOP, !level.getBlockState(pos.above()).is(this));
         }
 
-        return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
+        return super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random);
     }
 
     @Nullable
@@ -68,20 +71,28 @@ public class MachineExtenderBlock extends MdBlock {
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
-        if (fromPos.equals(pos.below())) {
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @org.jspecify.annotations.Nullable Orientation orientation, boolean movedByPiston) {
+        // TODO 26.1: This is likely wrong
+        if (orientation == null || orientation.getFront() == Direction.UP) {
             // Forward update if it's coming from below
             if (level.getBlockEntity(pos) instanceof MachineExtenderBlockEntity sideExtender) {
                 sideExtender.inNeighborUpdate = true;
 
                 try {
-                    level.updateNeighborsAtExceptFromFacing(pos, this, Direction.DOWN);
+                    sideExtender.getLevel().updateNeighborsAtExceptFromFacing(pos, this, Direction.DOWN, orientation); // TODO 26.1: This is likely wrong
                 } finally {
                     sideExtender.inNeighborUpdate = false;
                 }
             }
         }
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
+    }
 
-        super.neighborChanged(state, level, pos, block, fromPos, isMoving);
+    // TODO 26.1: This previously used the vanilla callback, but I have my doubt it was ever called
+    @Override
+    public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighbor) {
+
+
+        super.onNeighborChange(state, level, pos, neighbor);
     }
 }

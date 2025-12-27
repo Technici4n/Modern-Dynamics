@@ -55,7 +55,7 @@ public class LootTablesProvider extends BlockLootSubProvider {
     public void generate(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {
         for (var block : BuiltInRegistries.BLOCK) {
             if (block instanceof MdBlock) {
-                output.accept(block.getLootTable(), createSingleItemTable(block));
+                block.getLootTable().ifPresent(tableId -> output.accept(tableId, createSingleItemTable(block)));
             }
         }
     }

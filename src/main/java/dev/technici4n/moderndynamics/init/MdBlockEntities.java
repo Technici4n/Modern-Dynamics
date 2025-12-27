@@ -30,6 +30,8 @@ import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
@@ -110,13 +112,13 @@ public final class MdBlockEntities {
         // init static
     }
 
-    private static <T extends MdBlockEntity> BlockEntityType<T> registerRaw(BlockEntityConstructor<T> factory, MdBlock block) {
+    private static <T extends MdBlockEntity> BlockEntityType<T> registerRaw(BlockEntityConstructor<T> factory, Supplier<? extends MdBlock> block) {
         TypeFactory<T> typeFactory = new TypeFactory<>(factory);
-        BlockEntityType<T> type = BlockEntityType.Builder.of(typeFactory, block).build(null);
+        BlockEntityType<T> type = new BlockEntityType<>(typeFactory, block.get());
         typeFactory.type = type;
-        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, MdId.of(block.id), type);
+        Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, BuiltInRegistries.BLOCK.getKey(block.get()), type);
         // noinspection unchecked
-        block.setBlockEntityProvider((BlockEntityType<PipeBlockEntity>) type);
+        block.get().setBlockEntityProvider((BlockEntityType<PipeBlockEntity>) type);
 
         return type;
     }
@@ -124,13 +126,13 @@ public final class MdBlockEntities {
     /**
      * Registers a {@link BlockEntityType} for a single block type and inherits the blocks registry id for the type.
      */
-    private static <T extends PipeBlockEntity> BlockEntityType<T> register(BlockEntityConstructor<T> factory, PipeBlock block) {
+    private static <T extends PipeBlockEntity> BlockEntityType<T> register(BlockEntityConstructor<T> factory, Supplier<PipeBlock> block) {
         var type = registerRaw(factory, block);
 
         // Register item, item and energy API.
-        capRegistrations.add(evt -> registerLookup(evt, Capabilities.ItemHandler.BLOCK, type));
-        capRegistrations.add(evt -> registerLookup(evt, Capabilities.FluidHandler.BLOCK, type));
-        capRegistrations.add(evt -> registerLookup(evt, Capabilities.EnergyStorage.BLOCK, type));
+        capRegistrations.add(evt -> registerLookup(evt, Capabilities.Item.BLOCK, type));
+        capRegistrations.add(evt -> registerLookup(evt, Capabilities.Fluid.BLOCK, type));
+        capRegistrations.add(evt -> registerLookup(evt, Capabilities.Energy.BLOCK, type));
 
         return type;
     }
@@ -141,12 +143,12 @@ public final class MdBlockEntities {
         evt.registerBlockEntity(lookup, type, (pipe, dir) -> apiClass.cast(pipe.getApiInstance(lookup, dir)));
     }
 
-    private static BlockEntityType<PipeBlockEntity> createMIEnergyCable(PipeBlock block, MICableTier tier) {
+    private static BlockEntityType<PipeBlockEntity> createMIEnergyCable(Supplier<PipeBlock> block, MICableTier tier) {
         return register((type, pos, state) -> new MIEnergyCableBlockEntity(type, pos, state, tier), block);
     }
 
-    private static BlockEntityType<PipeBlockEntity> createEnergyPipe(EnergyPipeTier tier, PipeBlock block) {
-        return register((type, pos, state) -> new EnergyPipeBlockEntity(type, tier, pos, state), block);
+    private static BlockEntityType<PipeBlockEntity> createEnergyPipe(Supplier<EnergyPipeTier> tier, Supplier<PipeBlock> block) {
+        return register((type, pos, state) -> new EnergyPipeBlockEntity(type, tier.get(), pos, state), block);
     }
 
     /**

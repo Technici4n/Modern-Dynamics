@@ -30,12 +30,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class MdBlock extends Block implements EntityBlock {
 
-    public final String id;
     private BlockEntityType<PipeBlockEntity> blockEntityType;
 
-    public MdBlock(String id, Properties properties) {
+    public MdBlock(Properties properties) {
         super(properties);
-        this.id = id;
     }
 
     @Nullable

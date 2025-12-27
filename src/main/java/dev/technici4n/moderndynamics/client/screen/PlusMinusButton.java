@@ -22,7 +22,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.ARGB;
 
 public class PlusMinusButton extends Button {
     private final boolean minus;
@@ -33,9 +35,7 @@ public class PlusMinusButton extends Button {
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
+    public void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         var x = 216 + (minus ? 0 : width);
         var y = 120;
         if (!isActive()) {
@@ -43,9 +43,6 @@ public class PlusMinusButton extends Button {
         } else if (isHovered) {
             y += height;
         }
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.enableDepthTest();
-        guiGraphics.blit(ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), x, y, width, height);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), x, y, width, height, 256, 256, ARGB.white(this.alpha));
     }
 }

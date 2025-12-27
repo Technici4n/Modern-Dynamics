@@ -33,7 +33,7 @@ import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 
 public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
 
@@ -58,7 +58,7 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
     }
 
     @Override
-    public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
+    public void clicked(int slotIndex, int button, ContainerInput actionType, Player player) {
         if (slotIndex >= 0 && getSlot(slotIndex) instanceof ItemConfigSlot configSlot && configSlot.isActive()) {
             attachment.setFilter(configSlot.getConfigIdx(), ItemVariant.of(getCarried()));
         } else {

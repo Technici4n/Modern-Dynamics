@@ -214,11 +214,7 @@ public interface QuadView {
         toVanilla(vertexData, 0);
         // TODO material inspection: set shade as !disableDiffuse
         // TODO material inspection: set color index to -1 if the material disables it
-        return new BakedQuad(vertexData, colorIndex(), lightFace(), sprite, true);
-    }
-
-    default BakedQuad toBlockBakedQuad() {
-        var finder = SpriteFinder.get(Minecraft.getInstance().getModelManager().getAtlas(TextureAtlas.LOCATION_BLOCKS));
-        return toBakedQuad(finder.find(this));
+       // TODO 26.1 return new BakedQuad(vertexData, colorIndex(), lightFace(), sprite, true);
+        return null;
     }
 }

@@ -20,6 +20,7 @@ package dev.technici4n.moderndynamics.network.item;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.mojang.serialization.Codec;
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
@@ -35,25 +36,29 @@ import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import io.netty.buffer.Unpooled;
+
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.wrapper.EmptyItemHandler;
 import net.neoforged.neoforge.network.connection.ConnectionType;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemHost extends NodeHost {
@@ -61,7 +66,7 @@ public class ItemHost extends NodeHost {
     private final List<TravelingItem> travelingItems = new ArrayList<>();
     private final List<ClientTravelingItem> clientTravelingItems = new ArrayList<>();
     private final long[] lastOperationTick = new long[6];
-    private final HostAdjacentCaps<IItemHandler> adjacentCaps = new HostAdjacentCaps<>(this, Capabilities.ItemHandler.BLOCK);
+    private final HostAdjacentCaps<ResourceHandler<ItemResource>> adjacentCaps = new HostAdjacentCaps<>(this, Capabilities.Item.BLOCK);
 
     public ItemHost(PipeBlockEntity pipe) {
         super(pipe);
@@ -89,7 +94,7 @@ public class ItemHost extends NodeHost {
     @Override
     @Nullable
     public Object getApiInstance(BlockCapability<?, Direction> lookup, @Nullable Direction side) {
-        if (lookup == Capabilities.ItemHandler.BLOCK && side != null && allowItemConnection(side)) {
+        if (lookup == Capabilities.Item.BLOCK && side != null && allowItemConnection(side)) {
             return buildExternalNetworkInjectStorage(side);
         }
         return null;
@@ -141,7 +146,7 @@ public class ItemHost extends NodeHost {
     protected IItemHandler getAdjacentStorage(Direction side, boolean checkAttachments) {
         if ((inventoryConnections & (1 << side.get3DDataValue())) > 0 && (pipeConnections & (1 << side.get3DDataValue())) == 0
                 && (!checkAttachments || allowItemConnection(side))) {
-            return adjacentCaps.getCapability(side);
+            return null; // TODO 26.1: adjacentCaps.getCapability(side);
         }
         return null;
     }
@@ -250,7 +255,8 @@ public class ItemHost extends NodeHost {
                     continue;
                 }
 
-                var extractTarget = pipe.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, path.targetPos, path.getTargetBlockSide());
+                // TODO 26.1:
+                var extractTarget = (IItemHandler) pipe.getLevel().getCapability(Capabilities.Item.BLOCK, path.targetPos, path.getTargetBlockSide());
                 if (extractTarget != null) {
                     // Make sure to check the filter at the endpoint.
                     var endpointFilter = path.getEndFilter(cache.level);
@@ -409,23 +415,23 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        super.writeNbt(tag, registries);
-        if (travelingItems.size() > 0) {
-            ListTag list = new ListTag();
+    public void write(ValueOutput output) {
+        super.write(output);
+        if (!travelingItems.isEmpty()) {
+            var travelingItemsOut = output.childrenList("travelingItems");
             for (var travelingItem : travelingItems) {
-                list.add(travelingItem.toNbt(registries));
+                travelingItem.write(travelingItemsOut.addChild());
             }
-            tag.put("travelingItems", list);
         }
     }
 
     @Override
-    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        super.readNbt(tag, registries);
-        ListTag list = tag.getList("travelingItems", CompoundTag.TAG_COMPOUND);
-        for (int i = 0; i < list.size(); ++i) {
-            var item = TravelingItem.fromNbt(list.getCompound(i), registries);
+    public void read(ValueInput input) {
+        super.read(input);
+        // TODO 26.1: Shouldn't travelingItems be cleared?
+        var travelingItemsIn = input.childrenListOrEmpty("travelingItems");
+        for (var itemIn : travelingItemsIn) {
+            var item = TravelingItem.read(itemIn);
 
             if (!item.variant.isBlank()) { // Guard against blank variants in case a mod is removed
                 travelingItems.add(item);
@@ -506,11 +512,11 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void writeClientNbt(CompoundTag tag, RegistryAccess registries) {
-        super.writeClientNbt(tag, registries);
+    public void writeClientNbt(ValueOutput output) {
+        super.writeClientNbt(output);
 
         if (!travelingItems.isEmpty()) {
-            var buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), registries, ConnectionType.NEOFORGE);
+            var buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), pipe.getLevel().registryAccess(), ConnectionType.NEOFORGE);
             try {
                 buf.writeInt(travelingItems.size());
                 for (var travelingItem : travelingItems) {
@@ -518,7 +524,7 @@ public class ItemHost extends NodeHost {
                 }
                 byte[] bytes = new byte[buf.readableBytes()];
                 buf.readBytes(bytes);
-                tag.putByteArray("items", bytes);
+                output.store("items", Codec.BYTE_BUFFER, ByteBuffer.wrap(bytes));
             } finally {
                 buf.release();
             }
@@ -526,13 +532,13 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void readClientNbt(CompoundTag tag, RegistryAccess registries) {
-        super.readClientNbt(tag, registries);
+    public void readClientNbt(ValueInput input) {
+        super.readClientNbt(input);
 
         clientTravelingItems.clear();
-        byte[] bytes = tag.getByteArray("items");
-        if (bytes.length > 0) {
-            var buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(bytes), registries, ConnectionType.NEOFORGE);
+        var buffer = input.read("items", Codec.BYTE_BUFFER).orElse(ByteBuffer.wrap(new byte[0]));
+        if (buffer.hasRemaining()) {
+            var buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(buffer), pipe.getLevel().registryAccess(), ConnectionType.NEOFORGE);
             try {
                 int count = buf.readInt();
                 for (int i = 0; i < count; i++) {

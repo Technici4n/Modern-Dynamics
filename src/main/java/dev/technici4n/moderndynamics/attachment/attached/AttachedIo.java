@@ -31,12 +31,14 @@ import dev.technici4n.moderndynamics.util.WrenchHelper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import net.minecraft.core.HolderLookup;
+
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public abstract class AttachedIo extends AttachedAttachment {
     public static final int UPGRADE_SLOTS = 4;
@@ -46,24 +48,22 @@ public abstract class AttachedIo extends AttachedAttachment {
     private RedstoneMode redstoneMode;
     protected final UpgradeContainer upgradeContainer = new UpgradeContainer();
 
-    public AttachedIo(AttachmentItem item, CompoundTag configData, Runnable setChangedCallback, HolderLookup.Provider registries) {
+    public AttachedIo(AttachmentItem item, ValueInput configData, Runnable setChangedCallback) {
         super(item, configData);
 
         this.setChangedCallback = setChangedCallback;
         this.filterInversion = readEnum(FilterInversionMode.values(), configData, "filterInversion", FilterInversionMode.BLACKLIST);
         this.redstoneMode = readEnum(RedstoneMode.values(), configData, "redstoneMode", RedstoneMode.IGNORED);
-        this.upgradeContainer.readNbt(configData, registries);
+        this.upgradeContainer.readNbt(configData);
     }
 
     @Override
-    public CompoundTag writeConfigTag(CompoundTag configData, HolderLookup.Provider registries) {
-        super.writeConfigTag(configData, registries);
+    public void writeConfigTag(ValueOutput output) {
+        super.writeConfigTag(output);
 
-        writeEnum(this.filterInversion, configData, "filterInversion");
-        writeEnum(this.redstoneMode, configData, "redstoneMode");
-        this.upgradeContainer.writeNbt(configData, registries);
-
-        return configData;
+        writeEnum(this.filterInversion, output, "filterInversion");
+        writeEnum(this.redstoneMode, output, "redstoneMode");
+        this.upgradeContainer.writeNbt(output);
     }
 
     public FilterInversionMode getFilterInversion() {
@@ -158,16 +158,16 @@ public abstract class AttachedIo extends AttachedAttachment {
         return upgradeContainer.isAdvancedBehaviorAllowed();
     }
 
-    protected static <T extends Enum<T>> T readEnum(T[] enumValues, CompoundTag tag, String key, T defaultValue) {
-        var idx = tag.getByte(key);
-        if (!tag.contains(key) || idx < 0 || idx >= enumValues.length) {
+    protected static <T extends Enum<T>> T readEnum(T[] enumValues, ValueInput tag, String key, T defaultValue) {
+        var idx = tag.getByteOr(key, (byte) -1);
+        if (idx < 0 || idx >= enumValues.length) {
             return defaultValue;
         } else {
             return enumValues[idx];
         }
     }
 
-    protected static <T extends Enum<T>> void writeEnum(T enumValue, CompoundTag tag, String key) {
+    protected static <T extends Enum<T>> void writeEnum(T enumValue, ValueOutput tag, String key) {
         tag.putByte(key, (byte) enumValue.ordinal());
     }
 

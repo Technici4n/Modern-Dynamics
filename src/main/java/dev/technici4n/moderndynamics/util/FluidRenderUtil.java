@@ -20,6 +20,7 @@ package dev.technici4n.moderndynamics.util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.data.AtlasIds;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 
@@ -39,8 +40,7 @@ public final class FluidRenderUtil {
             return null;
         }
 
-        var atlas = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS);
-        return atlas.apply(texture);
+        return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(texture);
     }
 
     public static int getTint(FluidVariant variant) {

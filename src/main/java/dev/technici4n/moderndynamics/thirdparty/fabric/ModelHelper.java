@@ -78,43 +78,6 @@ public abstract class ModelHelper {
     private static final Direction[] FACES = Arrays.copyOf(Direction.values(), 7);
 
     /**
-     * Converts a mesh into an array of lists of vanilla baked quads. Useful for creating vanilla baked models when
-     * required for compatibility. The array indexes correspond to {@link Direction#get3DDataValue()} with the addition
-     * of {@link #NULL_FACE_ID}.
-     *
-     * <p>
-     * Retrieves sprites from the block texture atlas via {@link SpriteFinder}.
-     */
-    public static List<BakedQuad>[] toQuadLists(Mesh mesh) {
-        SpriteFinder finder = SpriteFinder
-                .get(Minecraft.getInstance().getModelManager().getAtlas(TextureAtlas.LOCATION_BLOCKS));
-
-        @SuppressWarnings("unchecked")
-        final ImmutableList.Builder<BakedQuad>[] builders = new ImmutableList.Builder[7];
-
-        for (int i = 0; i < 7; i++) {
-            builders[i] = ImmutableList.builder();
-        }
-
-        if (mesh != null) {
-            mesh.forEach(q -> {
-                Direction cullFace = q.cullFace();
-                builders[cullFace == null ? NULL_FACE_ID : cullFace.get3DDataValue()]
-                        .add(q.toBakedQuad(finder.find(q)));
-            });
-        }
-
-        @SuppressWarnings("unchecked")
-        List<BakedQuad>[] result = new List[7];
-
-        for (int i = 0; i < 7; i++) {
-            result[i] = builders[i].build();
-        }
-
-        return result;
-    }
-
-    /**
      * The vanilla model transformation logic is closely coupled with model deserialization. That does little good for
      * modded model loaders and procedurally generated models. This convenient construction method applies the same
      * scaling factors used for vanilla models. This means you can use values from a vanilla JSON file as inputs to this
@@ -141,12 +104,4 @@ public abstract class ModelHelper {
             0.4f);
     public static final ItemTransform TRANSFORM_BLOCK_1ST_PERSON_LEFT = makeTransform(0, 225, 0, 0, 0, 0, 0.4f, 0.4f,
             0.4f);
-
-    /**
-     * Mimics the vanilla model transformation used for most vanilla blocks, and should be suitable for most custom
-     * block-like models.
-     */
-    public static final ItemTransforms MODEL_TRANSFORM_BLOCK = new ItemTransforms(TRANSFORM_BLOCK_3RD_PERSON_RIGHT,
-            TRANSFORM_BLOCK_3RD_PERSON_RIGHT, TRANSFORM_BLOCK_1ST_PERSON_LEFT, TRANSFORM_BLOCK_1ST_PERSON_RIGHT,
-            ItemTransform.NO_TRANSFORM, TRANSFORM_BLOCK_GUI, TRANSFORM_BLOCK_GROUND, TRANSFORM_BLOCK_FIXED);
 }

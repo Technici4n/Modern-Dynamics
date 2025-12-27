@@ -24,13 +24,14 @@ import java.util.ArrayList;
 import java.util.List;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -38,25 +39,23 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
 
-    public static final RecipeType<UpgradeDisplay> TYPE = RecipeType.create(MdId.MOD_ID, "upgrades", UpgradeDisplay.class);
+    public static final IRecipeType<UpgradeDisplay> TYPE = IRecipeType.create(MdId.MOD_ID, "upgrades", UpgradeDisplay.class);
     public static final int EFFECT_WIDTH = 23;
     public static final int EFFECT_SPACING = 5;
     public static final int EFFECT_BASE_Y = 5 + 32;
-    public static final ResourceLocation ICON_TEXTURE = MdId.of("textures/gui/icons.png");
+    public static final Identifier ICON_TEXTURE = MdId.of("textures/gui/icons.png");
 
     private final IDrawable icon;
-    private final IDrawable background;
     private final IDrawable slotDrawable;
     private final IDrawable[] icons;
 
     public UpgradeCategory(IGuiHelper guiHelper) {
-        this.background = guiHelper.createBlankDrawable(142, 59);
-        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(MdItems.EXTRACTOR));
+        this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(MdItems.EXTRACTOR.get()));
         this.slotDrawable = guiHelper.getSlotDrawable();
 
         this.icons = new IDrawable[] {
@@ -71,12 +70,22 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
     }
 
     @Override
+    public int getWidth() {
+        return 142;
+    }
+
+    @Override
+    public int getHeight() {
+        return 59;
+    }
+
+    @Override
     public Component getTitle() {
         return Component.translatable("gui.moderndynamics.rei.upgrade_category");
     }
 
     @Override
-    public RecipeType<UpgradeDisplay> getRecipeType() {
+    public IRecipeType<UpgradeDisplay> getRecipeType() {
         return TYPE;
     }
 
@@ -86,14 +95,9 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
     }
 
     @Override
-    public IDrawable getBackground() {
-        return background;
-    }
-
-    @Override
     public void setRecipe(IRecipeLayoutBuilder builder, UpgradeDisplay recipe, IFocusGroup focuses) {
         builder.addSlot(RecipeIngredientRole.INPUT, 3, 3)
-                .addItemStack(new ItemStack(recipe.item()));
+                .add(new ItemStack(recipe.item()));
     }
 
     private EffectsInfo computeEffects(UpgradeDisplay recipe) {
@@ -114,7 +118,7 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
         effects.removeIf(e -> e.count() == 0);
 
         int totalWidth = effects.size() * EFFECT_WIDTH + (effects.size() - 1) * EFFECT_SPACING;
-        int effectsBaseX = (background.getWidth() - totalWidth) / 2;
+        int effectsBaseX = (getWidth() - totalWidth) / 2;
 
         return new EffectsInfo(effects, effectsBaseX);
     }
@@ -135,7 +139,7 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
 
         var effectsText = Component.translatable("gui.moderndynamics.tooltip.upgrades_effects")
                 .withStyle(ChatFormatting.UNDERLINE);
-        var effectsTextX = (background.getWidth() - font.width(effectsText)) / 2;
+        var effectsTextX = (getWidth() - font.width(effectsText)) / 2;
         guiGraphics.drawString(font, effectsText, effectsTextX, 5 + 18, 0xFF404040, false);
 
         var effects = computeEffects(recipe);
@@ -153,7 +157,7 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
     }
 
     @Override
-    public List<Component> getTooltipStrings(UpgradeDisplay recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+    public void getTooltip(ITooltipBuilder tooltip, UpgradeDisplay recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
         var effects = computeEffects(recipe);
 
         var x = effects.effectsBaseX();
@@ -162,15 +166,13 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
 
             if (tooltipRect.contains((int) mouseX, (int) mouseY)) {
                 var greenStyle = Style.EMPTY.applyFormat(ChatFormatting.GREEN);
-                var tooltip = Component.translatable("gui.moderndynamics.tooltip.upgrade_" + e.upgradeName(),
-                        Component.literal(e.greenText).setStyle(greenStyle));
-                return List.of(tooltip);
+                tooltip.add(Component.translatable("gui.moderndynamics.tooltip.upgrade_" + e.upgradeName(),
+                        Component.literal(e.greenText).setStyle(greenStyle)));
+                return;
             }
 
             x += EFFECT_WIDTH + EFFECT_SPACING;
         }
-
-        return List.of();
     }
 
     private record UpgradeEffect(int iconIndex, int count, String upgradeName, String greenText) {

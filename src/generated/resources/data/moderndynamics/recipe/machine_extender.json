@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "b": {
-      "item": "minecraft:iron_bars"
-    },
-    "f": {
-      "item": "moderndynamics:fluid_pipe"
-    },
-    "i": {
-      "item": "moderndynamics:item_pipe"
-    }
+    "b": "minecraft:iron_bars",
+    "f": "moderndynamics:fluid_pipe",
+    "i": "moderndynamics:item_pipe"
   },
   "pattern": [
     "bbb",

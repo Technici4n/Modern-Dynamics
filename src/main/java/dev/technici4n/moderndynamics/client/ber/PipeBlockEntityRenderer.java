@@ -28,14 +28,18 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.Random;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
-public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEntity> {
+public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEntity, PipeRenderState> {
     private final BlockEntityRendererProvider.Context ctx;
     private final Random random = new Random();
 
@@ -44,65 +48,119 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
     }
 
     @Override
-    public void render(PipeBlockEntity pipe, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
-        for (var host : pipe.getHosts()) {
-            if (host instanceof ItemHost itemHost) {
-                for (var item : itemHost.getClientTravelingItems()) {
-                    matrices.pushPose();
+    public PipeRenderState createRenderState() {
+        return new PipeRenderState();
+    }
 
-                    Vec3 from, to;
-                    double ratio;
+    @Override
+    public void extractRenderState(PipeBlockEntity blockEntity,
+                                   PipeRenderState state,
+                                   float partialTicks,
+                                   Vec3 cameraPosition,
+                                   ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+//        BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
+//        for (var host : blockEntity.getHosts()) {
+//            if (host instanceof ItemHost itemHost) {
+//                for (var item : itemHost.getClientTravelingItems()) {
+//
+//                    Vec3 from, to;
+//                    double ratio;
+//
+//                    var distance = Mth.frac(item.traveledDistance()) + ClientTravelingItemSmoothing.getDistanceDelta(item, tickDelta)
+//                            + item.speed() * tickDelta;
+//                    if (distance <= 0.5) {
+//                        from = findFaceMiddle(item.in().getOpposite());
+//                        to = CENTER;
+//                        ratio = distance * 2;
+//                    } else {
+//                        from = CENTER;
+//                        to = findFaceMiddle(item.out());
+//                        ratio = (distance - 0.5) * 2;
+//                    }
+//
+//
+//                    int seed = item.variant().hashCode() + item.id;
+//                    random.setSeed(seed);
+//
+//                    // Cool rotation
+//                    float rotAngle = (float) ((ClientTravelingItemSmoothing.getClientTick() + tickDelta) * item.speed()
+//                            + random.nextFloat() * 2 * Math.PI);
+//
+//                    // Render multiple items depending on stack size
+//                    int renderCount = getRenderAmount(item.amount());
+//
+//                    for (int r = 0; r < renderCount; ++r) {
+//                        Minecraft.getInstance().getItemRenderer().renderStatic(item.variant().toStack(), ItemDisplayContext.GROUND, light, overlay,
+//                                poseStack, vertexConsumers, pipe.getLevel(), 0);
+//                    }
+//                }
+//            } else if (host instanceof FluidHost fluidHost) {
+//                FluidPipeRendering.drawFluidInPipe(pipe, poseStack, vertexConsumers, fluidHost.getVariant(),
+//                        (float) fluidHost.getAmount() / Constants.Fluids.CAPACITY);
+//            }
+//        }
+    }
 
-                    var distance = Mth.frac(item.traveledDistance()) + ClientTravelingItemSmoothing.getDistanceDelta(item, tickDelta)
-                            + item.speed() * tickDelta;
-                    if (distance <= 0.5) {
-                        from = findFaceMiddle(item.in().getOpposite());
-                        to = CENTER;
-                        ratio = distance * 2;
-                    } else {
-                        from = CENTER;
-                        to = findFaceMiddle(item.out());
-                        ratio = (distance - 0.5) * 2;
-                    }
-
-                    matrices.translate(
-                            to.x() * ratio + from.x() * (1 - ratio),
-                            to.y() * ratio + from.y() * (1 - ratio),
-                            to.z() * ratio + from.z() * (1 - ratio));
-                    matrices.scale(0.6f, 0.6f, 0.6f);
-                    matrices.translate(0, -0.15f, 0);
-
-                    int seed = item.variant().hashCode() + item.id;
-                    random.setSeed(seed);
-
-                    // Cool rotation
-                    float rotAngle = (float) ((ClientTravelingItemSmoothing.getClientTick() + tickDelta) * item.speed()
-                            + random.nextFloat() * 2 * Math.PI);
-                    matrices.mulPose(Axis.YP.rotation(rotAngle));
-
-                    // Render multiple items depending on stack size
-                    int renderCount = getRenderAmount(item.amount());
-
-                    matrices.translate(0, 0, -(renderCount - 1) * 0.1 / 2);
-
-                    for (int r = 0; r < renderCount; ++r) {
-                        matrices.pushPose();
-                        matrices.translate(
-                                (this.random.nextFloat() * 2.0f - 1.0f) * 0.02f,
-                                (this.random.nextFloat() * 2.0f - 1.0f) * 0.02f,
-                                r * 0.1);
-                        Minecraft.getInstance().getItemRenderer().renderStatic(item.variant().toStack(), ItemDisplayContext.GROUND, light, overlay,
-                                matrices, vertexConsumers, pipe.getLevel(), 0);
-                        matrices.popPose();
-                    }
-
-                    matrices.popPose();
-                }
-            } else if (host instanceof FluidHost fluidHost) {
-                FluidPipeRendering.drawFluidInPipe(pipe, matrices, vertexConsumers, fluidHost.getVariant(),
-                        (float) fluidHost.getAmount() / Constants.Fluids.CAPACITY);
-            }
-        }
+    @Override
+    public void submit(PipeRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
+//        for (var host : pipe.getHosts()) {
+//            if (host instanceof ItemHost itemHost) {
+//                for (var item : itemHost.getClientTravelingItems()) {
+//                    poseStack.pushPose();
+//
+//                    Vec3 from, to;
+//                    double ratio;
+//
+//                    var distance = Mth.frac(item.traveledDistance()) + ClientTravelingItemSmoothing.getDistanceDelta(item, tickDelta)
+//                            + item.speed() * tickDelta;
+//                    if (distance <= 0.5) {
+//                        from = findFaceMiddle(item.in().getOpposite());
+//                        to = CENTER;
+//                        ratio = distance * 2;
+//                    } else {
+//                        from = CENTER;
+//                        to = findFaceMiddle(item.out());
+//                        ratio = (distance - 0.5) * 2;
+//                    }
+//
+//                    poseStack.translate(
+//                            to.x() * ratio + from.x() * (1 - ratio),
+//                            to.y() * ratio + from.y() * (1 - ratio),
+//                            to.z() * ratio + from.z() * (1 - ratio));
+//                    poseStack.scale(0.6f, 0.6f, 0.6f);
+//                    poseStack.translate(0, -0.15f, 0);
+//
+//                    int seed = item.variant().hashCode() + item.id;
+//                    random.setSeed(seed);
+//
+//                    // Cool rotation
+//                    float rotAngle = (float) ((ClientTravelingItemSmoothing.getClientTick() + tickDelta) * item.speed()
+//                            + random.nextFloat() * 2 * Math.PI);
+//                    poseStack.mulPose(Axis.YP.rotation(rotAngle));
+//
+//                    // Render multiple items depending on stack size
+//                    int renderCount = getRenderAmount(item.amount());
+//
+//                    poseStack.translate(0, 0, -(renderCount - 1) * 0.1 / 2);
+//
+//                    for (int r = 0; r < renderCount; ++r) {
+//                        poseStack.pushPose();
+//                        poseStack.translate(
+//                                (this.random.nextFloat() * 2.0f - 1.0f) * 0.02f,
+//                                (this.random.nextFloat() * 2.0f - 1.0f) * 0.02f,
+//                                r * 0.1);
+//                        Minecraft.getInstance().getItemRenderer().renderStatic(item.variant().toStack(), ItemDisplayContext.GROUND, light, overlay,
+//                                poseStack, vertexConsumers, pipe.getLevel(), 0);
+//                        poseStack.popPose();
+//                    }
+//
+//                    poseStack.popPose();
+//                }
+//            } else if (host instanceof FluidHost fluidHost) {
+//                FluidPipeRendering.drawFluidInPipe(pipe, poseStack, vertexConsumers, fluidHost.getVariant(),
+//                        (float) fluidHost.getAmount() / Constants.Fluids.CAPACITY);
+//            }
+//        }
     }
 
     private static final Vec3 CENTER = new Vec3(0.5, 0.5, 0.5);

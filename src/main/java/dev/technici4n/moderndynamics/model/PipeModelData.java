@@ -19,7 +19,7 @@
 package dev.technici4n.moderndynamics.model;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
-import net.neoforged.neoforge.client.model.data.ModelProperty;
+import net.neoforged.neoforge.model.data.ModelProperty;
 import org.jetbrains.annotations.Nullable;
 
 public record PipeModelData(byte pipeConnections, byte inventoryConnections,

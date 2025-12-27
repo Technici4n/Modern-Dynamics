@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -43,7 +43,7 @@ public class FluidVariantImpl implements FluidVariant {
                 return flowable.getSource();
             } else {
                 // If not a FlowableFluid, we don't know how to convert -> crash.
-                ResourceLocation id = BuiltInRegistries.FLUID.getKey(fluid);
+                Identifier id = BuiltInRegistries.FLUID.getKey(fluid);
                 throw new IllegalArgumentException("Cannot convert flowing fluid %s (%s) into a still fluid.".formatted(id, fluid));
             }
         }

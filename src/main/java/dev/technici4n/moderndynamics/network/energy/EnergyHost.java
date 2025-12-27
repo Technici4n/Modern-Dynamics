@@ -26,9 +26,9 @@ import dev.technici4n.moderndynamics.network.shared.TransferLimits;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.List;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
@@ -64,7 +64,7 @@ public class EnergyHost extends NodeHost {
 
     @Override
     public Object getApiInstance(BlockCapability<?, Direction> lookup, @Nullable Direction side) {
-        if (lookup == Capabilities.EnergyStorage.BLOCK) {
+        if (lookup == Capabilities.Energy.BLOCK) {
             if (side == null) {
                 return unsidedCap;
             } else if ((pipe.connectionBlacklist & (1 << side.get3DDataValue())) == 0) {
@@ -116,8 +116,7 @@ public class EnergyHost extends NodeHost {
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
                 Direction dir = Direction.from3DDataValue(i);
-                IEnergyStorage adjacentCap = pipe.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, pipe.getBlockPos().relative(dir),
-                        dir.getOpposite());
+                IEnergyStorage adjacentCap = null; // TODO 26.1: pipe.getLevel().getCapability(Capabilities.Energy.BLOCK, pipe.getBlockPos().relative(dir), dir.getOpposite());
 
                 if (adjacentCap != null) {
                     if (out != null) {
@@ -150,16 +149,16 @@ public class EnergyHost extends NodeHost {
     }
 
     @Override
-    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        super.writeNbt(tag, registries);
-        tag.putInt("energy", energy);
+    public void write(ValueOutput output) {
+        super.write(output);
+        output.putInt("energy", energy);
     }
 
     @Override
-    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        super.readNbt(tag, registries);
+    public void read(ValueInput input) {
+        super.read(input);
         // Guard against max energy config changes
-        energy = Math.max(0, Math.min(tag.getInt("energy"), getMaxEnergy()));
+        energy = Math.max(0, Math.min(input.getIntOr("energy", 0), getMaxEnergy()));
     }
 
     private int getTransferLimit(Direction side) {

@@ -34,7 +34,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.Accessor;
@@ -48,7 +48,7 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
     INSTANCE;
 
     @Override
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return MdId.of("item_pipe");
     }
 
@@ -81,7 +81,7 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
         // We need to run on the client side to add client traveling items on the client side,
         // even if the server doesn't provide any stack.
         var dummyGroup = new ViewGroup<ItemStack>(new ArrayList<>());
-        dummyGroup.views.add(MdItems.WRENCH.getDefaultInstance());
+        dummyGroup.views.add(MdItems.WRENCH.toStack());
         dummyGroup.id = "dummy";
         groups.add(dummyGroup);
 
@@ -120,7 +120,7 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
                             for (var stack : group.views) {
                                 clientGroup.views.add(new ItemView(stack));
                             }
-                            clientGroup.title = Component.translatable("gui.moderndynamics.tooltip.stuffed", attachmentItem.getDescription())
+                            clientGroup.title = Component.translatable("gui.moderndynamics.tooltip.stuffed", attachmentItem.getName())
                                     .withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withBold(true));
                             clientGroups.add(clientGroup);
                         });

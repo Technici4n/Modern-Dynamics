@@ -27,7 +27,7 @@ import dev.technici4n.moderndynamics.util.FluidVariant;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 
@@ -49,7 +49,7 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
     }
 
     @Override
-    public void clicked(int slotIndex, int button, ClickType actionType, Player player) {
+    public void clicked(int slotIndex, int button, ContainerInput actionType, Player player) {
         if (slotIndex >= 0 && getSlot(slotIndex) instanceof FluidConfigSlot configSlot && configSlot.isActive()) {
 
             var contained = FluidUtil.getFluidContained(getCarried()).orElse(FluidStack.EMPTY);

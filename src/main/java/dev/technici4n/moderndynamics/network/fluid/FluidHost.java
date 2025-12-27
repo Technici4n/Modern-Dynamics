@@ -33,10 +33,9 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.FluidVariant;
 import java.util.List;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -62,7 +61,7 @@ public class FluidHost extends NodeHost {
     // Caps
     private final IFluidHandler[] caps = new IFluidHandler[6];
     private final IFluidHandler unsidedCap;
-    private final HostAdjacentCaps<IFluidHandler> adjacentCaps = new HostAdjacentCaps<>(this, Capabilities.FluidHandler.BLOCK);
+    private final HostAdjacentCaps<IFluidHandler> adjacentCaps = null; // TODO 26.1: new HostAdjacentCaps<>(this, Capabilities.Fluid.BLOCK);
 
     public FluidHost(PipeBlockEntity pipe) {
         super(pipe);
@@ -102,7 +101,7 @@ public class FluidHost extends NodeHost {
     @Override
     @Nullable
     public Object getApiInstance(BlockCapability<?, Direction> lookup, @Nullable Direction side) {
-        if (lookup == Capabilities.FluidHandler.BLOCK) {
+        if (lookup == Capabilities.Fluid.BLOCK) {
             if (side == null) {
                 return unsidedCap;
             } else if ((pipe.connectionBlacklist & (1 << side.get3DDataValue())) == 0) {
@@ -232,18 +231,18 @@ public class FluidHost extends NodeHost {
     }
 
     @Override
-    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        super.writeNbt(tag, registries);
-        tag.putInt("amount", amount);
-        tag.put("variant", variant.toNbt(registries));
+    public void write(ValueOutput output) {
+        super.write(output);
+        output.putInt("amount", amount);
+        output.store("variant", FluidVariant.CODEC, variant);
     }
 
     @Override
-    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        super.readNbt(tag, registries);
-        variant = FluidVariant.fromNbt(tag.getCompound("variant"), registries);
+    public void read(ValueInput input) {
+        super.read(input);
+        variant = input.read("variant", FluidVariant.CODEC).orElse(FluidVariant.blank());
         // Guard against max changes
-        amount = Math.max(0, Math.min(tag.getInt("amount"), Constants.Fluids.CAPACITY));
+        amount = Math.max(0, Math.min(input.getIntOr("amount", 0), Constants.Fluids.CAPACITY));
         // Guard against removed variant
         if (variant.isBlank()) {
             amount = 0;
@@ -251,17 +250,17 @@ public class FluidHost extends NodeHost {
     }
 
     @Override
-    public void writeClientNbt(CompoundTag tag, RegistryAccess registries) {
-        super.writeClientNbt(tag, registries);
-        tag.putInt("amount", amount);
-        tag.put("variant", variant.toNbt(registries));
+    public void writeClientNbt(ValueOutput output) {
+        super.writeClientNbt(output);
+        output.putInt("amount", amount);
+        output.store("variant", FluidVariant.CODEC, variant);
     }
 
     @Override
-    public void readClientNbt(CompoundTag tag, RegistryAccess registries) {
-        super.readClientNbt(tag, registries);
-        variant = FluidVariant.fromNbt(tag.getCompound("variant"), registries);
-        amount = tag.getInt("amount");
+    public void readClientNbt(ValueInput input) {
+        super.readClientNbt(input);
+        variant = input.read("variant", FluidVariant.CODEC).orElse(FluidVariant.blank());
+        amount = input.getIntOr("amount", 0);
     }
 
     private boolean canMoveNetworkToOutside(Direction side, FluidVariant variant) {

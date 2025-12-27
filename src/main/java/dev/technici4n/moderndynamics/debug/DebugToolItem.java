@@ -30,8 +30,8 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class DebugToolItem extends Item {
-    public DebugToolItem() {
-        super(new Properties());
+    public DebugToolItem(Properties properties) {
+        super(properties);
     }
 
     @Override

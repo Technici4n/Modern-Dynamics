@@ -39,7 +39,7 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.runtime.IClickableIngredient;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -48,7 +48,7 @@ public class MdJeiPlugin implements IModPlugin {
     private IPlatformFluidHelper<?> platformFluidHelper;
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return MdId.of("jei");
     }
 
@@ -65,7 +65,7 @@ public class MdJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         for (var workstation : List.of(MdItems.ATTRACTOR, MdItems.EXTRACTOR, MdItems.FILTER)) {
-            registration.addRecipeCatalyst(new ItemStack(workstation), UpgradeCategory.TYPE);
+            registration.addCraftingStation(UpgradeCategory.TYPE, new ItemStack(workstation.get()));
         }
     }
 

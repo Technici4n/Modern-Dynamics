@@ -82,7 +82,8 @@ dependencies {
         throw new GradleException("Invalid runtime_itemlist_mod value: " + project.runtime_itemlist_mod)
     }
 
-    implementation("curse.maven:jade-324717:${project.jade_file_id}")
+    compileOnly("curse.maven:jade-324717:${project.jade_file_id}")
+    implementation("net.neoforged:testframework:${project.neoforge_version}")
 }
 
 processResources {
@@ -103,7 +104,13 @@ sourceSets {
 }
 
 neoForge {
-    version = project.neoforge_version
+    enable {
+        version = project.neoforge_version
+        // Disable recompilation if the "CI" environment variable is set to true. It is automatically set by GitHub Actions.
+        disableRecompilation = System.getenv("CI") == "true"
+    }
+
+    validateAccessTransformers = true
 
     mods {
         moderndynamics {
@@ -123,7 +130,7 @@ neoForge {
             server()
         }
         data {
-            data()
+            clientData()
             programArguments = [
                     '--mod', 'moderndynamics',
                     '--all',
@@ -143,7 +150,7 @@ test.dependsOn runGametest
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
     // if it is present.
@@ -157,11 +164,26 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xmaxerrs" << "9999"
 }
 
-jar {
-    from("LICENSE") {
-        rename { "${it}_${archivesBaseName}"}
+final generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    group = 'build'
+    from('src/main/neoforge.mods.toml') {
+        rename '(.*)', 'META-INF/$1'
     }
+    into 'build/generated/modMetadata'
+
+    // Exposed project properties
+    Map<String, String> projectProperties = [
+            'version',
+            'neoforge_version',
+            'minecraft_version'
+    ].collectEntries { [it, project[it]] }
+
+    // Ensure the resources get re-evaluate when the version changes
+    inputs.properties projectProperties
+    expand projectProperties
 }
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
 
 // configure the maven publication
 publishing {
@@ -258,9 +280,9 @@ if (System.getenv("CURSEFORGE_API_KEY") && !version.endsWith("-SNAPSHOT")) {
             changelogType = "markdown"
             delegate.changelog = changelog
 
-            addGameVersion "1.21.1"
+            addGameVersion "26.1-snapshot"
             addGameVersion "NeoForge"
-            addGameVersion "Java 21"
+            addGameVersion "Java 25"
 
             mainArtifact(jar.archiveFile) {
                 displayName = "Modern Dynamics v${version}"
@@ -284,7 +306,7 @@ if (System.getenv("MODRINTH_API_KEY") && !version.endsWith("-SNAPSHOT")) {
         delegate.changelog = changelog
         versionType = releaseChannel.toUpperCase()
         uploadFile = jar.archiveFile
-        gameVersions = ["1.21.1"]
+        gameVersions = ["26.1-snapshot-1"]
         loaders = ["neoforge"]
     }
 }

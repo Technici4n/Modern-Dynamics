@@ -36,8 +36,8 @@ public class SimulatedInsertionTargets {
     public static SimulatedInsertionTarget getTarget(Level w, BlockPos pos, Direction side) {
         ServerLevel world = (ServerLevel) w;
         return TARGETS.computeIfAbsent(new Coord(world, pos, side), coord -> {
-            var cache = BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, world, pos, side);
-            return new SimulatedInsertionTarget(coord, cache::getCapability);
+            var cache = BlockCapabilityCache.create(Capabilities.Item.BLOCK, world, pos, side);
+            return null; // TODO 26.1: return new SimulatedInsertionTarget(coord, cache::getCapability);
         });
     }
 

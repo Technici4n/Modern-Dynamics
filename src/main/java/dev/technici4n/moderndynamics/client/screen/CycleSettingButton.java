@@ -35,9 +35,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.util.ARGB;
 
 public class CycleSettingButton<T> extends Button {
     private static final int DISABLED_SETTING = 0; // first setting is used when the button is disabled
@@ -113,7 +116,7 @@ public class CycleSettingButton<T> extends Button {
     }
 
     @Override
-    public void onPress() {
+    public void onPress(InputWithModifiers input) {
         if (!isActive()) {
             return;
         }
@@ -126,9 +129,7 @@ public class CycleSettingButton<T> extends Button {
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
+    public void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         var setting = getCurrentSetting();
         var y = setting.spriteY();
         if (!isActive()) {
@@ -136,10 +137,7 @@ public class CycleSettingButton<T> extends Button {
         } else if (isHovered) {
             y += 20;
         }
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.enableDepthTest();
-        guiGraphics.blit(ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), setting.spriteX(), y, width, height);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), setting.spriteX(), y, width, height, 256, 256, ARGB.white(alpha));
 
         if (this.isHovered) {
             var tooltip = new ArrayList<Component>();
@@ -147,7 +145,7 @@ public class CycleSettingButton<T> extends Button {
             if (advancedBehavior && !isActive()) {
                 tooltip.add(REQUIRES_ADVANCED_BEHAVIOR);
             }
-            guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltip, Optional.empty(), mouseX, mouseY);
+            guiGraphics.setTooltipForNextFrame(Minecraft.getInstance().font, tooltip, Optional.empty(), mouseX, mouseY);
         }
     }
 }

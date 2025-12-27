@@ -192,10 +192,10 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
     @Override
     public final MutableQuadViewImpl fromVanilla(BakedQuad quad, @Nullable Direction cullFace) {
-        fromVanilla(quad.getVertices(), 0);
-        data[baseIndex + HEADER_BITS] = EncodingFormat.cullFace(0, cullFace);
-        nominalFace(quad.getDirection());
-        colorIndex(quad.getTintIndex());
+        // TODO 26.1. fromVanilla(quad.getVertices(), 0);
+        // TODO 26.1. data[baseIndex + HEADER_BITS] = EncodingFormat.cullFace(0, cullFace);
+        // TODO 26.1. nominalFace(quad.getDirection());
+        // TODO 26.1. colorIndex(quad.getTintIndex());
 
         tag(0);
         return this;

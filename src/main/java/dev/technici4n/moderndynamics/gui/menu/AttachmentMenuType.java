@@ -30,13 +30,20 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.network.IContainerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AttachmentMenuType<A extends AttachedAttachment, T extends AbstractContainerMenu> implements IContainerFactory<T> {
+    private static final Logger LOG = LoggerFactory.getLogger(AttachmentMenuType.class);
     private final AttachmentFactory<A, ? extends AttachmentItem> attachmentFactory;
     private final MenuFactory<A, T> menuFactory;
 
@@ -47,9 +54,9 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
 
     @Override
     public T create(int windowId, Inventory inv, RegistryFriendlyByteBuf data) {
-        var world = inv.player.level();
+        var level = inv.player.level();
 
-        var bet = BuiltInRegistries.BLOCK_ENTITY_TYPE.get(data.readResourceLocation());
+        var bet = BuiltInRegistries.BLOCK_ENTITY_TYPE.getValue(data.readIdentifier());
         var side = data.readEnum(Direction.class);
         var pos = data.readBlockPos();
         var item = BuiltInRegistries.ITEM.byId(data.readVarInt());
@@ -57,11 +64,16 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
             throw new IllegalStateException("Server sent a non-attachment item as menu host: " + item);
         }
         var tag = data.readNbt();
-        // The cast is a bit ugly, but it just means that we trust the server to send the correct item.
-        var attachment = ((AttachmentFactory<A, AttachmentItem>) attachmentFactory).createAttachment(attachmentItem, tag, Runnables.doNothing(),
-                data.registryAccess());
 
-        return world.getBlockEntity(pos, bet).map(blockEntity -> {
+        return level.getBlockEntity(pos, bet).map(blockEntity -> {
+            A attachment;
+            try (var reporter = new ProblemReporter.ScopedCollector(blockEntity.problemPath(), LOG)) {
+                var input = TagValueInput.create(reporter, level.registryAccess(), tag);
+                // The cast is a bit ugly, but it just means that we trust the server to send the correct item.
+                attachment = ((AttachmentFactory<A, AttachmentItem>) attachmentFactory)
+                        .createAttachment(attachmentItem, input, Runnables.doNothing());
+            }
+
             if (blockEntity instanceof PipeBlockEntity pipe) {
                 return menuFactory.createMenu(windowId, inv, pipe, side, attachment);
             }
@@ -78,7 +90,7 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
     }
 
     public interface AttachmentFactory<A extends AttachedAttachment, I extends AttachmentItem> {
-        A createAttachment(I item, CompoundTag configData, Runnable setChangedCallback, HolderLookup.Provider registries);
+        A createAttachment(I item, ValueInput configData, Runnable setChangedCallback);
     }
 
     public interface MenuFactory<A extends AttachedAttachment, T extends AbstractContainerMenu> {
@@ -86,10 +98,14 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
     }
 
     public static void writeScreenOpeningData(PipeBlockEntity pipe, Direction side, AttachedIo attachment, RegistryFriendlyByteBuf buf) {
-        buf.writeResourceLocation(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(pipe.getType()));
+        buf.writeIdentifier(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(pipe.getType()));
         buf.writeEnum(side);
         buf.writeBlockPos(pipe.getBlockPos());
         buf.writeVarInt(BuiltInRegistries.ITEM.getId(attachment.getItem()));
-        buf.writeNbt(attachment.writeConfigTag(new CompoundTag(), buf.registryAccess()));
+        try (var reporter = new ProblemReporter.ScopedCollector(pipe.problemPath(), LOG)) {
+            var output = TagValueOutput.createWithContext(reporter, pipe.getLevel().registryAccess());
+            attachment.writeConfigTag(output);
+            buf.writeNbt(output.buildResult());
+        }
     }
 }
