@@ -29,8 +29,6 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
-
-import net.minecraft.client.data.models.model.ModelLocationUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
@@ -90,7 +88,8 @@ public class PipeModelsProvider implements DataProvider {
     }
 
     private void registerPipeModel(PipeBlock pipe, BiConsumer<JsonElement, Path> saver) {
-        var baseFolder = dataOutput.getOutputFolder().resolve("assets/%s/models/pipe/%s".formatted(MdId.MOD_ID, BuiltInRegistries.BLOCK.getKey(pipe).getPath()));
+        var baseFolder = dataOutput.getOutputFolder()
+                .resolve("assets/%s/models/pipe/%s".formatted(MdId.MOD_ID, BuiltInRegistries.BLOCK.getKey(pipe).getPath()));
 
         registerPipePart(baseFolder, pipe, "connector", saver);
         registerPipePart(baseFolder, pipe, "straight", saver);

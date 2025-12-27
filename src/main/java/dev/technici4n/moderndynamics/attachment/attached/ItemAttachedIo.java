@@ -37,10 +37,12 @@ import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
 import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.TransferUtil;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -52,11 +54,6 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 public class ItemAttachedIo extends AttachedIo {
 
@@ -93,8 +90,7 @@ public class ItemAttachedIo extends AttachedIo {
     record StuffedEntry(ItemVariant item, int amount) {
         public static final Codec<StuffedEntry> CODEC = RecordCodecBuilder.create(builder -> builder.group(
                 ItemVariant.CODEC.fieldOf("v").forGetter(StuffedEntry::item),
-                Codec.INT.fieldOf("a").forGetter(StuffedEntry::amount)
-        ).apply(builder, StuffedEntry::new));
+                Codec.INT.fieldOf("a").forGetter(StuffedEntry::amount)).apply(builder, StuffedEntry::new));
     }
 
     public ItemAttachedIo(IoAttachmentItem item, ValueInput configData, Runnable setChangedCallback) {
@@ -374,7 +370,7 @@ public class ItemAttachedIo extends AttachedIo {
     public int moveStuffedToStorage(IItemHandler targetStorage, int maxAmount) {
         int totalMoved = 0;
 
-        for (var it = stuffedItems.entrySet().iterator(); it.hasNext() && totalMoved < maxAmount; ) {
+        for (var it = stuffedItems.entrySet().iterator(); it.hasNext() && totalMoved < maxAmount;) {
             var entry = it.next();
             int stuffedAmount = entry.getValue();
             int inserted = TransferUtil.insertItemStacked(targetStorage, entry.getKey(), Math.min(stuffedAmount, maxAmount - totalMoved));

@@ -19,9 +19,7 @@
 package dev.technici4n.moderndynamics.util;
 
 import java.util.EnumSet;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 
 public class SerializationHelper {
     public static byte directionsToMask(EnumSet<Direction> directions) {

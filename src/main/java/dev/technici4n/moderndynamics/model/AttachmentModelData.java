@@ -23,13 +23,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Item is also available to make "block picking" work on the client.
@@ -37,8 +31,8 @@ import org.jetbrains.annotations.Nullable;
 public record AttachmentModelData(String modelId, Item item) {
     public static MapCodec<AttachmentModelData> MAP_CODEC = RecordCodecBuilder.mapCodec(builder -> builder.group(
             Codec.STRING.fieldOf("modelId").forGetter(AttachmentModelData::modelId),
-            Item.CODEC.xmap(Holder::value, Item::builtInRegistryHolder).fieldOf("item").forGetter(AttachmentModelData::item)
-    ).apply(builder, AttachmentModelData::new));
+            Item.CODEC.xmap(Holder::value, Item::builtInRegistryHolder).fieldOf("item").forGetter(AttachmentModelData::item))
+            .apply(builder, AttachmentModelData::new));
 
     public static AttachmentModelData from(RenderedAttachment rendered, Item item) {
         return new AttachmentModelData(rendered.id, item);

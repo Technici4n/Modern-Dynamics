@@ -21,15 +21,11 @@ package dev.technici4n.moderndynamics.client.ber;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import dev.technici4n.moderndynamics.thirdparty.fabric.MutableQuadView;
 import dev.technici4n.moderndynamics.thirdparty.fabric.QuadEmitter;
 import dev.technici4n.moderndynamics.util.FluidRenderUtil;
 import dev.technici4n.moderndynamics.util.FluidVariant;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 

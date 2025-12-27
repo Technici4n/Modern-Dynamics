@@ -24,7 +24,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
@@ -50,7 +49,8 @@ public class MachineExtenderBlock extends MdBlock {
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction directionToNeighbour,
+            BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
         if (directionToNeighbour.getAxis().isVertical()) {
             return state.setValue(TOP, !level.getBlockState(pos.above()).is(this));
         }
@@ -71,7 +71,8 @@ public class MachineExtenderBlock extends MdBlock {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @org.jspecify.annotations.Nullable Orientation orientation, boolean movedByPiston) {
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block,
+            @org.jspecify.annotations.Nullable Orientation orientation, boolean movedByPiston) {
         // TODO 26.1: This is likely wrong
         if (orientation == null || orientation.getFront() == Direction.UP) {
             // Forward update if it's coming from below
@@ -79,7 +80,8 @@ public class MachineExtenderBlock extends MdBlock {
                 sideExtender.inNeighborUpdate = true;
 
                 try {
-                    sideExtender.getLevel().updateNeighborsAtExceptFromFacing(pos, this, Direction.DOWN, orientation); // TODO 26.1: This is likely wrong
+                    sideExtender.getLevel().updateNeighborsAtExceptFromFacing(pos, this, Direction.DOWN, orientation); // TODO 26.1: This is likely
+                                                                                                                       // wrong
                 } finally {
                     sideExtender.inNeighborUpdate = false;
                 }
@@ -91,7 +93,6 @@ public class MachineExtenderBlock extends MdBlock {
     // TODO 26.1: This previously used the vanilla callback, but I have my doubt it was ever called
     @Override
     public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighbor) {
-
 
         super.onNeighborChange(state, level, pos, neighbor);
     }

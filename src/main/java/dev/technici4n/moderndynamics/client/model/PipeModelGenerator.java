@@ -18,6 +18,9 @@
  */
 package dev.technici4n.moderndynamics.client.model;
 
+import static dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes.CORE_END;
+import static dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes.CORE_START;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -25,7 +28,14 @@ import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.client.GeometryHelper;
 import dev.technici4n.moderndynamics.client.ModernDynamicsClient;
 import dev.technici4n.moderndynamics.model.PipeModelData;
+import dev.technici4n.moderndynamics.thirdparty.fabric.MutableQuadView;
+import dev.technici4n.moderndynamics.thirdparty.fabric.QuadEmitter;
+import dev.technici4n.moderndynamics.thirdparty.fabric.Renderer;
 import dev.technici4n.moderndynamics.util.MdId;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -39,14 +49,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.model.pipeline.QuadBakingVertexConsumer;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import static dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes.CORE_END;
-import static dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes.CORE_START;
-
 public class PipeModelGenerator {
     private final TextureAtlasSprite baseSprite;
     private final PipeModelSubPart[] baseMeshes;
@@ -56,10 +58,10 @@ public class PipeModelGenerator {
     private final boolean transparent;
 
     public PipeModelGenerator(TextureAtlasSprite baseSprite,
-                              PipeModelSubPart[] connectorModels,
-                              PipeModelSubPart[] straightLineModels,
-                              Map<String, PipeModelSubPart[]> attachments,
-                              boolean transparent) {
+            PipeModelSubPart[] connectorModels,
+            PipeModelSubPart[] straightLineModels,
+            Map<String, PipeModelSubPart[]> attachments,
+            boolean transparent) {
         this.baseSprite = baseSprite;
         this.connectorModels = connectorModels;
         this.straightLineModels = straightLineModels;
@@ -97,8 +99,7 @@ public class PipeModelGenerator {
             baseMeshes[connections] = new PipeModelSubPart(
                     qe,
                     new ModelRenderProperties(true, baseSprite, ItemTransforms.NO_TRANSFORMS),
-                    Sheets.cutoutBlockSheet()
-            );
+                    Sheets.cutoutBlockSheet());
         }
     }
 
@@ -156,18 +157,39 @@ public class PipeModelGenerator {
 
     private void baseQuad(Consumer<BakedQuad> quadOut, Direction side, float left, float bottom, float right, float top, float depth) {
         // Forward face
-        QuadBakingVertexConsumer qe = new QuadBakingVertexConsumer();
-        square(qe, side, left, bottom, right, top, depth);
-        qe.setSprite(baseSprite);
-        qe.setColor(-1);
-        quadOut.accept(qe.bakeQuad());
+        var mesh = Renderer.getInstance().meshBuilder();
+        var qe = mesh.getEmitter();
+        qe.square(side, left, bottom, right, top, depth);
+        qe.spriteBake(baseSprite, MutableQuadView.BAKE_LOCK_UV);
+        qe.color(-1, -1, -1, -1);
+        quadOut.accept(qe.toBakedQuad(baseSprite));
         // Backward face
         if (transparent) {
             switch (side) {
-                case UP, DOWN -> square(qe, side.getOpposite(), left, 1 - top, right, 1 - bottom, 1 - depth);
-                default -> square(qe, side.getOpposite(), 1 - right, bottom, 1 - left, top, 1 - depth);
+            case UP, DOWN -> qe.square(side.getOpposite(), left, 1 - top, right, 1 - bottom, 1 - depth);
+            default -> qe.square(side.getOpposite(), 1 - right, bottom, 1 - left, top, 1 - depth);
             }
-            quadOut.accept(qe.bakeQuad());
+            qe.spriteBake(baseSprite, MutableQuadView.BAKE_LOCK_UV);
+            qe.color(-1, -1, -1, -1);
+            quadOut.accept(qe.toBakedQuad(baseSprite));
+        }
+    }
+
+    private void baseQuad(QuadEmitter qe, Direction side, float left, float bottom, float right, float top, float depth) {
+        // Forward face
+        qe.square(side, left, bottom, right, top, depth);
+        qe.spriteBake(baseSprite, MutableQuadView.BAKE_LOCK_UV);
+        qe.color(-1, -1, -1, -1);
+        qe.emit();
+        // Backward face
+        if (transparent) {
+            switch (side) {
+            case UP, DOWN -> qe.square(side.getOpposite(), left, 1 - top, right, 1 - bottom, 1 - depth);
+            default -> qe.square(side.getOpposite(), 1 - right, bottom, 1 - left, top, 1 - depth);
+            }
+            qe.spriteBake(baseSprite, MutableQuadView.BAKE_LOCK_UV);
+            qe.color(-1, -1, -1, -1);
+            qe.emit();
         }
     }
 
@@ -190,48 +212,44 @@ public class PipeModelGenerator {
      * All coordinates should be normalized (0-1).
      */
     void square(QuadBakingVertexConsumer qe, Direction nominalFace, float left, float bottom, float right, float top, float depth) {
-        var ul = baseSprite.getU(left);
-        var ur = baseSprite.getU(right);
-        var vt = baseSprite.getV(top);
-        var vb = baseSprite.getV(bottom);
 
         qe.setDirection(nominalFace);
         switch (nominalFace) {
-            case UP:
-                depth = 1 - depth;
-                top = 1 - top;
-                bottom = 1 - bottom;
+        case UP:
+            depth = 1 - depth;
+            top = 1 - top;
+            bottom = 1 - bottom;
 
-            case DOWN:
-                qe.addVertex(left, depth, top).setUv(ul, vt);
-                qe.addVertex(left, depth, bottom).setUv(ul, vb);
-                qe.addVertex(right, depth, bottom).setUv(ur, vb);
-                qe.addVertex(right, depth, top).setUv(ur, vt);
-                break;
+        case DOWN:
+            qe.addVertex(left, depth, top).setUv(baseSprite.getU(left), baseSprite.getV(top));
+            qe.addVertex(left, depth, bottom).setUv(baseSprite.getU(left), baseSprite.getV(bottom));
+            qe.addVertex(right, depth, bottom).setUv(baseSprite.getU(right), baseSprite.getV(bottom));
+            qe.addVertex(right, depth, top).setUv(baseSprite.getU(right), baseSprite.getV(top));
+            break;
 
-            case EAST:
-                depth = 1 - depth;
-                left = 1 - left;
-                right = 1 - right;
+        case EAST:
+            depth = 1 - depth;
+            left = 1 - left;
+            right = 1 - right;
 
-            case WEST:
-                qe.addVertex(depth, top, left).setUv(ul, vt);
-                qe.addVertex(depth, bottom, left).setUv(ul, vb);
-                qe.addVertex(depth, bottom, right).setUv(ur, vb);
-                qe.addVertex(depth, top, right).setUv(ur, vt);
-                break;
+        case WEST:
+            qe.addVertex(depth, top, left).setUv(baseSprite.getU(left), baseSprite.getV(top));
+            qe.addVertex(depth, bottom, left).setUv(baseSprite.getU(left), baseSprite.getV(bottom));
+            qe.addVertex(depth, bottom, right).setUv(baseSprite.getU(right), baseSprite.getV(bottom));
+            qe.addVertex(depth, top, right).setUv(baseSprite.getU(right), baseSprite.getV(top));
+            break;
 
-            case SOUTH:
-                depth = 1 - depth;
-                left = 1 - left;
-                right = 1 - right;
+        case SOUTH:
+            depth = 1 - depth;
+            left = 1 - left;
+            right = 1 - right;
 
-            case NORTH:
-                qe.addVertex(1 - left, top, depth).setUv(ul, vt);
-                qe.addVertex(1 - left, bottom, depth).setUv(ul, vb);
-                qe.addVertex(1 - right, bottom, depth).setUv(ur, vb);
-                qe.addVertex(1 - right, top, depth).setUv(ur, vt);
-                break;
+        case NORTH:
+            qe.addVertex(1 - left, top, depth).setUv(baseSprite.getU(left), baseSprite.getV(top));
+            qe.addVertex(1 - left, bottom, depth).setUv(baseSprite.getU(left), baseSprite.getV(bottom));
+            qe.addVertex(1 - right, bottom, depth).setUv(baseSprite.getU(right), baseSprite.getV(bottom));
+            qe.addVertex(1 - right, top, depth).setUv(baseSprite.getU(right), baseSprite.getV(top));
+            break;
         }
     }
 
@@ -242,8 +260,7 @@ public class PipeModelGenerator {
     public record Unbaked(String pipeType, boolean transparent) {
         public static final MapCodec<Unbaked> MAP_CODEC = RecordCodecBuilder.mapCodec(builder -> builder.group(
                 Codec.STRING.fieldOf("pipeType").forGetter(Unbaked::pipeType),
-                Codec.BOOL.fieldOf("transparent").forGetter(Unbaked::transparent)
-        ).apply(builder, Unbaked::new));
+                Codec.BOOL.fieldOf("transparent").forGetter(Unbaked::transparent)).apply(builder, Unbaked::new));
 
         private Material getBaseTexture() {
             return new Material(TextureAtlas.LOCATION_BLOCKS, MdId.of("pipe/" + pipeType + "/base"));
@@ -270,8 +287,7 @@ public class PipeModelGenerator {
                     loadRotatedModels(getConnectorModel(), modelBaker),
                     loadRotatedModels(getStraightModel(), modelBaker),
                     bakedAttachments,
-                    transparent
-            );
+                    transparent);
         }
 
         public void resolveDependencies(ResolvableModel.Resolver resolver) {

@@ -18,7 +18,6 @@
  */
 package dev.technici4n.moderndynamics.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
@@ -26,7 +25,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.input.InputWithModifiers;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.util.ARGB;
@@ -72,7 +70,8 @@ public class RedstoneModeButton extends Button {
         } else if (getter.get() == mode) {
             x += 32;
         }
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), x, 180, width, height, 256, 256, ARGB.white(this.alpha));
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), x, 180, width, height, 256, 256,
+                ARGB.white(this.alpha));
 
         // Draw an icon appropriate for the mode of this button
         int iconX = 240;
@@ -81,7 +80,8 @@ public class RedstoneModeButton extends Button {
         case REQUIRES_LOW -> 240;
         case REQUIRES_HIGH -> 224;
         };
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), iconX, iconY, 16, 16, 256, 256, ARGB.white(this.alpha));
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), iconX, iconY, 16, 16, 256, 256,
+                ARGB.white(this.alpha));
         guiGraphics.disableScissor();
 
         if (this.isHovered) {

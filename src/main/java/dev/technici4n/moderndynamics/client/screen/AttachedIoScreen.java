@@ -18,7 +18,6 @@
  */
 package dev.technici4n.moderndynamics.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import dev.technici4n.moderndynamics.gui.menu.AttachedIoMenu;
@@ -198,9 +197,9 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
             if (slot instanceof ConfigSlot || slot instanceof UpgradeSlot) {
                 if (slot instanceof ConfigSlot<?> cfg && !cfg.isActive()) {
                     // Disabled slot
-                    guiGraphics.blit(RenderPipelines.GUI_TEXTURED,TEXTURE, leftPos + slot.x - 1, topPos + slot.y - 1, 216, 162, 18, 18, 256, 256);
+                    guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + slot.x - 1, topPos + slot.y - 1, 216, 162, 18, 18, 256, 256);
                 } else {
-                    guiGraphics.blit(RenderPipelines.GUI_TEXTURED,TEXTURE, leftPos + slot.x - 1, topPos + slot.y - 1, 7, 122, 18, 18, 256, 256);
+                    guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + slot.x - 1, topPos + slot.y - 1, 7, 122, 18, 18, 256, 256);
                 }
             }
         }
@@ -226,18 +225,26 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
 
         // Draw all four corners clock-wise starting from top-left
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX, tabY, 0, 0, TAB_BORDER, TAB_BORDER, 256, 256, color);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabRight - TAB_BORDER, tabY, 256 - TAB_BORDER, 0, TAB_BORDER, TAB_BORDER, 256, 256, color);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabRight - TAB_BORDER, tabBottom - TAB_BORDER, 256 - TAB_BORDER, 256 - TAB_BORDER, TAB_BORDER, TAB_BORDER, 256, 256, color);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX, tabBottom - TAB_BORDER, 0, 256 - TAB_BORDER, TAB_BORDER, TAB_BORDER, 256, 256, color);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabRight - TAB_BORDER, tabY, 256 - TAB_BORDER, 0, TAB_BORDER, TAB_BORDER,
+                256, 256, color);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabRight - TAB_BORDER, tabBottom - TAB_BORDER, 256 - TAB_BORDER,
+                256 - TAB_BORDER, TAB_BORDER, TAB_BORDER, 256, 256, color);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX, tabBottom - TAB_BORDER, 0, 256 - TAB_BORDER, TAB_BORDER, TAB_BORDER,
+                256, 256, color);
 
         // Draw the borders between the corners in the same order
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX + TAB_BORDER, tabY, tabWidth - 2 * TAB_BORDER, TAB_BORDER, TAB_BORDER, 0, 256 - 2 * TAB_BORDER, TAB_BORDER, 256, 256, color);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabRight - TAB_BORDER, tabY + TAB_BORDER, TAB_BORDER, tabHeight - 2 * TAB_BORDER, 256 - TAB_BORDER, TAB_BORDER, TAB_BORDER, 256 - 2 * TAB_BORDER, 256, 256, color);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX + TAB_BORDER, tabBottom - TAB_BORDER, tabWidth - 2 * TAB_BORDER, TAB_BORDER, TAB_BORDER, 256 - TAB_BORDER, 256 - 2 * TAB_BORDER, TAB_BORDER, 256, 256, color);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX, tabY + TAB_BORDER, TAB_BORDER, tabHeight - 2 * TAB_BORDER, 0, TAB_BORDER, TAB_BORDER, 256 - 2 * TAB_BORDER, 256, 256, color);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX + TAB_BORDER, tabY, tabWidth - 2 * TAB_BORDER, TAB_BORDER, TAB_BORDER,
+                0, 256 - 2 * TAB_BORDER, TAB_BORDER, 256, 256, color);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabRight - TAB_BORDER, tabY + TAB_BORDER, TAB_BORDER,
+                tabHeight - 2 * TAB_BORDER, 256 - TAB_BORDER, TAB_BORDER, TAB_BORDER, 256 - 2 * TAB_BORDER, 256, 256, color);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX + TAB_BORDER, tabBottom - TAB_BORDER, tabWidth - 2 * TAB_BORDER,
+                TAB_BORDER, TAB_BORDER, 256 - TAB_BORDER, 256 - 2 * TAB_BORDER, TAB_BORDER, 256, 256, color);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX, tabY + TAB_BORDER, TAB_BORDER, tabHeight - 2 * TAB_BORDER, 0,
+                TAB_BORDER, TAB_BORDER, 256 - 2 * TAB_BORDER, 256, 256, color);
 
         // Center
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX + TAB_BORDER, tabY + TAB_BORDER, TAB_BORDER, TAB_BORDER, tabWidth - 2 * TAB_BORDER, tabHeight - 2 * TAB_BORDER, 256, 256, color);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX + TAB_BORDER, tabY + TAB_BORDER, TAB_BORDER, TAB_BORDER,
+                tabWidth - 2 * TAB_BORDER, tabHeight - 2 * TAB_BORDER, 256, 256, color);
 
         var scissorRect = getRedstoneTabScissorRect();
         guiGraphics.enableScissor(scissorRect.getX(), scissorRect.getY(), scissorRect.getWidth(), scissorRect.getHeight());

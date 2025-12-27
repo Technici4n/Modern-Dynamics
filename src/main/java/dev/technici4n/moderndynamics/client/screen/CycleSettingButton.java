@@ -19,7 +19,6 @@
 package dev.technici4n.moderndynamics.client.screen;
 
 import com.google.common.collect.ImmutableList;
-import com.mojang.blaze3d.systems.RenderSystem;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
@@ -36,7 +35,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.input.InputWithModifiers;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -137,7 +135,8 @@ public class CycleSettingButton<T> extends Button {
         } else if (isHovered) {
             y += 20;
         }
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), setting.spriteX(), y, width, height, 256, 256, ARGB.white(alpha));
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), setting.spriteX(), y, width, height,
+                256, 256, ARGB.white(alpha));
 
         if (this.isHovered) {
             var tooltip = new ArrayList<Component>();

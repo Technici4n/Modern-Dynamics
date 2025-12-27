@@ -18,8 +18,8 @@
  */
 package dev.technici4n.moderndynamics.data;
 
-import dev.technici4n.moderndynamics.client.model.PipeItemModel;
 import dev.technici4n.moderndynamics.client.model.PipeBlockstateModel;
+import dev.technici4n.moderndynamics.client.model.PipeItemModel;
 import dev.technici4n.moderndynamics.client.model.PipeModelGenerator;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdItems;
@@ -70,16 +70,16 @@ public class ModelsProvider extends ModelSubProvider {
 
             blockStateOutput.accept(createSimpleBlock(pipeBlock, customBlockStateModel(new PipeBlockstateModel.Unbaked(generator))));
 
-            //var path = "block/" + pipeBlock.id;
-            //var model = models().getBuilder(path)
-            //        .customLoader(PipeModelLoaderBuilder::new)
-            //        .pipeType(pipeBlock.id)
-            //        .transparent(pipeBlock.isTransparent())
-            //        .end();
+            // var path = "block/" + pipeBlock.id;
+            // var model = models().getBuilder(path)
+            // .customLoader(PipeModelLoaderBuilder::new)
+            // .pipeType(pipeBlock.id)
+            // .transparent(pipeBlock.isTransparent())
+            // .end();
             //// Use the block model as the item parent
-            //itemModels().withExistingParent("item/" + pipeBlock.id, modLoc(path));
-            //getVariantBuilder(pipeBlock).partialState().setModels(
-            //        ConfiguredModel.builder().modelFile(model).build());
+            // itemModels().withExistingParent("item/" + pipeBlock.id, modLoc(path));
+            // getVariantBuilder(pipeBlock).partialState().setModels(
+            // ConfiguredModel.builder().modelFile(model).build());
         }
 
         // Generate the model-file for attachments

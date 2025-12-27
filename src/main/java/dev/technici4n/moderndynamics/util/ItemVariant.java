@@ -19,10 +19,8 @@
 package dev.technici4n.moderndynamics.util;
 
 import com.mojang.serialization.Codec;
-import dev.technici4n.moderndynamics.ModernDynamics;
 import java.util.Optional;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -32,7 +30,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.storage.ValueInput;
 import org.jetbrains.annotations.ApiStatus;
 
 /**

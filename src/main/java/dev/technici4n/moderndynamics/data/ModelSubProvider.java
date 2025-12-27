@@ -1,7 +1,28 @@
+/*
+ * Modern Dynamics
+ * Copyright (C) 2021 shartte & Technici4n
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package dev.technici4n.moderndynamics.data;
 
 import com.mojang.math.Quadrant;
 import dev.technici4n.moderndynamics.util.MdId;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.MultiVariant;
@@ -23,10 +44,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.neoforged.neoforge.client.model.block.CustomUnbakedBlockStateModel;
 import net.neoforged.neoforge.client.model.generators.blockstate.CustomBlockStateModelBuilder;
-
-import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public abstract class ModelSubProvider {
     public static final ModelTemplate EMPTY_MODEL = new ModelTemplate(Optional.empty(), Optional.empty(),
@@ -90,11 +107,11 @@ public abstract class ModelSubProvider {
 
     private static Quadrant rotationByAngle(int angle) {
         return switch (angle) {
-            case 0 -> Quadrant.R0;
-            case 90 -> Quadrant.R90;
-            case 180 -> Quadrant.R180;
-            case 270 -> Quadrant.R270;
-            default -> throw new IllegalArgumentException("Invalid angle: " + angle);
+        case 0 -> Quadrant.R0;
+        case 90 -> Quadrant.R90;
+        case 180 -> Quadrant.R180;
+        case 270 -> Quadrant.R270;
+        default -> throw new IllegalArgumentException("Invalid angle: " + angle);
         };
     }
 
@@ -105,8 +122,8 @@ public abstract class ModelSubProvider {
     }
 
     private static <T extends Comparable<T>> ConditionBuilder addConditionTerm(ConditionBuilder conditionBuilder,
-                                                                               BlockState blockState,
-                                                                               Property<T> property) {
+            BlockState blockState,
+            Property<T> property) {
         return conditionBuilder.term(property, blockState.getValue(property));
     }
 

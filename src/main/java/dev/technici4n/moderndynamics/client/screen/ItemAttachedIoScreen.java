@@ -149,9 +149,11 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
 
         // Render tooltips (except buttons, those are handled in the buttons themselves)
         if (maxItemsInInventoryTooltipRect != null && maxItemsInInventoryTooltipRect.contains(Math.round(mouseX), Math.round(mouseY))) {
-            guiGraphics.setTooltipForNextFrame(font, Component.translatable("gui.moderndynamics.setting.max_items_in_inventory.tooltip"), mouseX, mouseY);
+            guiGraphics.setTooltipForNextFrame(font, Component.translatable("gui.moderndynamics.setting.max_items_in_inventory.tooltip"), mouseX,
+                    mouseY);
         } else if (maxItemsExtractedTooltipRect != null && maxItemsExtractedTooltipRect.contains(Math.round(mouseX), Math.round(mouseY))) {
-            guiGraphics.setTooltipForNextFrame(font, Component.translatable("gui.moderndynamics.setting.max_items_extracted.tooltip"), mouseX, mouseY);
+            guiGraphics.setTooltipForNextFrame(font, Component.translatable("gui.moderndynamics.setting.max_items_extracted.tooltip"), mouseX,
+                    mouseY);
         } else {
             this.renderTooltip(guiGraphics, mouseX, mouseY);
         }

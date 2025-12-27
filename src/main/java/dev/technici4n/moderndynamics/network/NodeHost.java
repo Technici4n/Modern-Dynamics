@@ -25,7 +25,6 @@ import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;

@@ -31,8 +31,6 @@ import dev.technici4n.moderndynamics.util.WrenchHelper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;

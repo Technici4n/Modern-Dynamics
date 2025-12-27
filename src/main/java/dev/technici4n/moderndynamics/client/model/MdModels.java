@@ -30,7 +30,7 @@ public class MdModels {
      * The model rotation to rotate a model facing NORTH to the correct facing direction.
      * Rotations are indexed by {@link Direction} id.
      */
-    public static final ModelState[] PIPE_BAKE_SETTINGS = new ModelState[]{
+    public static final ModelState[] PIPE_BAKE_SETTINGS = new ModelState[] {
             preRotated(BlockModelRotation.get(Quadrant.fromXYZAngles(Quadrant.R90, Quadrant.R0, Quadrant.R0)), 270),
             BlockModelRotation.get(Quadrant.fromXYZAngles(Quadrant.R270, Quadrant.R0, Quadrant.R0)),
             BlockModelRotation.get(Quadrant.fromXYZAngles(Quadrant.R0, Quadrant.R0, Quadrant.R0)),

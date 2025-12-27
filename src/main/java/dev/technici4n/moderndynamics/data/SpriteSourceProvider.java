@@ -19,6 +19,8 @@
 package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.util.MdId;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import net.minecraft.client.renderer.texture.atlas.SpriteSource;
 import net.minecraft.client.renderer.texture.atlas.SpriteSources;
 import net.minecraft.client.renderer.texture.atlas.sources.DirectoryLister;
@@ -26,9 +28,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.data.JsonCodecProvider;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public class SpriteSourceProvider extends JsonCodecProvider<List<SpriteSource>> {
     public SpriteSourceProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {

@@ -214,7 +214,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
 
     @Override
     public void fromTag(ValueInput input) {
-        connectionBlacklist = input.getByteOr("connectionBlacklist", (byte)0);
+        connectionBlacklist = input.getByteOr("connectionBlacklist", (byte) 0);
 
         for (NodeHost host : getHosts()) {
             if (hostsRegistered) {

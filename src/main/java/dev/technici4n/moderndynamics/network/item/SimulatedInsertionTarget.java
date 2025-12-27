@@ -30,13 +30,15 @@ import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jetbrains.annotations.Nullable;
 
 // TODO: needs to support recursive queries if filters are being used.
 public class SimulatedInsertionTarget {
     private final SimulatedInsertionTargets.Coord coord; // used for crash report info
-    private final Supplier<@Nullable IItemHandler> storageFinder;
+    private final Supplier<@Nullable ResourceHandler<ItemResource>> storageFinder;
     /**
      * List of stacks that are already traveling, but for which the target slot is not known.
      */
@@ -47,7 +49,7 @@ public class SimulatedInsertionTarget {
      */
     private final List<ItemStack> awaitedStacks = new ArrayList<>();
 
-    public SimulatedInsertionTarget(SimulatedInsertionTargets.Coord coord, Supplier<@Nullable IItemHandler> storageFinder) {
+    public SimulatedInsertionTarget(SimulatedInsertionTargets.Coord coord, Supplier<@Nullable ResourceHandler<ItemResource>> storageFinder) {
         this.coord = coord;
         this.storageFinder = storageFinder;
     }
@@ -87,7 +89,7 @@ public class SimulatedInsertionTarget {
         while (pendingIterator.hasNext()) {
             var entry = pendingIterator.next();
 
-            int planned = planForStack(targetStorage, entry.getKey(), entry.getIntValue(), false);
+            int planned = planForStack(targetStorage, ItemResource.of(entry.getKey().toStack()), entry.getIntValue(), false);
             if (planned == entry.getIntValue()) {
                 pendingIterator.remove();
             } else {
@@ -96,7 +98,7 @@ public class SimulatedInsertionTarget {
         }
 
         // Plan for this additional stack
-        int inserted = planForStack(targetStorage, variant, maxAmount, simulate);
+        int inserted = planForStack(targetStorage, ItemResource.of(variant.toStack()), maxAmount, simulate);
 
         if (!simulate && inserted > 0) {
             callback.startTravel(variant, inserted);
@@ -108,56 +110,57 @@ public class SimulatedInsertionTarget {
     /**
      * Try to plan for some stack to be inserted, return how much is anticipated to be insertable.
      */
-    private int planForStack(IItemHandler targetStorage, ItemVariant variant, int maxAmount, boolean simulate) {
+    private int planForStack(ResourceHandler<ItemResource> targetStorage, ItemResource variant, int maxAmount, boolean simulate) {
         // Extend pending list if necessary
-        int targetSlots = targetStorage.getSlots();
+        int targetSlots = targetStorage.size();
         while (awaitedStacks.size() < targetSlots) {
             awaitedStacks.add(ItemStack.EMPTY);
         }
 
         // Used to limit stack allocations
-        ItemStack leftover = null;
+        int leftover = -1;
 
-        for (int i = 0; i < targetSlots; ++i) {
-            var pending = awaitedStacks.get(i);
+        try (var tx = Transaction.openRoot()) {
+            for (int i = 0; i < targetSlots; ++i) {
+                var pending = awaitedStacks.get(i);
 
-            if (pending.isEmpty()) {
-                // No pending stack, try to insert as much as we can.
-                if (leftover == null) {
-                    leftover = variant.toStack(maxAmount);
-                }
+                if (pending.isEmpty()) {
+                    // No pending stack, try to insert as much as we can.
+                    if (leftover == -1) {
+                        leftover = maxAmount;
+                    }
 
-                int toInsert = leftover.getCount();
-                leftover = targetStorage.insertItem(i, leftover, true);
-                int inserted = toInsert - leftover.getCount();
+                    int toInsert = leftover;
+                    int inserted = targetStorage.insert(i, variant, toInsert, tx);
 
-                if (inserted > 0 && !simulate) {
-                    awaitedStacks.set(i, variant.toStack(inserted));
-                }
-            } else if (variant.matches(pending)) {
-                // Pending stack, try to insert more than what is scheduled.
-                if (leftover == null) {
-                    leftover = variant.toStack(maxAmount);
-                }
+                    if (inserted > 0 && !simulate) {
+                        awaitedStacks.set(i, variant.toStack(inserted));
+                    }
+                } else if (variant.matches(pending)) {
+                    // Pending stack, try to insert more than what is scheduled.
+                    if (leftover == -1) {
+                        leftover = maxAmount;
+                    }
 
-                int insertCount = pending.getCount() + leftover.getCount();
-                int inserted = insertCount - targetStorage.insertItem(i, variant.toStack(insertCount), true).getCount();
+                    int toInsert = pending.getCount() + leftover;
+                    int inserted = targetStorage.insert(i, variant, toInsert, tx);
 
-                int delta = inserted - pending.getCount();
-                if (delta > 0) {
-                    leftover.shrink(delta);
-                    if (!simulate) {
-                        pending.grow(delta);
+                    int delta = inserted - pending.getCount();
+                    if (delta > 0) {
+                        leftover -= delta;
+                        if (!simulate) {
+                            pending.grow(delta);
+                        }
                     }
                 }
-            }
 
-            if (leftover != null && leftover.isEmpty()) {
-                break;
+                if (leftover == 0) {
+                    break;
+                }
             }
         }
 
-        return leftover == null ? 0 : maxAmount - leftover.getCount();
+        return leftover == -1 ? 0 : maxAmount - leftover;
     }
 
     public void startAwaiting(ItemVariant variant, int amount) {

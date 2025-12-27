@@ -21,12 +21,9 @@ package dev.technici4n.moderndynamics.init;
 import dev.technici4n.moderndynamics.extender.MachineExtenderBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.util.MdId;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
+import java.util.List;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
-
-import java.util.List;
 
 public class MdBlocks {
 
@@ -39,7 +36,8 @@ public class MdBlocks {
     public static final DeferredBlock<PipeBlock> MV_CABLE = DR.registerBlock("mv_cable", props -> new PipeBlock(props).setTransparent(false));
     public static final DeferredBlock<PipeBlock> HV_CABLE = DR.registerBlock("hv_cable", props -> new PipeBlock(props).setTransparent(false));
     public static final DeferredBlock<PipeBlock> EV_CABLE = DR.registerBlock("ev_cable", props -> new PipeBlock(props).setTransparent(false));
-    public static final DeferredBlock<PipeBlock> SUPERCONDUCTOR_CABLE = DR.registerBlock("superconductor_cable", props -> new PipeBlock(props).setTransparent(false));
+    public static final DeferredBlock<PipeBlock> SUPERCONDUCTOR_CABLE = DR.registerBlock("superconductor_cable",
+            props -> new PipeBlock(props).setTransparent(false));
 
     public static final DeferredBlock<MachineExtenderBlock> MACHINE_EXTENDER = DR.registerBlock("machine_extender", MachineExtenderBlock::new);
 
@@ -52,8 +50,7 @@ public class MdBlocks {
                 MV_CABLE.get(),
                 HV_CABLE.get(),
                 EV_CABLE.get(),
-                SUPERCONDUCTOR_CABLE.get()
-        );
+                SUPERCONDUCTOR_CABLE.get());
     }
 
 }

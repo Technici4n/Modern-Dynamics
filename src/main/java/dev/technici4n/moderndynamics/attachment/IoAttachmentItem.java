@@ -24,10 +24,8 @@ import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.item.ItemHost;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -86,9 +84,11 @@ public class IoAttachmentItem extends AttachmentItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack itemStack, TooltipContext context, TooltipDisplay display, Consumer<Component> builder, TooltipFlag tooltipFlag) {
+    public void appendHoverText(ItemStack itemStack, TooltipContext context, TooltipDisplay display, Consumer<Component> builder,
+            TooltipFlag tooltipFlag) {
         builder
-                .accept(Component.translatable("gui.moderndynamics.tooltip.attachment_upgrades").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
+                .accept(Component.translatable("gui.moderndynamics.tooltip.attachment_upgrades")
+                        .setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
         /*
          * if (level != null && level.isClientSide()) {
          * if (MdProxy.INSTANCE.isShiftDown()) {

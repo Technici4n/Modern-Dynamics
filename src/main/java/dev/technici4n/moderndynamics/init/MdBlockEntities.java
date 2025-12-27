@@ -26,12 +26,10 @@ import dev.technici4n.moderndynamics.extender.MachineExtenderBlockEntity;
 import dev.technici4n.moderndynamics.network.energy.EnergyPipeTier;
 import dev.technici4n.moderndynamics.network.mienergy.MICableTier;
 import dev.technici4n.moderndynamics.pipe.*;
-import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;

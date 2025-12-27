@@ -33,14 +33,8 @@ package dev.technici4n.moderndynamics.thirdparty.fabric;
  * limitations under the License.
  */
 
-import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
-import java.util.List;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemTransform;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Contract;

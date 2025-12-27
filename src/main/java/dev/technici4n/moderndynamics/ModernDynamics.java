@@ -19,7 +19,6 @@
 package dev.technici4n.moderndynamics;
 
 import dev.technici4n.moderndynamics.attachment.upgrade.AttachmentUpgradesLoader;
-import dev.technici4n.moderndynamics.client.ModernDynamicsClient;
 import dev.technici4n.moderndynamics.init.MdAttachments;
 import dev.technici4n.moderndynamics.init.MdBlockEntities;
 import dev.technici4n.moderndynamics.init.MdBlocks;
@@ -36,8 +35,6 @@ import net.minecraft.core.registries.Registries;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
