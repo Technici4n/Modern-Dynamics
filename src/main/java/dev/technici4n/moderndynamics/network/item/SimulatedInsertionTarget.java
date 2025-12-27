@@ -31,22 +31,23 @@ import net.minecraft.ReportedException;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jetbrains.annotations.Nullable;
 
 // TODO: needs to support recursive queries if filters are being used.
-public class SimulatedInsertionTarget {
+public class SimulatedInsertionTarget extends SnapshotJournal<SimulatedInsertionTarget.Snapshot> {
     private final SimulatedInsertionTargets.Coord coord; // used for crash report info
     private final Supplier<@Nullable ResourceHandler<ItemResource>> storageFinder;
     /**
      * List of stacks that are already traveling, but for which the target slot is not known.
      */
-    private final Object2IntMap<ItemResource> pendingStacks = new Object2IntLinkedOpenHashMap<>();
+    private Object2IntMap<ItemResource> pendingStacks = new Object2IntLinkedOpenHashMap<>();
     /**
      * List of stacks that are already traveling and that the target should accept,
      * for each slot.
      */
-    private final List<ItemStack> awaitedStacks = new ArrayList<>();
+    private List<ItemStack> awaitedStacks = new ArrayList<>();
 
     public SimulatedInsertionTarget(SimulatedInsertionTargets.Coord coord, Supplier<@Nullable ResourceHandler<ItemResource>> storageFinder) {
         this.coord = coord;
@@ -57,9 +58,9 @@ public class SimulatedInsertionTarget {
         return storageFinder.get() != null;
     }
 
-    public int insert(ItemResource variant, int maxAmount, boolean simulate, StartTravelCallback callback) {
+    public int insert(ItemResource variant, int maxAmount, TransactionContext tx, StartTravelCallback callback) {
         try {
-            return innerInsert(variant, maxAmount, simulate, callback);
+            return innerInsert(variant, maxAmount, tx, callback);
         } catch (Throwable t) {
             var report = CrashReport.forThrowable(t, "Item pipe simulated insertion failed");
 
@@ -68,14 +69,13 @@ public class SimulatedInsertionTarget {
             target.setDetail("Accessed from side", coord.direction());
             target.setDetail("Storage", () -> Objects.toString(storageFinder.get(), null))
                     .setDetail("Item variant", variant)
-                    .setDetail("Max amount", maxAmount)
-                    .setDetail("Simulate", simulate);
+                    .setDetail("Max amount", maxAmount);
 
             throw new ReportedException(report);
         }
     }
 
-    private int innerInsert(ItemResource variant, int maxAmount, boolean simulate, StartTravelCallback callback) {
+    private int innerInsert(ItemResource variant, int maxAmount, TransactionContext tx, StartTravelCallback callback) {
         Preconditions.checkArgument(!variant.isEmpty(), "blank variant");
         Preconditions.checkArgument(maxAmount >= 0, "non-negative amount");
         var targetStorage = storageFinder.get();
@@ -88,7 +88,7 @@ public class SimulatedInsertionTarget {
         while (pendingIterator.hasNext()) {
             var entry = pendingIterator.next();
 
-            int planned = planForStack(targetStorage, ItemResource.of(entry.getKey().toStack()), entry.getIntValue(), false);
+            int planned = planForStack(targetStorage, variant, entry.getIntValue(), tx);
             if (planned == entry.getIntValue()) {
                 pendingIterator.remove();
             } else {
@@ -97,9 +97,9 @@ public class SimulatedInsertionTarget {
         }
 
         // Plan for this additional stack
-        int inserted = planForStack(targetStorage, ItemResource.of(variant.toStack()), maxAmount, simulate);
+        int inserted = planForStack(targetStorage, variant, maxAmount, tx);
 
-        if (!simulate && inserted > 0) {
+        if (inserted > 0) {
             callback.startTravel(variant, inserted);
         }
 
@@ -109,7 +109,9 @@ public class SimulatedInsertionTarget {
     /**
      * Try to plan for some stack to be inserted, return how much is anticipated to be insertable.
      */
-    private int planForStack(ResourceHandler<ItemResource> targetStorage, ItemResource variant, int maxAmount, boolean simulate) {
+    private int planForStack(ResourceHandler<ItemResource> targetStorage, ItemResource variant, int maxAmount, TransactionContext tx) {
+        updateSnapshots(tx);
+
         // Extend pending list if necessary
         int targetSlots = targetStorage.size();
         while (awaitedStacks.size() < targetSlots) {
@@ -119,43 +121,39 @@ public class SimulatedInsertionTarget {
         // Used to limit stack allocations
         int leftover = -1;
 
-        try (var tx = Transaction.openRoot()) {
-            for (int i = 0; i < targetSlots; ++i) {
-                var pending = awaitedStacks.get(i);
+        for (int i = 0; i < targetSlots; ++i) {
+            var pending = awaitedStacks.get(i);
 
-                if (pending.isEmpty()) {
-                    // No pending stack, try to insert as much as we can.
-                    if (leftover == -1) {
-                        leftover = maxAmount;
-                    }
-
-                    int toInsert = leftover;
-                    int inserted = targetStorage.insert(i, variant, toInsert, tx);
-
-                    if (inserted > 0 && !simulate) {
-                        awaitedStacks.set(i, variant.toStack(inserted));
-                    }
-                } else if (variant.matches(pending)) {
-                    // Pending stack, try to insert more than what is scheduled.
-                    if (leftover == -1) {
-                        leftover = maxAmount;
-                    }
-
-                    int toInsert = pending.getCount() + leftover;
-                    int inserted = targetStorage.insert(i, variant, toInsert, tx);
-
-                    int delta = inserted - pending.getCount();
-                    if (delta > 0) {
-                        leftover -= delta;
-                        if (!simulate) {
-                            pending.grow(delta);
-                        }
-                    }
+            if (pending.isEmpty()) {
+                // No pending stack, try to insert as much as we can.
+                if (leftover == -1) {
+                    leftover = maxAmount;
                 }
 
-                if (leftover == 0) {
-                    break;
+                int toInsert = leftover;
+                int inserted = targetStorage.insert(i, variant, toInsert, tx);
+
+                if (inserted > 0) {
+                    awaitedStacks.set(i, variant.toStack(inserted));
                 }
+            } else if (variant.matches(pending)) {
+                // Pending stack, try to insert more than what is scheduled.
+                if (leftover == -1) {
+                    leftover = maxAmount;
+                }
+
+                int toInsert = pending.getCount() + leftover;
+                int inserted = targetStorage.insert(i, variant, toInsert, tx);
+
+                int delta = inserted - pending.getCount();
+                if (delta > 0) {
+                    leftover -= delta;
+                    pending.grow(delta);
+                }
+            }
+
+            if (leftover == 0) {
+                break;
             }
         }
 
@@ -199,5 +197,19 @@ public class SimulatedInsertionTarget {
                 }
             }
         }
+    }
+
+    @Override
+    protected Snapshot createSnapshot() {
+        return new Snapshot(new Object2IntLinkedOpenHashMap<>(pendingStacks), new ArrayList<>(awaitedStacks));
+    }
+
+    @Override
+    protected void revertToSnapshot(Snapshot snapshot) {
+        this.pendingStacks = snapshot.pendingStacks;
+        this.awaitedStacks = snapshot.awaitedStacks;
+    }
+
+    public record Snapshot(Object2IntMap<ItemResource> pendingStacks, List<ItemStack> awaitedStacks) {
     }
 }

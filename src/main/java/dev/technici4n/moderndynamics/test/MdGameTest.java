@@ -16,25 +16,29 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.util;
+package dev.technici4n.moderndynamics.test;
 
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.transfer.item.ItemResource;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public final class TransferUtil {
-    private TransferUtil() {
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface MdGameTest {
+    int timeoutTicks() default 100;
 
-    public static int insertItemStacked(IItemHandler handler, ItemResource variant, int amount) {
-        return insertItemStacked(handler, variant, amount, false);
-    }
+    boolean skyAccess() default false;
 
-    public static int insertItemStacked(IItemHandler handler, ItemResource variant, int amount, boolean simulate) {
-        var stack = variant.toStack(amount);
+    int rotationSteps() default 0;
 
-        var remainder = ItemHandlerHelper.insertItem(handler, stack, simulate);
-        return amount - remainder.getCount();
-    }
+    int setupTicks() default 0;
 
+    int attempts() default 1;
+
+    int requiredSuccesses() default 1;
+
+    boolean required() default true;
+
+    boolean manualOnly() default false;
 }

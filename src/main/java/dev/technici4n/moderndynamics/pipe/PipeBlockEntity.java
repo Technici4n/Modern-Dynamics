@@ -33,8 +33,6 @@ import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -44,7 +42,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
@@ -450,8 +447,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                                 // yet there is no visual indication. So we just disallow that.)
                                 updateConnectionBlacklist(hitSide, true);
 
-                                var emptyConfig = TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), new CompoundTag());
-                                host.setAttachment(hitSide, attachmentItem, emptyConfig);
+                                host.setAttachment(hitSide, attachmentItem);
                                 host.getAttachment(hitSide).onPlaced(player);
                                 level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
                                 refreshHosts();

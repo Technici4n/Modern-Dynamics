@@ -19,9 +19,25 @@
 package dev.technici4n.moderndynamics.client.ber;
 
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 public class PipeRenderState extends BlockEntityRenderState {
+    public TravelingItemState[] travelingItems = new TravelingItemState[0];
+    public int clientSideConnections;
+    public FluidState fluid = null;
 
-    public static class Host {
+    public static class FluidState {
+        public int tintColor;
+        public float fill;
+        public TextureAtlasSprite sprite;
+    }
+
+    public static class TravelingItemState {
+        public ItemStackRenderState itemStack = new ItemStackRenderState();
+        public float rotAngle;
+        public int renderCount;
+        public float tx, ty, tz;
+        public int randomSeed;
     }
 }

@@ -35,7 +35,6 @@ import dev.technici4n.moderndynamics.model.AttachmentModelData;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
-import dev.technici4n.moderndynamics.util.TransferUtil;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,8 +50,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemAttachedIo extends AttachedIo {
@@ -367,13 +368,18 @@ public class ItemAttachedIo extends AttachedIo {
         }
     }
 
-    public int moveStuffedToStorage(IItemHandler targetStorage, int maxAmount) {
+    public int moveStuffedToStorage(ResourceHandler<ItemResource> targetStorage, int maxAmount) {
         int totalMoved = 0;
 
         for (var it = stuffedItems.entrySet().iterator(); it.hasNext() && totalMoved < maxAmount;) {
             var entry = it.next();
             int stuffedAmount = entry.getValue();
-            int inserted = TransferUtil.insertItemStacked(targetStorage, entry.getKey(), Math.min(stuffedAmount, maxAmount - totalMoved));
+            int result;
+            try (var tx = Transaction.openRoot()) {
+                result = ResourceHandlerUtil.insertStacking(targetStorage, entry.getKey(), Math.min(stuffedAmount, maxAmount - totalMoved), tx);
+                tx.commit();
+            }
+            int inserted = result;
 
             if (inserted > 0) {
                 totalMoved += inserted;

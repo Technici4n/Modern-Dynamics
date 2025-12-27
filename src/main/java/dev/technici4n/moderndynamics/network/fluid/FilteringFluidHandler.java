@@ -19,94 +19,50 @@
 package dev.technici4n.moderndynamics.network.fluid;
 
 import java.util.function.Supplier;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.transfer.DelegatingResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
-public abstract class FilteringFluidHandler implements IFluidHandler {
-    private static final Logger LOG = LoggerFactory.getLogger(FilteringFluidHandler.class);
-    private final Supplier<IFluidHandler> delegate;
-
-    public FilteringFluidHandler(IFluidHandler delegate) {
-        this.delegate = () -> delegate;
+public abstract class FilteringFluidHandler extends DelegatingResourceHandler<FluidResource> {
+    public FilteringFluidHandler(ResourceHandler<FluidResource> delegate) {
+        super(delegate);
     }
 
-    public FilteringFluidHandler(Supplier<IFluidHandler> delegate) {
-        this.delegate = delegate;
-    }
-
-    private IFluidHandler getDelegate() {
-        return delegate.get();
+    public FilteringFluidHandler(Supplier<ResourceHandler<FluidResource>> delegate) {
+        super(delegate);
     }
 
     @Override
-    public int getTanks() {
-        return getDelegate().getTanks();
-    }
-
-    @Override
-    @NotNull
-    public FluidStack getFluidInTank(int tank) {
-        return getDelegate().getFluidInTank(tank);
-    }
-
-    @Override
-    public int getTankCapacity(int tank) {
-        return getDelegate().getTankCapacity(tank);
-    }
-
-    @Override
-    public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
-        return getDelegate().isFluidValid(tank, stack);
-    }
-
-    @Override
-    public int fill(FluidStack resource, FluidAction action) {
-        if (!canInsert(FluidResource.of(resource))) {
+    public int insert(FluidResource resource, int amount, TransactionContext tx) {
+        if (!canInsert(resource)) {
             return 0;
         }
-
-        return getDelegate().fill(resource, action);
+        return super.insert(resource, amount, tx);
     }
 
     @Override
-    @NotNull
-    public FluidStack drain(FluidStack resource, FluidAction action) {
-        if (!canExtract(FluidResource.of(resource))) {
-            return FluidStack.EMPTY;
+    public int insert(int index, FluidResource resource, int amount, TransactionContext tx) {
+        if (!canInsert(resource)) {
+            return 0;
         }
-
-        return getDelegate().drain(resource, action);
+        return super.insert(index, resource, amount, tx);
     }
 
     @Override
-    @NotNull
-    public FluidStack drain(int maxDrain, FluidAction action) {
-        var delegate = getDelegate();
-
-        // Pre-flight check for EXECUTE
-        FluidResource simulatedDrain = FluidResource.EMPTY;
-        if (action.execute()) {
-            simulatedDrain = FluidResource.of(delegate.drain(maxDrain, FluidAction.SIMULATE));
-            if (!canExtract(simulatedDrain)) {
-                return FluidStack.EMPTY;
-            }
+    public int extract(FluidResource resource, int amount, TransactionContext tx) {
+        if (!canExtract(resource)) {
+            return 0;
         }
+        return super.extract(resource, amount, tx);
+    }
 
-        var drained = getDelegate().drain(maxDrain, action);
-        var drainedVariant = FluidResource.of(drained);
-        if (!simulatedDrain.equals(drainedVariant) || !canExtract(drainedVariant)) {
-            if (action.execute()) {
-                // try to re-insert, otherwise it will be voided
-                LOG.warn("{} returned fluid {} after returning {} during simulation...", delegate, drained, simulatedDrain);
-                delegate.fill(drained, FluidAction.EXECUTE);
-            }
-            return FluidStack.EMPTY;
+    @Override
+    public int extract(int index, FluidResource resource, int amount, TransactionContext tx) {
+        if (!canExtract(resource)) {
+            return 0;
         }
-        return drained;
+        return super.extract(index, resource, amount, tx);
     }
 
     protected abstract boolean canInsert(FluidResource resource);

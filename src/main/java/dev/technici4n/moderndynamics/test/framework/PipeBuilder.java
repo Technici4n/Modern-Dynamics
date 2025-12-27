@@ -23,8 +23,8 @@ import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 
 public class PipeBuilder {
     private final MdGameTestHelper helper;
@@ -35,13 +35,17 @@ public class PipeBuilder {
         this.pipe = pipe;
     }
 
+    public PipeBuilder attachment(Direction direction, Supplier<AttachmentItem> attachment) {
+        return attachment(direction, attachment.get());
+    }
+
     public PipeBuilder attachment(Direction direction, AttachmentItem attachment) {
         var stack = attachment.getDefaultInstance();
 
         for (var host : pipe.getHosts()) {
             if (host.acceptsAttachment(attachment, stack)) {
-                host.setAttachment(direction, attachment, new CompoundTag(), pipe.getLevel().registryAccess());
-                helper.getLevel().blockUpdated(pipe.getBlockPos(), pipe.getBlockState().getBlock());
+                host.setAttachment(direction, attachment);
+                helper.getLevel().updateNeighborsAt(pipe.getBlockPos(), pipe.getBlockState().getBlock());
                 pipe.refreshHosts();
                 pipe.scheduleHostUpdates();
                 pipe.setChanged();

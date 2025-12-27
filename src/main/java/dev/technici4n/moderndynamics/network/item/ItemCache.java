@@ -25,6 +25,7 @@ import dev.technici4n.moderndynamics.network.NetworkNode;
 import java.util.List;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
@@ -54,7 +55,7 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
      * @param checkedPathsConsumer Accepts how many paths were evaluated if not null. Ignored if null.
      */
     protected int insertList(NetworkNode<ItemHost, ItemCache> startingPoint, Iterable<ItemPath> paths, ItemResource variant,
-            int maxAmount, boolean simulate, double speedMultiplier, @Nullable MaxParticipant checkedPathsConsumer) {
+            int maxAmount, TransactionContext tx, double speedMultiplier, @Nullable MaxParticipant checkedPathsConsumer) {
         Preconditions.checkArgument(!variant.isEmpty(), "blank variant");
         Preconditions.checkArgument(maxAmount >= 0);
         Preconditions.checkArgument(startingPoint.getNetworkCache() == this, "Tried to insert into another network!");
@@ -81,7 +82,7 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
 
                 var simulatedTarget = path.getInsertionTarget(startingPoint.getHost().getPipe().getLevel());
 
-                totalInserted += simulatedTarget.insert(variant, maxAmount - totalInserted, simulate, (v, amount) -> {
+                totalInserted += simulatedTarget.insert(variant, maxAmount - totalInserted, tx, (v, amount) -> {
                     var travelingItem = path.makeTravelingItem(v, amount, speedMultiplier);
                     startingPoint.getHost().addTravelingItem(travelingItem);
                 });
@@ -91,7 +92,7 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
             }
 
             if (checkedPathsConsumer != null) {
-                checkedPathsConsumer.addEntry(nextPathIndex, simulate);
+                checkedPathsConsumer.addEntry(nextPathIndex);
             }
 
             return totalInserted;

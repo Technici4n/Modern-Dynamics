@@ -28,6 +28,7 @@ import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.TickHelper;
 import dev.technici4n.moderndynamics.network.item.SimulatedInsertionTargets;
 import dev.technici4n.moderndynamics.packets.MdPackets;
+import dev.technici4n.moderndynamics.test.MdGameTests;
 import dev.technici4n.moderndynamics.util.MdId;
 import dev.technici4n.moderndynamics.util.MdItemGroup;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
@@ -67,6 +68,8 @@ public class ModernDynamics {
         AttachmentUpgradesLoader.setup();
         MdAttachments.init();
 
+        modEvents.addListener(MdGameTests::registerTests);
+
         LOGGER.info("Successfully loaded Modern Dynamics!");
     }
 
@@ -78,6 +81,8 @@ public class ModernDynamics {
             MdMenus.init();
         } else if (registryKey == Registries.CREATIVE_MODE_TAB) {
             MdItemGroup.init();
+        } else if (registryKey == Registries.TEST_FUNCTION) {
+            MdGameTests.registerFunctions();
         }
     }
 

@@ -83,7 +83,7 @@ dependencies {
     }
 
     compileOnly("curse.maven:jade-324717:${project.jade_file_id}")
-    implementation("net.neoforged:testframework:${project.neoforge_version}")
+    runtimeOnly("net.neoforged:testframework:${project.neoforge_version}")
 }
 
 processResources {

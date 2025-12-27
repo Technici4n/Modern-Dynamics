@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.function.Predicate;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.Mth;
@@ -49,12 +48,12 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.wrapper.EmptyItemHandler;
 import net.neoforged.neoforge.network.connection.ConnectionType;
+import net.neoforged.neoforge.transfer.EmptyResourceHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemHost extends NodeHost {
@@ -105,14 +104,14 @@ public class ItemHost extends NodeHost {
     /**
      * Storage used for external injections (e.g. via hoppers), does not respect routing mode.
      */
-    private IItemHandler buildExternalNetworkInjectStorage(Direction side) {
-        return new InsertionOnlyItemHandler((resource, maxAmount, simulate) -> {
+    private ResourceHandler<ItemResource> buildExternalNetworkInjectStorage(Direction side) {
+        return new InsertionOnlyItemHandler((resource, maxAmount, tx) -> {
             NetworkNode<ItemHost, ItemCache> node = findNode();
             if (node != null) {
                 var cache = node.getNetworkCache();
                 var paths = cache.pathCache.getPaths(node, side.getOpposite());
                 double speedupFactor = getAttachment(side) instanceof ItemAttachedIo io ? io.getItemSpeedupFactor() : 1;
-                return cache.insertList(node, paths, resource, maxAmount, simulate, speedupFactor, null);
+                return cache.insertList(node, paths, resource, maxAmount, tx, speedupFactor, null);
             } else {
                 // The node can be null on the client or if the pipe was just placed and not initialized yet.
                 return 0;
@@ -139,10 +138,10 @@ public class ItemHost extends NodeHost {
     }
 
     @Nullable
-    protected IItemHandler getAdjacentStorage(Direction side, boolean checkAttachments) {
+    protected ResourceHandler<ItemResource> getAdjacentStorage(Direction side, boolean checkAttachments) {
         if ((inventoryConnections & (1 << side.get3DDataValue())) > 0 && (pipeConnections & (1 << side.get3DDataValue())) == 0
                 && (!checkAttachments || allowItemConnection(side))) {
-            return null; // TODO 26.1: adjacentCaps.getCapability(side);
+            return adjacentCaps.getCapability(side);
         }
         return null;
     }
@@ -206,11 +205,13 @@ public class ItemHost extends NodeHost {
 
             var maxParticipant = new MaxParticipant();
 
-            if (move(
+            // TODO 26.1: This was previously stacking on move, but this helper is not.
+            if (ResourceHandlerUtil.move(
                     adjStorage,
                     buildExtractorNetworkInjectStorage(side, extractor, maxParticipant),
                     extractor::matchesItemFilter,
-                    extractor.getMaxItemsExtracted()) > 0) {
+                    extractor.getMaxItemsExtracted(),
+                    null) > 0) {
                 extractor.incrementRoundRobin(maxParticipant.getMax());
             }
         }
@@ -251,8 +252,7 @@ public class ItemHost extends NodeHost {
                     continue;
                 }
 
-                // TODO 26.1:
-                var extractTarget = (IItemHandler) pipe.getLevel().getCapability(Capabilities.Item.BLOCK, path.targetPos, path.getTargetBlockSide());
+                var extractTarget = pipe.getLevel().getCapability(Capabilities.Item.BLOCK, path.targetPos, path.getTargetBlockSide());
                 if (extractTarget != null) {
                     // Make sure to check the filter at the endpoint.
                     var endpointFilter = path.getEndFilter(cache.level);
@@ -264,11 +264,13 @@ public class ItemHost extends NodeHost {
                             reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
                         });
                     });
-                    toTransfer -= move(
+                    // TODO 26.1: This was previously stacking on move, but this helper is not.
+                    toTransfer -= ResourceHandlerUtil.move(
                             extractTarget,
                             insertStorage,
                             v -> attractor.matchesItemFilter(v) && endpointFilter.test(v),
-                            toTransfer);
+                            toTransfer,
+                            null);
                     if (toTransfer == 0)
                         break;
                 }
@@ -278,26 +280,6 @@ public class ItemHost extends NodeHost {
                 attractor.incrementRoundRobin(nextPathIndex);
             }
         }
-    }
-
-    private int move(IItemHandler from, IItemHandler to, Predicate<ItemResource> predicate, int maxAmount) {
-        var moved = 0;
-        for (int i = 0; i < from.getSlots(); i++) {
-            var extracted = from.extractItem(i, maxAmount - moved, true);
-            if (!extracted.isEmpty()) {
-                var variant = ItemResource.of(extracted);
-                if (predicate.test(variant)) {
-                    var overflow = ItemHandlerHelper.insertItemStacked(to, extracted, true);
-                    var likelyToFit = extracted.getCount() - overflow.getCount();
-                    if (likelyToFit > 0) {
-                        extracted = from.extractItem(i, likelyToFit, false);
-                        overflow = ItemHandlerHelper.insertItemStacked(to, extracted, false);
-                        moved += extracted.getCount() - overflow.getCount();
-                    }
-                }
-            }
-        }
-        return moved;
     }
 
     public void tickMovingItems() {
@@ -342,14 +324,16 @@ public class ItemHost extends NodeHost {
                 var side = travelingItem.path.path[newIndex];
                 var storage = getAdjacentStorage(side, checkAttachments);
                 if (storage == null) {
-                    storage = EmptyItemHandler.INSTANCE;
+                    storage = EmptyResourceHandler.instance();
                 }
                 int inserted = 0;
                 // Check filter.
                 if (!checkAttachments || !(getAttachment(side) instanceof ItemAttachedIo io) ||
                         io.matchesItemFilter(travelingItem.variant) && io.isEnabledViaRedstone(pipe)) {
-                    var overflow = ItemHandlerHelper.insertItemStacked(storage, travelingItem.variant.toStack(travelingItem.amount), false);
-                    inserted = travelingItem.amount - overflow.getCount();
+                    try (var tx = Transaction.openRoot()) {
+                        inserted = ResourceHandlerUtil.insertStacking(storage, travelingItem.variant, travelingItem.amount, tx);
+                        tx.commit();
+                    }
                 }
                 finishTravel(travelingItem, inserted);
             } else {

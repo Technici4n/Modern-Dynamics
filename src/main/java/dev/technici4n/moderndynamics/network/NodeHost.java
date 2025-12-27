@@ -28,10 +28,13 @@ import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapability;
@@ -76,6 +79,11 @@ public abstract class NodeHost {
             return attachment;
         }
         return null;
+    }
+
+    public final void setAttachment(Direction side, AttachmentItem item) {
+        var emptyInput = TagValueInput.create(ProblemReporter.DISCARDING, getLevel().registryAccess(), new CompoundTag());
+        setAttachment(side, item, emptyInput);
     }
 
     public final void setAttachment(Direction side, AttachmentItem item, ValueInput input) {

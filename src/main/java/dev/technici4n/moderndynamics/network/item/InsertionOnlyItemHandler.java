@@ -18,12 +18,12 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
-import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.TransferPreconditions;
 import net.neoforged.neoforge.transfer.item.ItemResource;
-import org.jetbrains.annotations.NotNull;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
-final class InsertionOnlyItemHandler implements IItemHandler {
+final class InsertionOnlyItemHandler implements ResourceHandler<ItemResource> {
     private final InsertionHandler handler;
 
     public InsertionOnlyItemHandler(InsertionHandler handler) {
@@ -31,51 +31,47 @@ final class InsertionOnlyItemHandler implements IItemHandler {
     }
 
     @Override
-    public int getSlots() {
+    public int size() {
         return 1;
     }
 
     @Override
-    public @NotNull ItemStack getStackInSlot(int slot) {
-        return ItemStack.EMPTY;
+    public ItemResource getResource(int index) {
+        return ItemResource.EMPTY;
     }
 
     @Override
-    public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-        if (stack.isEmpty()) {
-            return stack;
-        }
-
-        var maxAmount = stack.getCount();
-        var variant = ItemResource.of(stack);
-        var amountInserted = handler.handle(variant, maxAmount, simulate);
-        if (amountInserted <= 0) {
-            return stack;
-        }
-        var notInserted = maxAmount - amountInserted;
-        if (notInserted > 0) {
-            return variant.toStack(notInserted);
-        }
-        return ItemStack.EMPTY;
+    public long getAmountAsLong(int index) {
+        return 0;
     }
 
     @Override
-    public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
-        return ItemStack.EMPTY;
+    public long getCapacityAsLong(int index, ItemResource resource) {
+        return Long.MAX_VALUE;
     }
 
     @Override
-    public int getSlotLimit(int slot) {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+    public boolean isValid(int index, ItemResource resource) {
         return true;
+    }
+
+    @Override
+    public int insert(int index, ItemResource resource, int amount, TransactionContext tx) {
+        TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
+        if (index != 0) {
+            return 0;
+        }
+
+        return handler.handle(resource, amount, tx);
+    }
+
+    @Override
+    public int extract(int index, ItemResource resource, int amount, TransactionContext tx) {
+        return 0;
     }
 
     @FunctionalInterface
     public interface InsertionHandler {
-        int handle(ItemResource resource, int maxAmount, boolean simulate);
+        int handle(ItemResource resource, int maxAmount, TransactionContext tx);
     }
 }

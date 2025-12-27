@@ -20,14 +20,13 @@ package dev.technici4n.moderndynamics.client.ber;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import dev.technici4n.moderndynamics.thirdparty.fabric.MeshBuilderImpl;
+import dev.technici4n.moderndynamics.thirdparty.fabric.MutableQuadView;
 import dev.technici4n.moderndynamics.thirdparty.fabric.QuadEmitter;
-import dev.technici4n.moderndynamics.util.FluidRenderUtil;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.minecraft.util.LightCoordsUtil;
 
 public class FluidPipeRendering {
     private static final float PIPE_W = 6.0F / 16.0F;
@@ -36,7 +35,6 @@ public class FluidPipeRendering {
     private static final float P2 = 0.5f;
     private static final float P3 = P1 + PIPE_W;
     private static final float P4 = 1f;
-    public static final int FULL_LIGHT = 0x00F0_00F0;
 
     private static final int DOWN = 1 << 0;
     private static final int UP = 1 << 1;
@@ -45,69 +43,48 @@ public class FluidPipeRendering {
     private static final int WEST = 1 << 4;
     private static final int EAST = 1 << 5;
 
-    public static void drawFluidInPipe(PipeBlockEntity pipe, PoseStack ms, MultiBufferSource vcp, FluidResource fluid, float fill) {
-        int conn = pipe.getClientSideConnections();
-        var level = pipe.getLevel();
-        var pos = pipe.getBlockPos();
-
-        VertexConsumer vc = vcp.getBuffer(Sheets.translucentBlockItemSheet());
-
-        var renderProps = IClientFluidTypeExtensions.of(fluid.getFluid());
-        var sprite = FluidRenderUtil.getStillSprite(fluid);
-        if (sprite == null || fill < 1e-5) {
-            return;
-        }
-
-        int color = renderProps.getTintColor(fluid.getFluid().defaultFluidState(), level, pos);
+    public static void drawFluidInPipe(int conn, int color, TextureAtlasSprite sprite, float fill, PoseStack.Pose pose, VertexConsumer vc) {
         float r = ((color >> 16) & 255) / 256f;
         float g = ((color >> 8) & 255) / 256f;
         float b = (color & 255) / 256f;
 
-// TODO 26.1        var meshBuilder = new MeshBuilderImpl();
-// TODO 26.1        QuadBuilder builder = (direction, x, y, z, X, Y, Z) -> {
-// TODO 26.1            var emitter = meshBuilder.getEmitter();
-// TODO 26.1            quad(emitter, direction, x, y, z, X, Y, Z);
-// TODO 26.1            emitter.spriteBake(sprite, MutableQuadView.BAKE_LOCK_UV);
-// TODO 26.1            emitter.color(-1, -1, -1, -1);
-// TODO 26.1            vc.putBulkData(ms.last(), emitter.toBakedQuad(sprite), r, g, b, 1, FULL_LIGHT, OverlayTexture.NO_OVERLAY);
-// TODO 26.1        };
-// TODO 26.1
-// TODO 26.1        /*
-// TODO 26.1         * var emitter = renderer.meshBuilder().getEmitter();
-// TODO 26.1         * emitter.square(Direction.UP, 0, 0, 1, 1, 0);
-// TODO 26.1         * emitter.spriteBake(0, sprite, MutableQuadView.BAKE_LOCK_UV);
-// TODO 26.1         * emitter.spriteColor(0, -1, -1, -1, -1);
-// TODO 26.1         * vc.putBulkData(ms.last(), emitter.toBakedQuad(0, sprite, false), r, g, b, FULL_LIGHT, OverlayTexture.NO_OVERLAY);
-// TODO 26.1         */
-// TODO 26.1
-// TODO 26.1        float F = fill * PIPE_W;
-// TODO 26.1        float E = 1e-3f;
-// TODO 26.1        // builder.cube(0, 0, 0, 1, 1, 1, 0);
-// TODO 26.1        if (hasConnection(conn, NORTH)) {
-// TODO 26.1            builder.cube(P1 + E, P1 + E, P0, P3 - E, P1 + F - E, P1 + E, NORTH | SOUTH);
-// TODO 26.1        }
-// TODO 26.1        if (hasConnection(conn, SOUTH)) {
-// TODO 26.1            builder.cube(P1 + E, P1 + E, P3 - E, P3 - E, P1 + F - E, P4, NORTH | SOUTH);
-// TODO 26.1        }
-// TODO 26.1        if (hasConnection(conn, EAST)) {
-// TODO 26.1            builder.cube(P3 - E, P1 + E, P1 + E, P4, P1 + F - E, P3 - E, WEST | EAST);
-// TODO 26.1        }
-// TODO 26.1        if (hasConnection(conn, WEST)) {
-// TODO 26.1            builder.cube(P0, P1 + E, P1 + E, P1 + E, P1 + F - E, P3 - E, WEST | EAST);
-// TODO 26.1        }
-// TODO 26.1        if (conn == (DOWN | UP)) {
-// TODO 26.1            // vertical only
-// TODO 26.1            builder.cube(P2 - F / 2 + E, P0, P2 - F / 2 + E, P2 + F / 2 - E, P4, P2 + F / 2 - E, DOWN | UP);
-// TODO 26.1        } else {
-// TODO 26.1            // normal center
-// TODO 26.1            builder.cube(P1 + E, P1 + E, P1 + E, P3 - E, P1 + F - E, P3 - E, conn & (NORTH | SOUTH | WEST | EAST));
-// TODO 26.1            if (hasConnection(conn, UP)) {
-// TODO 26.1                builder.cube(P2 - F / 2 + E, P1 + F - E, P2 - F / 2 + E, P2 + F / 2 - E, P4, P2 + F / 2 - E, DOWN | UP);
-// TODO 26.1            }
-// TODO 26.1            if (hasConnection(conn, DOWN)) {
-// TODO 26.1                builder.cube(P2 - F / 2 + E, P0, P2 - F / 2 + E, P2 + F / 2 - E, P1 + E, P2 + F / 2 - E, DOWN | UP);
-// TODO 26.1            }
-// TODO 26.1        }
+        var meshBuilder = new MeshBuilderImpl();
+        QuadBuilder builder = (direction, x, y, z, X, Y, Z) -> {
+            var emitter = meshBuilder.getEmitter();
+            quad(emitter, direction, x, y, z, X, Y, Z);
+            emitter.spriteBake(sprite, MutableQuadView.BAKE_LOCK_UV);
+            emitter.color(-1, -1, -1, -1);
+            vc.putBulkData(pose, emitter.toBakedQuad(sprite), r, g, b, 1, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+        };
+
+        float F = fill * PIPE_W;
+        float E = 1e-3f;
+        // builder.cube(0, 0, 0, 1, 1, 1, 0);
+        if (hasConnection(conn, NORTH)) {
+            builder.cube(P1 + E, P1 + E, P0, P3 - E, P1 + F - E, P1 + E, NORTH | SOUTH);
+        }
+        if (hasConnection(conn, SOUTH)) {
+            builder.cube(P1 + E, P1 + E, P3 - E, P3 - E, P1 + F - E, P4, NORTH | SOUTH);
+        }
+        if (hasConnection(conn, EAST)) {
+            builder.cube(P3 - E, P1 + E, P1 + E, P4, P1 + F - E, P3 - E, WEST | EAST);
+        }
+        if (hasConnection(conn, WEST)) {
+            builder.cube(P0, P1 + E, P1 + E, P1 + E, P1 + F - E, P3 - E, WEST | EAST);
+        }
+        if (conn == (DOWN | UP)) {
+            // vertical only
+            builder.cube(P2 - F / 2 + E, P0, P2 - F / 2 + E, P2 + F / 2 - E, P4, P2 + F / 2 - E, DOWN | UP);
+        } else {
+            // normal center
+            builder.cube(P1 + E, P1 + E, P1 + E, P3 - E, P1 + F - E, P3 - E, conn & (NORTH | SOUTH | WEST | EAST));
+            if (hasConnection(conn, UP)) {
+                builder.cube(P2 - F / 2 + E, P1 + F - E, P2 - F / 2 + E, P2 + F / 2 - E, P4, P2 + F / 2 - E, DOWN | UP);
+            }
+            if (hasConnection(conn, DOWN)) {
+                builder.cube(P2 - F / 2 + E, P0, P2 - F / 2 + E, P2 + F / 2 - E, P1 + E, P2 + F / 2 - E, DOWN | UP);
+            }
+        }
     }
 
     private static boolean hasConnection(int mask, int dir) {
