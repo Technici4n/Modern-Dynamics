@@ -18,21 +18,21 @@
  */
 package dev.technici4n.moderndynamics.packets;
 
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
-public record SetItemVariant(int syncId, int configIdx, ItemVariant variant) implements CustomPacketPayload {
+public record SetItemVariant(int syncId, int configIdx, ItemResource variant) implements CustomPacketPayload {
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SetItemVariant> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT,
             SetItemVariant::syncId,
             ByteBufCodecs.VAR_INT,
             SetItemVariant::configIdx,
-            ItemVariant.STREAM_CODEC,
+            ItemResource.STREAM_CODEC,
             SetItemVariant::variant,
             SetItemVariant::new);
     public static final Type<SetItemVariant> TYPE = new Type<>(MdId.of("set_item_variant"));

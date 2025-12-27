@@ -25,7 +25,6 @@ import dev.technici4n.moderndynamics.gui.menu.AttachmentMenuType;
 import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
-import dev.technici4n.moderndynamics.util.FluidVariant;
 import java.util.List;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -36,20 +35,21 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jetbrains.annotations.Nullable;
 
 // TODO: also allow nbt filtering
 public class FluidAttachedIo extends AttachedIo {
-    private static final Codec<List<FluidVariant>> FILTER_LIST_CODEC = FluidVariant.CODEC.listOf(0, Constants.Upgrades.MAX_FILTER);
+    private static final Codec<List<FluidResource>> FILTER_LIST_CODEC = FluidResource.CODEC.listOf(0, Constants.Upgrades.MAX_FILTER);
 
-    private final NonNullList<FluidVariant> filters;
+    private final NonNullList<FluidResource> filters;
     @Nullable
     private FluidCachedFilter cachedFilter = null;
 
     public FluidAttachedIo(IoAttachmentItem item, ValueInput configData, Runnable setChangedCallback) {
         super(item, configData, setChangedCallback);
 
-        this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, FluidVariant.blank());
+        this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, FluidResource.EMPTY);
         var filterTags = configData.read("filters", FILTER_LIST_CODEC);
         filterTags.ifPresent(filters::addAll);
     }
@@ -65,11 +65,11 @@ public class FluidAttachedIo extends AttachedIo {
         cachedFilter = null;
     }
 
-    public FluidVariant getFilter(int idx) {
+    public FluidResource getFilter(int idx) {
         return filters.get(idx);
     }
 
-    public void setFilter(int idx, FluidVariant variant) {
+    public void setFilter(int idx, FluidResource variant) {
         if (!variant.equals(this.filters.get(idx))) {
             this.filters.set(idx, variant);
             setChangedCallback.run();
@@ -77,7 +77,7 @@ public class FluidAttachedIo extends AttachedIo {
         }
     }
 
-    public boolean matchesFilter(FluidVariant variant) {
+    public boolean matchesFilter(FluidResource variant) {
         if (cachedFilter == null) {
             cachedFilter = new FluidCachedFilter(filters.subList(0, getFilterSize()), getFilterInversion());
         }

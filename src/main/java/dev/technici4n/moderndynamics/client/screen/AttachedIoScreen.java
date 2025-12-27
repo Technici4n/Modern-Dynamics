@@ -154,7 +154,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         }
         if (slot instanceof FluidConfigSlot fluidConfigSlot) {
             var variant = fluidConfigSlot.getFilter();
-            if (!variant.isBlank()) {
+            if (!variant.isEmpty()) {
                 FluidAttachedIoScreen.drawFluidInGui(guiGraphics, fluidConfigSlot.getFilter(), slot.x, slot.y);
             }
         } else {

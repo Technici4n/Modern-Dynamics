@@ -29,8 +29,6 @@ import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
 import dev.technici4n.moderndynamics.gui.menu.AttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
-import dev.technici4n.moderndynamics.util.FluidVariant;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.function.BiConsumer;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -39,15 +37,17 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 public class MdPackets {
 
-    public static void sendSetFilter(int syncId, int filterSlot, ItemVariant variant) {
+    public static void sendSetFilter(int syncId, int filterSlot, ItemResource variant) {
         ClientPacketDistributor.sendToServer(new SetItemVariant(
                 syncId, filterSlot, variant));
     }
 
-    public static void sendSetFilter(int syncId, int filterSlot, FluidVariant variant) {
+    public static void sendSetFilter(int syncId, int filterSlot, FluidResource variant) {
         ClientPacketDistributor.sendToServer(new SetFluidVariant(
                 syncId, filterSlot, variant));
     }

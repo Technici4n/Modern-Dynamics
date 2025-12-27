@@ -29,11 +29,11 @@ import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
 import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.packets.MdPackets;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerInput;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
 
@@ -60,7 +60,7 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
     @Override
     public void clicked(int slotIndex, int button, ContainerInput actionType, Player player) {
         if (slotIndex >= 0 && getSlot(slotIndex) instanceof ItemConfigSlot configSlot && configSlot.isActive()) {
-            attachment.setFilter(configSlot.getConfigIdx(), ItemVariant.of(getCarried()));
+            attachment.setFilter(configSlot.getConfigIdx(), ItemResource.of(getCarried()));
         } else {
             super.clicked(slotIndex, button, actionType, player);
         }
@@ -68,7 +68,7 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
 
     @Override
     protected boolean trySetFilterOnShiftClick(int clickedSlot) {
-        var itemVariant = ItemVariant.of(slots.get(clickedSlot).getItem());
+        var itemVariant = ItemResource.of(slots.get(clickedSlot).getItem());
         // Check if variant is already configured.
         for (var slot : slots) {
             if (slot instanceof ItemConfigSlot) {
@@ -188,7 +188,7 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
         return attachment.getMaxItemsExtractedMaximum();
     }
 
-    public void setFilter(int configIdx, ItemVariant variant, boolean sendPacket) {
+    public void setFilter(int configIdx, ItemResource variant, boolean sendPacket) {
         if (isClientSide() && sendPacket) {
             MdPackets.sendSetFilter(containerId, configIdx, variant);
         }

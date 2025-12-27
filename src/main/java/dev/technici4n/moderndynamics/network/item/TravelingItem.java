@@ -20,7 +20,6 @@ package dev.technici4n.moderndynamics.network.item;
 
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItem;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.core.BlockPos;
@@ -28,12 +27,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 public class TravelingItem {
     private static final AtomicInteger NEXT_ID = new AtomicInteger();
 
     public final int id = NEXT_ID.getAndIncrement();
-    public final ItemVariant variant;
+    public final ItemResource variant;
     public final int amount;
     public final ItemPath path;
     public final FailedInsertStrategy strategy;
@@ -41,7 +41,7 @@ public class TravelingItem {
     public double traveledDistance;
     public long lastTick;
 
-    public TravelingItem(ItemVariant variant, int amount, ItemPath path, FailedInsertStrategy strategy, double speedMultiplier,
+    public TravelingItem(ItemResource variant, int amount, ItemPath path, FailedInsertStrategy strategy, double speedMultiplier,
             double traveledDistance) {
         if (speedMultiplier < 0.5) {
             // Upgrade path from before the speed multiplier was added.
@@ -67,7 +67,7 @@ public class TravelingItem {
     }
 
     public void write(ValueOutput output) {
-        output.store("v", ItemVariant.CODEC, variant);
+        output.store("v", ItemResource.CODEC, variant);
         output.putInt("a", amount);
         output.store("start", BlockPos.CODEC, path.startingPos);
         output.store("end", BlockPos.CODEC, path.targetPos);
@@ -79,7 +79,7 @@ public class TravelingItem {
 
     public static TravelingItem read(ValueInput input) {
         return new TravelingItem(
-                input.read("v", ItemVariant.CODEC).orElse(ItemVariant.blank()),
+                input.read("v", ItemResource.CODEC).orElse(ItemResource.EMPTY),
                 input.getIntOr("a", 0),
                 new ItemPath(
                         input.read("start", BlockPos.CODEC).orElse(BlockPos.ZERO),
@@ -92,7 +92,7 @@ public class TravelingItem {
 
     void writeClient(RegistryFriendlyByteBuf buf) {
         buf.writeInt(id);
-        ItemVariant.STREAM_CODEC.encode(buf, variant);
+        ItemResource.STREAM_CODEC.encode(buf, variant);
         buf.writeInt(amount);
         buf.writeDouble(getPathLength() - 1);
         buf.writeDouble(traveledDistance);
@@ -105,7 +105,7 @@ public class TravelingItem {
     static ClientTravelingItem readClient(RegistryFriendlyByteBuf buf) {
         return new ClientTravelingItem(
                 buf.readInt(),
-                ItemVariant.STREAM_CODEC.decode(buf),
+                ItemResource.STREAM_CODEC.decode(buf),
                 buf.readInt(),
                 buf.readDouble(),
                 buf.readDouble(),

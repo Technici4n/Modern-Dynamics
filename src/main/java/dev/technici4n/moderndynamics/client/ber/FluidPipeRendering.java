@@ -23,11 +23,11 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.thirdparty.fabric.QuadEmitter;
 import dev.technici4n.moderndynamics.util.FluidRenderUtil;
-import dev.technici4n.moderndynamics.util.FluidVariant;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.core.Direction;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 public class FluidPipeRendering {
     private static final float PIPE_W = 6.0F / 16.0F;
@@ -45,7 +45,7 @@ public class FluidPipeRendering {
     private static final int WEST = 1 << 4;
     private static final int EAST = 1 << 5;
 
-    public static void drawFluidInPipe(PipeBlockEntity pipe, PoseStack ms, MultiBufferSource vcp, FluidVariant fluid, float fill) {
+    public static void drawFluidInPipe(PipeBlockEntity pipe, PoseStack ms, MultiBufferSource vcp, FluidResource fluid, float fill) {
         int conn = pipe.getClientSideConnections();
         var level = pipe.getLevel();
         var pos = pipe.getBlockPos();

@@ -35,7 +35,6 @@ import dev.technici4n.moderndynamics.model.AttachmentModelData;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.TransferUtil;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -53,16 +52,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemAttachedIo extends AttachedIo {
 
-    private static final Codec<List<ItemVariant>> FILTER_LIST_CODEC = ItemVariant.CODEC.listOf(0, Constants.Upgrades.MAX_FILTER);
+    private static final Codec<List<ItemResource>> FILTER_LIST_CODEC = ItemResource.CODEC.listOf(0, Constants.Upgrades.MAX_FILTER);
 
-    private final Map<ItemVariant, Integer> stuffedItems = new LinkedHashMap<>();
+    private final Map<ItemResource, Integer> stuffedItems = new LinkedHashMap<>();
     private int roundRobinIndex;
 
-    private final NonNullList<ItemVariant> filters;
+    private final NonNullList<ItemResource> filters;
 
     private FilterDamageMode filterDamage;
     private FilterNbtMode filterNbt;
@@ -87,16 +87,16 @@ public class ItemAttachedIo extends AttachedIo {
     @Nullable
     private ItemCachedFilter cachedFilter;
 
-    record StuffedEntry(ItemVariant item, int amount) {
+    record StuffedEntry(ItemResource item, int amount) {
         public static final Codec<StuffedEntry> CODEC = RecordCodecBuilder.create(builder -> builder.group(
-                ItemVariant.CODEC.fieldOf("v").forGetter(StuffedEntry::item),
+                ItemResource.CODEC.fieldOf("v").forGetter(StuffedEntry::item),
                 Codec.INT.fieldOf("a").forGetter(StuffedEntry::amount)).apply(builder, StuffedEntry::new));
     }
 
     public ItemAttachedIo(IoAttachmentItem item, ValueInput configData, Runnable setChangedCallback) {
         super(item, configData, setChangedCallback);
 
-        this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, ItemVariant.blank());
+        this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, ItemResource.EMPTY);
         var filterTags = configData.read("filters", FILTER_LIST_CODEC);
         filterTags.ifPresent(filters::addAll);
 
@@ -113,7 +113,7 @@ public class ItemAttachedIo extends AttachedIo {
         this.stuffedItems.clear();
         configData.list("stuffed", StuffedEntry.CODEC).ifPresent(stuffedItems -> {
             stuffedItems.forEach(stuffedEntry -> {
-                if (!stuffedEntry.item.isBlank() && stuffedEntry.amount > 0) {
+                if (!stuffedEntry.item.isEmpty() && stuffedEntry.amount > 0) {
                     this.stuffedItems.put(stuffedEntry.item, stuffedEntry.amount);
                 }
             });
@@ -157,15 +157,15 @@ public class ItemAttachedIo extends AttachedIo {
         setMaxItemsExtracted(getMaxItemsExtracted());
     }
 
-    public boolean matchesItemFilter(ItemVariant variant) {
+    public boolean matchesItemFilter(ItemResource variant) {
         return getCachedFilter().matchesItem(variant);
     }
 
-    public ItemVariant getFilter(int idx) {
+    public ItemResource getFilter(int idx) {
         return filters.get(idx);
     }
 
-    public void setFilter(int idx, ItemVariant variant) {
+    public void setFilter(int idx, ItemResource variant) {
         if (!variant.equals(this.filters.get(idx))) {
             this.filters.set(idx, variant);
             setChangedCallback.run();
@@ -247,7 +247,7 @@ public class ItemAttachedIo extends AttachedIo {
     /**
      * Returns the raw map of stuffed items, be careful.
      */
-    public Map<ItemVariant, Integer> getStuffedItems() {
+    public Map<ItemResource, Integer> getStuffedItems() {
         return stuffedItems;
     }
 

@@ -18,9 +18,9 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jetbrains.annotations.NotNull;
 
 final class InsertionOnlyItemHandler implements IItemHandler {
@@ -47,7 +47,7 @@ final class InsertionOnlyItemHandler implements IItemHandler {
         }
 
         var maxAmount = stack.getCount();
-        var variant = ItemVariant.of(stack);
+        var variant = ItemResource.of(stack);
         var amountInserted = handler.handle(variant, maxAmount, simulate);
         if (amountInserted <= 0) {
             return stack;
@@ -76,6 +76,6 @@ final class InsertionOnlyItemHandler implements IItemHandler {
 
     @FunctionalInterface
     public interface InsertionHandler {
-        int handle(ItemVariant resource, int maxAmount, boolean simulate);
+        int handle(ItemResource resource, int maxAmount, boolean simulate);
     }
 }

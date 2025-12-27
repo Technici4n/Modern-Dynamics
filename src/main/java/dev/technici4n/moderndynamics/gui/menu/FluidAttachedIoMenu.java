@@ -23,13 +23,13 @@ import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.packets.MdPackets;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import dev.technici4n.moderndynamics.util.FluidVariant;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerInput;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
 
@@ -53,7 +53,7 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
         if (slotIndex >= 0 && getSlot(slotIndex) instanceof FluidConfigSlot configSlot && configSlot.isActive()) {
 
             var contained = FluidUtil.getFluidContained(getCarried()).orElse(FluidStack.EMPTY);
-            attachment.setFilter(configSlot.getConfigIdx(), FluidVariant.of(contained));
+            attachment.setFilter(configSlot.getConfigIdx(), FluidResource.of(contained));
         } else {
             super.clicked(slotIndex, button, actionType, player);
         }
@@ -73,7 +73,7 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
     @Override
     protected boolean trySetFilterOnShiftClick(int clickedSlot) {
         // Find resource that's not configured yet
-        FluidVariant fluidVariant = FluidVariant.blank();
+        FluidResource fluidVariant = FluidResource.EMPTY;
         var fluidHandler = FluidUtil.getFluidHandler(getCarried()).orElse(null);
         if (fluidHandler != null) {
             for (int i = 0; i < fluidHandler.getTanks(); i++) {
@@ -81,15 +81,15 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
                 if (fluidInTank.isEmpty() || matchesAnyFilter(fluidInTank)) {
                     continue;
                 }
-                fluidVariant = FluidVariant.of(fluidInTank);
+                fluidVariant = FluidResource.of(fluidInTank);
                 break;
             }
         }
 
-        if (!fluidVariant.isBlank()) {
+        if (!fluidVariant.isEmpty()) {
             for (var slot : slots) {
                 if (slot instanceof FluidConfigSlot fluidConfig) {
-                    if (fluidConfig.getFilter().isBlank()) {
+                    if (fluidConfig.getFilter().isEmpty()) {
                         setFilter(fluidConfig.getConfigIdx(), fluidVariant, false);
                         return true;
                     }
@@ -99,7 +99,7 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
         return false;
     }
 
-    public void setFilter(int configIdx, FluidVariant variant, boolean sendPacket) {
+    public void setFilter(int configIdx, FluidResource variant, boolean sendPacket) {
         if (isClientSide() && sendPacket) {
             MdPackets.sendSetFilter(containerId, configIdx, variant);
         }

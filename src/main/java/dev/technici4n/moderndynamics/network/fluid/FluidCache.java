@@ -24,7 +24,6 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkCache;
 import dev.technici4n.moderndynamics.network.NetworkNode;
-import dev.technici4n.moderndynamics.util.FluidVariant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -36,6 +35,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jetbrains.annotations.NotNull;
 
 public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
@@ -54,15 +54,15 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
 
     @Override
     protected void doCombine() {
-        FluidVariant fv = FluidVariant.blank();
+        FluidResource fv = FluidResource.EMPTY;
         int amount = 0;
 
         for (var node : nodes) {
             var host = node.getHost();
 
-            if (!host.getVariant().isBlank()) {
+            if (!host.getVariant().isEmpty()) {
                 // TODO: what if the host has another variant??? Need to handle that case!
-                if (fv.isBlank()) {
+                if (fv.isEmpty()) {
                     fv = host.getVariant();
                 }
                 amount += host.getAmount();
@@ -120,7 +120,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
             // Find item to extract
             if (fluidStorage.isResourceBlank()) {
                 var newVariant = findVariantForNetwork(targets, attractors);
-                if (!newVariant.isBlank() && canChangeVariant()) {
+                if (!newVariant.isEmpty() && canChangeVariant()) {
                     fluidStorage.variant = newVariant;
                     changedVariant = true;
                 }
@@ -134,7 +134,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
                 distributeFluid(targets);
 
                 if (fluidStorage.amount == 0 && canChangeVariant()) {
-                    fluidStorage.variant = FluidVariant.blank();
+                    fluidStorage.variant = FluidResource.EMPTY;
                     changedVariant = true;
                 }
             }
@@ -166,7 +166,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         return true;
     }
 
-    private FluidVariant findVariantForNetwork(List<ConnectedFluidStorage> targets, List<FluidAttachedIo> attractors) {
+    private FluidResource findVariantForNetwork(List<ConnectedFluidStorage> targets, List<FluidAttachedIo> attractors) {
         // Look for item matching an extractor
         for (var t : targets) {
             if (t.attachment() != null && t.attachment().getType() == IoAttachmentType.EXTRACTOR) {
@@ -179,7 +179,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
 
         // Look for item matching an attractor
         if (!attractors.isEmpty()) {
-            Predicate<FluidVariant> attractorFilter = fv -> {
+            Predicate<FluidResource> attractorFilter = fv -> {
                 for (var a : attractors) {
                     if (a.matchesFilter(fv)) {
                         return true;
@@ -190,13 +190,13 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
 
             for (var t : targets) {
                 var toExtract = findExtractableResource(t.storage(), attractorFilter);
-                if (!toExtract.isBlank()) {
+                if (!toExtract.isEmpty()) {
                     return toExtract;
                 }
             }
         }
 
-        return FluidVariant.blank();
+        return FluidResource.EMPTY;
     }
 
     /**
@@ -240,7 +240,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
      *
      * @param storageGetter Can return null to skip the target
      */
-    private static int transferForTargets(TransferOperation operation, List<ConnectedFluidStorage> targets, FluidVariant variant, int maxAmount,
+    private static int transferForTargets(TransferOperation operation, List<ConnectedFluidStorage> targets, FluidResource variant, int maxAmount,
             Function<ConnectedFluidStorage, IFluidHandler> storageGetter) {
         if (maxAmount == 0) {
             return 0;
@@ -278,7 +278,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
     }
 
     interface TransferOperation {
-        int transfer(IFluidHandler storage, FluidVariant resource, int maxAmount, IFluidHandler.FluidAction action);
+        int transfer(IFluidHandler storage, FluidResource resource, int maxAmount, IFluidHandler.FluidAction action);
     }
 
     private static class FluidTarget {
@@ -302,12 +302,12 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         }
     }
 
-    static boolean areCompatible(FluidVariant v1, FluidVariant v2) {
-        return v1.isBlank() || v2.isBlank() || v1.equals(v2);
+    static boolean areCompatible(FluidResource v1, FluidResource v2) {
+        return v1.isEmpty() || v2.isEmpty() || v1.equals(v2);
     }
 
     public class FluidCacheStorage implements IFluidHandler {
-        private FluidVariant variant = FluidVariant.blank();
+        private FluidResource variant = FluidResource.EMPTY;
         private int amount;
 
         @Override
@@ -323,7 +323,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         @Override
         public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
             if (tank == 0) {
-                return variant.matches(stack) || (variant.isBlank() && canChangeVariant());
+                return variant.matches(stack) || (variant.isEmpty() && canChangeVariant());
             } else {
                 return false;
             }
@@ -343,8 +343,8 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
                 var insertedAmount = Math.min(resource.getAmount(), getCapacity() - amount);
                 if (insertedAmount > 0) {
                     if (action.execute()) {
-                        if (variant.isBlank()) {
-                            variant = FluidVariant.of(resource);
+                        if (variant.isEmpty()) {
+                            variant = FluidResource.of(resource);
                             amount = insertedAmount;
                         } else {
                             amount += insertedAmount;
@@ -371,7 +371,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
                 if (action.execute()) {
                     amount -= extractedAmount;
                     if (amount == 0 && canChangeVariant()) {
-                        variant = FluidVariant.blank();
+                        variant = FluidResource.EMPTY;
                     }
                     update();
                 }
@@ -405,10 +405,10 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         }
 
         public boolean isResourceBlank() {
-            return variant.isBlank();
+            return variant.isEmpty();
         }
 
-        public FluidVariant getResource() {
+        public FluidResource getResource() {
             return variant;
         }
 
@@ -426,10 +426,10 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         }
     }
 
-    private FluidVariant findExtractableResource(IFluidHandler storage, Predicate<FluidVariant> filter) {
+    private FluidResource findExtractableResource(IFluidHandler storage, Predicate<FluidResource> filter) {
         for (int i = 0; i < storage.getTanks(); i++) {
             var fluidInTank = storage.getFluidInTank(i);
-            var variant = FluidVariant.of(fluidInTank);
+            var variant = FluidResource.of(fluidInTank);
             if (filter.test(variant)) {
                 // Can this be extracted?
                 if (!storage.drain(fluidInTank, IFluidHandler.FluidAction.SIMULATE).isEmpty()) {
@@ -437,16 +437,16 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
                 }
             }
         }
-        return FluidVariant.blank();
+        return FluidResource.EMPTY;
     }
 
-    private static int drain(IFluidHandler handler, FluidVariant variant, int maxAmount, IFluidHandler.FluidAction action) {
+    private static int drain(IFluidHandler handler, FluidResource variant, int maxAmount, IFluidHandler.FluidAction action) {
         var stack = variant.toStack(maxAmount);
         var result = handler.drain(stack, action);
         return result.getAmount();
     }
 
-    private static int fill(IFluidHandler handler, FluidVariant variant, int maxAmount, IFluidHandler.FluidAction action) {
+    private static int fill(IFluidHandler handler, FluidResource variant, int maxAmount, IFluidHandler.FluidAction action) {
         return handler.fill(variant.toStack(maxAmount), action);
     }
 }

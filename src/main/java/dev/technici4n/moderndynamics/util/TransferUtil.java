@@ -20,16 +20,17 @@ package dev.technici4n.moderndynamics.util;
 
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 public final class TransferUtil {
     private TransferUtil() {
     }
 
-    public static int insertItemStacked(IItemHandler handler, ItemVariant variant, int amount) {
+    public static int insertItemStacked(IItemHandler handler, ItemResource variant, int amount) {
         return insertItemStacked(handler, variant, amount, false);
     }
 
-    public static int insertItemStacked(IItemHandler handler, ItemVariant variant, int amount, boolean simulate) {
+    public static int insertItemStacked(IItemHandler handler, ItemResource variant, int amount, boolean simulate) {
         var stack = variant.toStack(amount);
 
         var remainder = ItemHandlerHelper.insertItem(handler, stack, simulate);

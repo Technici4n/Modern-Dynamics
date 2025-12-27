@@ -22,9 +22,9 @@ import com.google.common.base.Preconditions;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkCache;
 import dev.technici4n.moderndynamics.network.NetworkNode;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import java.util.List;
 import net.minecraft.server.level.ServerLevel;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jetbrains.annotations.Nullable;
 
 public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
@@ -53,9 +53,9 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
     /**
      * @param checkedPathsConsumer Accepts how many paths were evaluated if not null. Ignored if null.
      */
-    protected int insertList(NetworkNode<ItemHost, ItemCache> startingPoint, Iterable<ItemPath> paths, ItemVariant variant,
+    protected int insertList(NetworkNode<ItemHost, ItemCache> startingPoint, Iterable<ItemPath> paths, ItemResource variant,
             int maxAmount, boolean simulate, double speedMultiplier, @Nullable MaxParticipant checkedPathsConsumer) {
-        Preconditions.checkArgument(!variant.isBlank(), "blank variant");
+        Preconditions.checkArgument(!variant.isEmpty(), "blank variant");
         Preconditions.checkArgument(maxAmount >= 0);
         Preconditions.checkArgument(startingPoint.getNetworkCache() == this, "Tried to insert into another network!");
 

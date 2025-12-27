@@ -33,7 +33,6 @@ import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItem;
 import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItemSmoothing;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import io.netty.buffer.Unpooled;
 import java.nio.ByteBuffer;
@@ -281,12 +280,12 @@ public class ItemHost extends NodeHost {
         }
     }
 
-    private int move(IItemHandler from, IItemHandler to, Predicate<ItemVariant> predicate, int maxAmount) {
+    private int move(IItemHandler from, IItemHandler to, Predicate<ItemResource> predicate, int maxAmount) {
         var moved = 0;
         for (int i = 0; i < from.getSlots(); i++) {
             var extracted = from.extractItem(i, maxAmount - moved, true);
             if (!extracted.isEmpty()) {
-                var variant = ItemVariant.of(extracted);
+                var variant = ItemResource.of(extracted);
                 if (predicate.test(variant)) {
                     var overflow = ItemHandlerHelper.insertItemStacked(to, extracted, true);
                     var likelyToFit = extracted.getCount() - overflow.getCount();
@@ -430,7 +429,7 @@ public class ItemHost extends NodeHost {
         for (var itemIn : travelingItemsIn) {
             var item = TravelingItem.read(itemIn);
 
-            if (!item.variant.isBlank()) { // Guard against blank variants in case a mod is removed
+            if (!item.variant.isEmpty()) { // Guard against blank variants in case a mod is removed
                 travelingItems.add(item);
             }
         }

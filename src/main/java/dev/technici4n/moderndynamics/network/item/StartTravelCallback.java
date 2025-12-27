@@ -18,8 +18,8 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
-import dev.technici4n.moderndynamics.util.ItemVariant;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 public interface StartTravelCallback {
-    void startTravel(ItemVariant variant, int amount);
+    void startTravel(ItemResource variant, int amount);
 }

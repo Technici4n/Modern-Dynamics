@@ -30,7 +30,6 @@ import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.shared.TransferLimits;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import dev.technici4n.moderndynamics.util.FluidVariant;
 import java.util.List;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -43,13 +42,14 @@ import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.EmptyFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FluidHost extends NodeHost {
     private static final NetworkManager<FluidHost, FluidCache> MANAGER = NetworkManager.get(FluidCache.class, FluidCache::new);
 
-    private FluidVariant variant = FluidVariant.blank();
+    private FluidResource variant = FluidResource.EMPTY;
     private int amount = 0;
     private final TransferLimits extractorLimit = new TransferLimits(side -> {
         if (!(getAttachment(side) instanceof FluidAttachedIo io) || io.getType() != IoAttachmentType.EXTRACTOR) {
@@ -70,24 +70,24 @@ public class FluidHost extends NodeHost {
             var dir = Direction.from3DDataValue(i);
             caps[i] = new FilteringFluidHandler(this::getInternalNetworkStorage) {
                 @Override
-                protected boolean canInsert(FluidVariant resource) {
+                protected boolean canInsert(FluidResource resource) {
                     return canMoveOutsideToNetwork(dir, resource);
                 }
 
                 @Override
-                protected boolean canExtract(FluidVariant resource) {
+                protected boolean canExtract(FluidResource resource) {
                     return canMoveNetworkToOutside(dir, resource);
                 }
             };
         }
         unsidedCap = new FilteringFluidHandler(this::getInternalNetworkStorage) {
             @Override
-            protected boolean canInsert(FluidVariant resource) {
+            protected boolean canInsert(FluidResource resource) {
                 return false;
             }
 
             @Override
-            protected boolean canExtract(FluidVariant resource) {
+            protected boolean canExtract(FluidResource resource) {
                 return false;
             }
         };
@@ -115,11 +115,11 @@ public class FluidHost extends NodeHost {
         return amount;
     }
 
-    public FluidVariant getVariant() {
+    public FluidResource getVariant() {
         return variant;
     }
 
-    public void setContents(FluidVariant variant, int nodeFluid) {
+    public void setContents(FluidResource variant, int nodeFluid) {
         if (!variant.equals(this.variant) || nodeFluid != this.amount) {
             this.variant = variant;
             this.amount = nodeFluid;
@@ -154,7 +154,7 @@ public class FluidHost extends NodeHost {
 
     @Override
     public void onConnectedTo(NodeHost other) {
-        if (other instanceof FluidHost fh && !fh.variant.isBlank()) {
+        if (other instanceof FluidHost fh && !fh.variant.isEmpty()) {
             variant = fh.variant;
             pipe.setChanged();
         }
@@ -190,12 +190,12 @@ public class FluidHost extends NodeHost {
                         } else if (attachment.isEnabledViaRedstone(pipe)) {
                             var filteredStorage = new FilteringFluidHandler(adjacentCap) {
                                 @Override
-                                protected boolean canExtract(FluidVariant resource) {
+                                protected boolean canExtract(FluidResource resource) {
                                     return canMoveOutsideToNetwork(dir, resource);
                                 }
 
                                 @Override
-                                protected boolean canInsert(FluidVariant resource) {
+                                protected boolean canInsert(FluidResource resource) {
                                     return canMoveNetworkToOutside(dir, resource);
                                 }
                             };
@@ -234,17 +234,17 @@ public class FluidHost extends NodeHost {
     public void write(ValueOutput output) {
         super.write(output);
         output.putInt("amount", amount);
-        output.store("variant", FluidVariant.CODEC, variant);
+        output.store("variant", FluidResource.CODEC, variant);
     }
 
     @Override
     public void read(ValueInput input) {
         super.read(input);
-        variant = input.read("variant", FluidVariant.CODEC).orElse(FluidVariant.blank());
+        variant = input.read("variant", FluidResource.CODEC).orElse(FluidResource.EMPTY);
         // Guard against max changes
         amount = Math.max(0, Math.min(input.getIntOr("amount", 0), Constants.Fluids.CAPACITY));
         // Guard against removed variant
-        if (variant.isBlank()) {
+        if (variant.isEmpty()) {
             amount = 0;
         }
     }
@@ -253,24 +253,24 @@ public class FluidHost extends NodeHost {
     public void writeClientNbt(ValueOutput output) {
         super.writeClientNbt(output);
         output.putInt("amount", amount);
-        output.store("variant", FluidVariant.CODEC, variant);
+        output.store("variant", FluidResource.CODEC, variant);
     }
 
     @Override
     public void readClientNbt(ValueInput input) {
         super.readClientNbt(input);
-        variant = input.read("variant", FluidVariant.CODEC).orElse(FluidVariant.blank());
+        variant = input.read("variant", FluidResource.CODEC).orElse(FluidResource.EMPTY);
         amount = input.getIntOr("amount", 0);
     }
 
-    private boolean canMoveNetworkToOutside(Direction side, FluidVariant variant) {
+    private boolean canMoveNetworkToOutside(Direction side, FluidResource variant) {
         if (getAttachment(side) instanceof FluidAttachedIo io) {
             return io.matchesFilter(variant) && io.isEnabledViaRedstone(pipe) && io.getType() != IoAttachmentType.EXTRACTOR;
         }
         return true;
     }
 
-    private boolean canMoveOutsideToNetwork(Direction side, FluidVariant variant) {
+    private boolean canMoveOutsideToNetwork(Direction side, FluidResource variant) {
         if (getAttachment(side) instanceof FluidAttachedIo io) {
             return io.matchesFilter(variant) && io.isEnabledViaRedstone(pipe) && io.getType() != IoAttachmentType.ATTRACTOR;
         }

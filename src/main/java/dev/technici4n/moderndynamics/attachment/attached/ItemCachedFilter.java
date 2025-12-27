@@ -22,8 +22,6 @@ import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterModMode;
 import dev.technici4n.moderndynamics.attachment.settings.FilterNbtMode;
-import dev.technici4n.moderndynamics.util.FluidVariant;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -32,10 +30,12 @@ import java.util.Set;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jetbrains.annotations.Nullable;
 
 public final class ItemCachedFilter {
-    private final Set<ItemVariant> listedVariants;
+    private final Set<ItemResource> listedVariants;
     private final Set<Item> listedItems;
     private final FilterInversionMode filterInversion;
     private final FilterDamageMode filterDamage;
@@ -50,7 +50,7 @@ public final class ItemCachedFilter {
     @Nullable
     private Set<String> listedMods;
 
-    public ItemCachedFilter(List<ItemVariant> filterConfig,
+    public ItemCachedFilter(List<ItemResource> filterConfig,
             FilterInversionMode filterInversion,
             FilterDamageMode filterDamage,
             FilterNbtMode filterNbt,
@@ -64,14 +64,14 @@ public final class ItemCachedFilter {
         this.listedVariants = new HashSet<>(filterConfig.size());
         this.listedItems = Collections.newSetFromMap(new IdentityHashMap<>());
         for (var variant : filterConfig) {
-            if (!variant.isBlank()) {
+            if (!variant.isEmpty()) {
                 this.listedVariants.add(variant);
                 this.listedItems.add(variant.getItem());
             }
         }
     }
 
-    private boolean isItemListed(ItemVariant variant) {
+    private boolean isItemListed(ItemResource variant) {
         // Return value if the variant is included
         boolean itemIsListed = false;
 
@@ -98,7 +98,7 @@ public final class ItemCachedFilter {
         return itemIsListed;
     }
 
-    public boolean matchesItem(ItemVariant variant) {
+    public boolean matchesItem(ItemResource variant) {
         return isItemListed(variant) == (filterInversion == FilterInversionMode.WHITELIST);
     }
 
@@ -113,16 +113,16 @@ public final class ItemCachedFilter {
         return listedMods;
     }
 
-    public boolean matchesFluid(FluidVariant variant) {
+    public boolean matchesFluid(FluidResource variant) {
         return false;
     }
 
-    private static String getModId(ItemVariant variant) {
+    private static String getModId(ItemResource variant) {
         // This returns "minecraft" if the item is unregistered
         return BuiltInRegistries.ITEM.getKey(variant.getItem()).getNamespace();
     }
 
-    private static String getModId(FluidVariant variant) {
+    private static String getModId(FluidResource variant) {
         // This returns "minecraft" if the item is unregistered
         return BuiltInRegistries.FLUID.getKey(variant.getFluid()).getNamespace();
     }

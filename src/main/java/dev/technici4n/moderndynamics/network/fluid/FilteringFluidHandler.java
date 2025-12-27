@@ -18,10 +18,10 @@
  */
 package dev.technici4n.moderndynamics.network.fluid;
 
-import dev.technici4n.moderndynamics.util.FluidVariant;
 import java.util.function.Supplier;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +65,7 @@ public abstract class FilteringFluidHandler implements IFluidHandler {
 
     @Override
     public int fill(FluidStack resource, FluidAction action) {
-        if (!canInsert(FluidVariant.of(resource))) {
+        if (!canInsert(FluidResource.of(resource))) {
             return 0;
         }
 
@@ -75,7 +75,7 @@ public abstract class FilteringFluidHandler implements IFluidHandler {
     @Override
     @NotNull
     public FluidStack drain(FluidStack resource, FluidAction action) {
-        if (!canExtract(FluidVariant.of(resource))) {
+        if (!canExtract(FluidResource.of(resource))) {
             return FluidStack.EMPTY;
         }
 
@@ -88,16 +88,16 @@ public abstract class FilteringFluidHandler implements IFluidHandler {
         var delegate = getDelegate();
 
         // Pre-flight check for EXECUTE
-        FluidVariant simulatedDrain = FluidVariant.blank();
+        FluidResource simulatedDrain = FluidResource.EMPTY;
         if (action.execute()) {
-            simulatedDrain = FluidVariant.of(delegate.drain(maxDrain, FluidAction.SIMULATE));
+            simulatedDrain = FluidResource.of(delegate.drain(maxDrain, FluidAction.SIMULATE));
             if (!canExtract(simulatedDrain)) {
                 return FluidStack.EMPTY;
             }
         }
 
         var drained = getDelegate().drain(maxDrain, action);
-        var drainedVariant = FluidVariant.of(drained);
+        var drainedVariant = FluidResource.of(drained);
         if (!simulatedDrain.equals(drainedVariant) || !canExtract(drainedVariant)) {
             if (action.execute()) {
                 // try to re-insert, otherwise it will be voided
@@ -109,7 +109,7 @@ public abstract class FilteringFluidHandler implements IFluidHandler {
         return drained;
     }
 
-    protected abstract boolean canInsert(FluidVariant resource);
+    protected abstract boolean canInsert(FluidResource resource);
 
-    protected abstract boolean canExtract(FluidVariant resource);
+    protected abstract boolean canExtract(FluidResource resource);
 }

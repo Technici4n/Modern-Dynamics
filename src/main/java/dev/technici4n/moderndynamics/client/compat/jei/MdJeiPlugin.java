@@ -93,7 +93,7 @@ public class MdJeiPlugin implements IModPlugin {
                 // Ensures that users can press R, U, etc... on fluid config slots.
                 if (screen.getHoveredSlot() instanceof FluidConfigSlot fluidConfig) {
                     var variant = fluidConfig.getFilter();
-                    if (!variant.isBlank()) {
+                    if (!variant.isEmpty()) {
                         var ing = registration.getJeiHelpers().getIngredientManager();
                         return ing.createTypedIngredient(variant.toStack(1))
                                 .map(slotArea(screen, fluidConfig));

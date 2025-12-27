@@ -19,7 +19,6 @@
 package dev.technici4n.moderndynamics.network.item;
 
 import com.google.common.base.Preconditions;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.util.ArrayList;
@@ -42,7 +41,7 @@ public class SimulatedInsertionTarget {
     /**
      * List of stacks that are already traveling, but for which the target slot is not known.
      */
-    private final Object2IntMap<ItemVariant> pendingStacks = new Object2IntLinkedOpenHashMap<>();
+    private final Object2IntMap<ItemResource> pendingStacks = new Object2IntLinkedOpenHashMap<>();
     /**
      * List of stacks that are already traveling and that the target should accept,
      * for each slot.
@@ -58,7 +57,7 @@ public class SimulatedInsertionTarget {
         return storageFinder.get() != null;
     }
 
-    public int insert(ItemVariant variant, int maxAmount, boolean simulate, StartTravelCallback callback) {
+    public int insert(ItemResource variant, int maxAmount, boolean simulate, StartTravelCallback callback) {
         try {
             return innerInsert(variant, maxAmount, simulate, callback);
         } catch (Throwable t) {
@@ -76,8 +75,8 @@ public class SimulatedInsertionTarget {
         }
     }
 
-    private int innerInsert(ItemVariant variant, int maxAmount, boolean simulate, StartTravelCallback callback) {
-        Preconditions.checkArgument(!variant.isBlank(), "blank variant");
+    private int innerInsert(ItemResource variant, int maxAmount, boolean simulate, StartTravelCallback callback) {
+        Preconditions.checkArgument(!variant.isEmpty(), "blank variant");
         Preconditions.checkArgument(maxAmount >= 0, "non-negative amount");
         var targetStorage = storageFinder.get();
         if (targetStorage == null) {
@@ -163,11 +162,11 @@ public class SimulatedInsertionTarget {
         return leftover == -1 ? 0 : maxAmount - leftover;
     }
 
-    public void startAwaiting(ItemVariant variant, int amount) {
+    public void startAwaiting(ItemResource variant, int amount) {
         pendingStacks.mergeInt(variant, amount, Integer::sum);
     }
 
-    public void stopAwaiting(ItemVariant variant, int amount) {
+    public void stopAwaiting(ItemResource variant, int amount) {
         // Remove from pending stacks first
         int pending = pendingStacks.getInt(variant);
         if (pending > 0) {

@@ -22,7 +22,6 @@ import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.network.item.ItemHost;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +35,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.Accessor;
 import snownee.jade.api.view.ClientViewGroup;
@@ -88,7 +88,7 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
         return groups;
     }
 
-    private static Collection<ItemStack> variantMapToStacks(Map<ItemVariant, Integer> map) {
+    private static Collection<ItemStack> variantMapToStacks(Map<ItemResource, Integer> map) {
         List<ItemStack> stacks = new ArrayList<>();
         for (var entry : map.entrySet()) {
             stacks.add(entry.getKey().toStack(entry.getValue()));
@@ -133,7 +133,7 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
         }
         for (var host : pipe.getHosts()) {
             if (host instanceof ItemHost itemHost) {
-                Map<ItemVariant, Integer> items = new HashMap<>();
+                Map<ItemResource, Integer> items = new HashMap<>();
                 for (var item : itemHost.getClientTravelingItems()) {
                     items.merge(item.variant(), item.amount(), Integer::sum);
                 }
