@@ -31,7 +31,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class MIEnergyHost extends NodeHost {
     private static final NetworkManager<MIEnergyHost, MIEnergyCache> MANAGER = NetworkManager.get(MIEnergyCache.class, MIEnergyCache::new);

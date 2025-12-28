@@ -40,10 +40,9 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.neoforged.neoforge.client.model.quad.BakedColors;
 import net.neoforged.neoforge.client.model.quad.BakedNormals;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Interface for reading quad data encoded by {@link MeshBuilder}. Enables models to do analysis, re-texturing or
@@ -161,7 +160,6 @@ public interface QuadView {
      * be the block face to which the quad is most closely aligned. Always the same as cull face for quads that are on a
      * block face, but never null.
      */
-    @NotNull
     Direction lightFace();
 
     /**

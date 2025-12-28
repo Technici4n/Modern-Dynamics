@@ -46,7 +46,7 @@ import static dev.technici4n.moderndynamics.thirdparty.fabric.EncodingFormat.VER
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()}, because that depends on

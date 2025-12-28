@@ -50,9 +50,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.model.data.ModelData;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Abstract base BE class for all pipes.
@@ -190,7 +189,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
     }
 
     @Override
-    public @NotNull ModelData getModelData() {
+    public ModelData getModelData() {
         return clientModelData;
     }
 

@@ -27,7 +27,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.transfer.TransferPreconditions;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
     private boolean inserting = false;

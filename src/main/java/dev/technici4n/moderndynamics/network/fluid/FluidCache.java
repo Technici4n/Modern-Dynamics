@@ -40,7 +40,6 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
-import org.jetbrains.annotations.NotNull;
 
 public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
     private FluidCacheStorage fluidStorage = null;
@@ -325,7 +324,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         }
 
         @Override
-        public @NotNull FluidResource getResource(int index) {
+        public FluidResource getResource(int index) {
             Objects.checkIndex(index, 1);
             return resource;
         }
@@ -343,7 +342,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         }
 
         @Override
-        public boolean isValid(int index, @NotNull FluidResource resource) {
+        public boolean isValid(int index, FluidResource resource) {
             Objects.checkIndex(index, 1);
             return this.resource.equals(resource) || (this.resource.isEmpty() && canChangeResource());
         }

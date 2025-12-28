@@ -23,7 +23,7 @@ import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import java.util.function.Function;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public record ConnectedFluidStorage(
         ResourceHandler<FluidResource> storage,
