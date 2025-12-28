@@ -355,7 +355,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
         // Exposed caps do change
         invalidateCapabilities();
 
-        level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
+        level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
 
         setChanged();
         // no need to sync(), that's already handled by the refresh or update if necessary
@@ -449,7 +449,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
 
                                 host.setAttachment(hitSide, attachmentItem);
                                 host.getAttachment(hitSide).onPlaced(player);
-                                level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
+                                level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
                                 refreshHosts();
                                 scheduleHostUpdates();
                                 setChanged();
