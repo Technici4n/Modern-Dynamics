@@ -77,15 +77,13 @@ public class MachineExtenderBlock extends MdBlock {
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block,
             @org.jspecify.annotations.Nullable Orientation orientation, boolean movedByPiston) {
-        // TODO 26.1: This is likely wrong
         if (orientation == null || orientation.getFront() == Direction.UP) {
             // Forward update if it's coming from below
             if (level.getBlockEntity(pos) instanceof MachineExtenderBlockEntity sideExtender) {
                 sideExtender.inNeighborUpdate = true;
 
                 try {
-                    sideExtender.getLevel().updateNeighborsAtExceptFromFacing(pos, this, Direction.DOWN, orientation); // TODO 26.1: This is likely
-                                                                                                                       // wrong
+                    sideExtender.getLevel().updateNeighborsAtExceptFromFacing(pos, this, Direction.DOWN, orientation);
                 } finally {
                     sideExtender.inNeighborUpdate = false;
                 }

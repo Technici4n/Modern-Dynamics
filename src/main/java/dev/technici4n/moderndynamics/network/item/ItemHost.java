@@ -408,7 +408,7 @@ public class ItemHost extends NodeHost {
     @Override
     public void read(ValueInput input) {
         super.read(input);
-        // TODO 26.1: Shouldn't travelingItems be cleared?
+        travelingItems.clear();
         var travelingItemsIn = input.childrenListOrEmpty("travelingItems");
         for (var itemIn : travelingItemsIn) {
             var item = TravelingItem.read(itemIn);
