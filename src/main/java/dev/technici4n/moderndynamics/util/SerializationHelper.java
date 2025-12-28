@@ -19,9 +19,7 @@
 package dev.technici4n.moderndynamics.util;
 
 import java.util.EnumSet;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 
 public class SerializationHelper {
     public static byte directionsToMask(EnumSet<Direction> directions) {
@@ -44,18 +42,6 @@ public class SerializationHelper {
         }
 
         return result;
-    }
-
-    public static CompoundTag posToNbt(BlockPos pos) {
-        CompoundTag nbt = new CompoundTag();
-        nbt.putInt("x", pos.getX());
-        nbt.putInt("y", pos.getY());
-        nbt.putInt("z", pos.getZ());
-        return nbt;
-    }
-
-    public static BlockPos posFromNbt(CompoundTag nbt) {
-        return new BlockPos(nbt.getInt("x"), nbt.getInt("y"), nbt.getInt("z"));
     }
 
     // This is a terrible way of doing it, but at least it's easy to debug.

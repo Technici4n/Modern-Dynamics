@@ -18,21 +18,22 @@
  */
 package dev.technici4n.moderndynamics.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.input.InputWithModifiers;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.util.ARGB;
 
 public class RedstoneModeButton extends Button {
     private final RedstoneMode mode;
     private final Supplier<RedstoneMode> getter;
     private final BiConsumer<RedstoneMode, Boolean> setter;
-    private Rect2i scissorRect;
+    private ScreenRectangle scissorRect;
 
     public RedstoneModeButton(RedstoneMode mode, Supplier<RedstoneMode> getter, BiConsumer<RedstoneMode, Boolean> setter) {
         super(0, 0, 16, 16, mode.getTranslation(), button -> {
@@ -43,38 +44,30 @@ public class RedstoneModeButton extends Button {
     }
 
     @Override
-    public void onPress() {
+    public void onPress(InputWithModifiers input) {
         this.setter.accept(this.mode, true);
     }
 
-    public void setScissorRect(Rect2i scissorRect) {
+    public void setScissorRect(ScreenRectangle scissorRect) {
         this.scissorRect = scissorRect;
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         if (scissorRect == null) {
             return;
         }
 
-        RenderSystem.enableScissor(
-                scissorRect.getX(),
-                scissorRect.getY(),
-                scissorRect.getWidth(),
-                scissorRect.getHeight());
+        guiGraphics.enableScissor(scissorRect.left(), scissorRect.top(), scissorRect.right(), scissorRect.bottom());
 
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
         var x = 176;
         if (!isActive()) {
             x += 16;
         } else if (getter.get() == mode) {
             x += 32;
         }
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.enableDepthTest();
-        guiGraphics.blit(ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), x, 180, width, height);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), x, 180, width, height, 256, 256,
+                ARGB.white(this.alpha));
 
         // Draw an icon appropriate for the mode of this button
         int iconX = 240;
@@ -83,11 +76,12 @@ public class RedstoneModeButton extends Button {
         case REQUIRES_LOW -> 240;
         case REQUIRES_HIGH -> 224;
         };
-        guiGraphics.blit(ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), iconX, iconY, 16, 16);
-        RenderSystem.disableScissor();
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ItemAttachedIoScreen.TEXTURE, this.getX(), this.getY(), iconX, iconY, 16, 16, 256, 256,
+                ARGB.white(this.alpha));
+        guiGraphics.disableScissor();
 
         if (this.isHovered) {
-            guiGraphics.renderTooltip(Minecraft.getInstance().font, getMessage(), mouseX, mouseY);
+            guiGraphics.setTooltipForNextFrame(Minecraft.getInstance().font, getMessage(), mouseX, mouseY);
         }
     }
 }

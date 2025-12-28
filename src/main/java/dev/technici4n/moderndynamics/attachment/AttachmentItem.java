@@ -20,17 +20,16 @@ package dev.technici4n.moderndynamics.attachment;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.network.NodeHost;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.storage.ValueInput;
 
 public abstract class AttachmentItem extends Item {
     public final RenderedAttachment attachment;
 
-    public AttachmentItem(RenderedAttachment attachment) {
-        super(new Properties());
+    public AttachmentItem(Item.Properties properties, RenderedAttachment attachment) {
+        super(properties);
         this.attachment = attachment;
     }
 
-    public abstract AttachedAttachment createAttached(NodeHost host, CompoundTag configTag, HolderLookup.Provider registries);
+    public abstract AttachedAttachment createAttached(NodeHost host, ValueInput input);
 }

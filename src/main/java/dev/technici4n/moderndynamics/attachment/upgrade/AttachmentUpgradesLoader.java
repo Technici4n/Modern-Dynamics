@@ -25,6 +25,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import dev.technici4n.moderndynamics.ModernDynamics;
+import dev.technici4n.moderndynamics.util.MdId;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -41,7 +42,7 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.conditions.ICondition;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -100,8 +101,8 @@ public class AttachmentUpgradesLoader extends SimplePreparableReloadListener<Lis
     }
 
     public static void setup() {
-        NeoForge.EVENT_BUS.addListener(AddReloadListenerEvent.class, e -> {
-            e.addListener(new AttachmentUpgradesLoader());
+        NeoForge.EVENT_BUS.addListener(AddServerReloadListenersEvent.class, e -> {
+            e.addListener(MdId.of("attachment_upgrades"), new AttachmentUpgradesLoader());
         });
         NeoForge.EVENT_BUS.addListener(ServerAboutToStartEvent.class, e -> {
             var server = e.getServer();

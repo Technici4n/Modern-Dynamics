@@ -19,7 +19,6 @@
 package dev.technici4n.moderndynamics;
 
 import dev.technici4n.moderndynamics.attachment.upgrade.AttachmentUpgradesLoader;
-import dev.technici4n.moderndynamics.client.ModernDynamicsClient;
 import dev.technici4n.moderndynamics.init.MdAttachments;
 import dev.technici4n.moderndynamics.init.MdBlockEntities;
 import dev.technici4n.moderndynamics.init.MdBlocks;
@@ -29,6 +28,7 @@ import dev.technici4n.moderndynamics.network.NetworkManager;
 import dev.technici4n.moderndynamics.network.TickHelper;
 import dev.technici4n.moderndynamics.network.item.SimulatedInsertionTargets;
 import dev.technici4n.moderndynamics.packets.MdPackets;
+import dev.technici4n.moderndynamics.test.MdGameTests;
 import dev.technici4n.moderndynamics.util.MdId;
 import dev.technici4n.moderndynamics.util.MdItemGroup;
 import dev.technici4n.moderndynamics.util.WrenchHelper;
@@ -36,7 +36,6 @@ import net.minecraft.core.registries.Registries;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -50,6 +49,8 @@ public class ModernDynamics {
     public static final Logger LOGGER = LogManager.getLogger("Modern Dynamics");
 
     public ModernDynamics(IEventBus modEvents) {
+        MdBlocks.DR.register(modEvents);
+        MdItems.DR.register(modEvents);
         modEvents.addListener(RegisterEvent.class, this::register);
         modEvents.addListener(RegisterPayloadHandlersEvent.class, this::registerPayloadHandlers);
 
@@ -65,26 +66,23 @@ public class ModernDynamics {
         });
         NeoForge.EVENT_BUS.addListener(WrenchHelper::handleEvent);
         AttachmentUpgradesLoader.setup();
+        MdAttachments.init();
 
-        if (FMLLoader.getDist().isClient()) {
-            new ModernDynamicsClient(modEvents);
-        }
+        modEvents.addListener(MdGameTests::registerTests);
+
         LOGGER.info("Successfully loaded Modern Dynamics!");
     }
 
     private void register(RegisterEvent registerEvent) {
         var registryKey = registerEvent.getRegistryKey();
-        if (registryKey == Registries.BLOCK) {
-            MdBlocks.init();
-        } else if (registryKey == Registries.ITEM) {
-            MdItems.init();
-            MdAttachments.init();
-        } else if (registryKey == Registries.BLOCK_ENTITY_TYPE) {
+        if (registryKey == Registries.BLOCK_ENTITY_TYPE) {
             MdBlockEntities.init();
         } else if (registryKey == Registries.MENU) {
             MdMenus.init();
         } else if (registryKey == Registries.CREATIVE_MODE_TAB) {
             MdItemGroup.init();
+        } else if (registryKey == Registries.TEST_FUNCTION) {
+            MdGameTests.registerFunctions();
         }
     }
 

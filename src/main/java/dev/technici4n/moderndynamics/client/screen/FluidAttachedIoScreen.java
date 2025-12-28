@@ -18,29 +18,27 @@
  */
 package dev.technici4n.moderndynamics.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
 import dev.technici4n.moderndynamics.util.FluidRenderUtil;
-import dev.technici4n.moderndynamics.util.FluidVariant;
+import dev.technici4n.moderndynamics.util.MdId;
 import java.util.Optional;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.InventoryMenu;
-import org.joml.Matrix4f;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu> {
+    public static final RenderPipeline GUI_TEXTURED_NOBLEND = RenderPipelines.GUI_TEXTURED.toBuilder()
+            .withoutBlend()
+            .withLocation(MdId.of("gui_textured_noblend"))
+            .build();
+
     public FluidAttachedIoScreen(FluidAttachedIoMenu abstractContainerMenu, Inventory inventory, Component component) {
-        super(abstractContainerMenu, inventory, component);
-        this.imageHeight = 204;
+        super(abstractContainerMenu, inventory, component, 176, 204);
         this.inventoryLabelY = this.imageHeight - 93;
     }
 
@@ -49,52 +47,42 @@ public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu>
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         if (getMenu().getCarried().isEmpty() && this.hoveredSlot instanceof FluidConfigSlot fluidSlot) {
-            var variant = fluidSlot.getFilter();
-            if (!variant.isBlank()) {
-                guiGraphics.renderTooltip(font, variant.getTooltip(), Optional.empty(), mouseX, mouseY);
+            var resource = fluidSlot.getFilter();
+            if (!resource.isEmpty()) {
+                guiGraphics.setTooltipForNextFrame(font, FluidRenderUtil.getTooltip(resource), Optional.empty(), mouseX, mouseY);
             }
         } else {
             renderTooltip(guiGraphics, mouseX, mouseY);
         }
     }
 
-    public static void drawFluidInGui(GuiGraphics guiGraphics, FluidVariant fluid, int i, int j) {
-        drawFluidInGui(guiGraphics, fluid, i, j, 16, 1);
-        RenderSystem.enableDepthTest();
+    public static void drawFluidInGui(GuiGraphics guiGraphics, FluidResource fluid, int x, int y) {
+        drawFluidInGui(guiGraphics, fluid, x, y, 16, 1);
     }
 
-    public static void drawFluidInGui(GuiGraphics guiGraphics, FluidVariant fluid, float i, float j, int scale, float fractionUp) {
-        RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
+    public static void drawFluidInGui(GuiGraphics guiGraphics, FluidResource fluid, int x, int y, int scale, float fractionUp) {
         TextureAtlasSprite sprite = FluidRenderUtil.getStillSprite(fluid);
         int color = FluidRenderUtil.getTint(fluid);
 
         if (sprite == null)
             return;
 
-        float r = ((color >> 16) & 255) / 256f;
-        float g = ((color >> 8) & 255) / 256f;
-        float b = (color & 255) / 256f;
-        RenderSystem.disableDepthTest();
-
-        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
-        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-        float x0 = i;
-        float y0 = j;
-        float x1 = x0 + scale;
-        float y1 = y0 + scale * fractionUp;
-        float z = 0.5f;
+        var x0 = x;
+        var y0 = y;
+        var x1 = x0 + scale;
+        var y1 = Math.round(y0 + scale * fractionUp);
         float u0 = sprite.getU0();
         float v1 = sprite.getV1();
         float v0 = v1 + (sprite.getV0() - v1) * fractionUp;
         float u1 = sprite.getU1();
 
-        Matrix4f model = guiGraphics.pose().last().pose();
-        bufferBuilder.addVertex(model, x0, y1, z).setUv(u0, v1).setColor(r, g, b, 1);
-        bufferBuilder.addVertex(model, x1, y1, z).setUv(u1, v1).setColor(r, g, b, 1);
-        bufferBuilder.addVertex(model, x1, y0, z).setUv(u1, v0).setColor(r, g, b, 1);
-        bufferBuilder.addVertex(model, x0, y0, z).setUv(u0, v0).setColor(r, g, b, 1);
-        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
-
-        RenderSystem.enableDepthTest();
+        guiGraphics.innerBlit(
+                GUI_TEXTURED_NOBLEND,
+                sprite.atlasLocation(),
+                x0, x1,
+                y0, y1,
+                u0, u1,
+                v0, v1,
+                color);
     }
 }

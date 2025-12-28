@@ -22,7 +22,6 @@ import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.network.item.ItemHost;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,9 +33,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import org.jspecify.annotations.Nullable;
 import snownee.jade.api.Accessor;
 import snownee.jade.api.view.ClientViewGroup;
 import snownee.jade.api.view.IClientExtensionProvider;
@@ -48,7 +48,7 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
     INSTANCE;
 
     @Override
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return MdId.of("item_pipe");
     }
 
@@ -70,7 +70,7 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
             if (pipe.getAttachment(side) instanceof ItemAttachedIo io) {
                 if (io.isStuffed()) {
                     var group = new ViewGroup<ItemStack>(new ArrayList<>());
-                    group.views.addAll(variantMapToStacks(io.getStuffedItems()));
+                    group.views.addAll(resourceMapToStacks(io.getStuffedItems()));
                     group.id = "stuffed_" + side.getName();
                     groups.add(group);
                 }
@@ -81,14 +81,14 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
         // We need to run on the client side to add client traveling items on the client side,
         // even if the server doesn't provide any stack.
         var dummyGroup = new ViewGroup<ItemStack>(new ArrayList<>());
-        dummyGroup.views.add(MdItems.WRENCH.getDefaultInstance());
+        dummyGroup.views.add(MdItems.WRENCH.toStack());
         dummyGroup.id = "dummy";
         groups.add(dummyGroup);
 
         return groups;
     }
 
-    private static Collection<ItemStack> variantMapToStacks(Map<ItemVariant, Integer> map) {
+    private static Collection<ItemStack> resourceMapToStacks(Map<ItemResource, Integer> map) {
         List<ItemStack> stacks = new ArrayList<>();
         for (var entry : map.entrySet()) {
             stacks.add(entry.getKey().toStack(entry.getValue()));
@@ -120,7 +120,7 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
                             for (var stack : group.views) {
                                 clientGroup.views.add(new ItemView(stack));
                             }
-                            clientGroup.title = Component.translatable("gui.moderndynamics.tooltip.stuffed", attachmentItem.getDescription())
+                            clientGroup.title = Component.translatable("gui.moderndynamics.tooltip.stuffed", attachmentItem.getName())
                                     .withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withBold(true));
                             clientGroups.add(clientGroup);
                         });
@@ -133,13 +133,13 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
         }
         for (var host : pipe.getHosts()) {
             if (host instanceof ItemHost itemHost) {
-                Map<ItemVariant, Integer> items = new HashMap<>();
+                Map<ItemResource, Integer> items = new HashMap<>();
                 for (var item : itemHost.getClientTravelingItems()) {
-                    items.merge(item.variant(), item.amount(), Integer::sum);
+                    items.merge(item.resource(), item.amount(), Integer::sum);
                 }
 
                 var clientGroup = new ClientViewGroup<ItemView>(new ArrayList<>());
-                for (var stack : variantMapToStacks(items)) {
+                for (var stack : resourceMapToStacks(items)) {
                     clientGroup.views.add(new ItemView(stack));
                 }
                 if (!clientGroup.views.isEmpty()) {

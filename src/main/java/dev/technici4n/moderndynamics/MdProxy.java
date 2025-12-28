@@ -18,10 +18,10 @@
  */
 package dev.technici4n.moderndynamics;
 
-import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 public class MdProxy {
-    public static final MdProxy INSTANCE = switch (FMLLoader.getDist()) {
+    public static final MdProxy INSTANCE = switch (FMLEnvironment.getDist()) {
     case DEDICATED_SERVER -> new MdProxy();
     case CLIENT -> {
         try {

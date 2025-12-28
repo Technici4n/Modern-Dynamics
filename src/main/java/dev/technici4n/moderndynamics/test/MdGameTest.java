@@ -28,13 +28,11 @@ import java.lang.annotation.Target;
 public @interface MdGameTest {
     int timeoutTicks() default 100;
 
-    String batch() default "defaultBatch";
-
     boolean skyAccess() default false;
 
     int rotationSteps() default 0;
 
-    long setupTicks() default 0L;
+    int setupTicks() default 0;
 
     int attempts() default 1;
 

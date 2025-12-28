@@ -22,13 +22,13 @@ import dev.technici4n.moderndynamics.attachment.attached.AttachedAttachment;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import org.jspecify.annotations.Nullable;
 
 public class ItemPath {
     /**
@@ -57,8 +57,8 @@ public class ItemPath {
         return ItemHost.MANAGER.findNode(level, startingPos.relative(path[0]));
     }
 
-    public SimulatedInsertionTarget getInsertionTarget(Level world) {
-        return SimulatedInsertionTargets.getTarget(world, targetPos, getTargetBlockSide());
+    public SimulatedInsertionTarget getInsertionTarget(Level level) {
+        return SimulatedInsertionTargets.getTarget(level, targetPos, getTargetBlockSide());
     }
 
     /**
@@ -76,9 +76,9 @@ public class ItemPath {
         return getLastDirection().getOpposite();
     }
 
-    public TravelingItem makeTravelingItem(ItemVariant variant, int amount, double speedMultiplier) {
+    public TravelingItem makeTravelingItem(ItemResource resource, int amount, double speedMultiplier) {
         return new TravelingItem(
-                variant,
+                resource,
                 amount,
                 this,
                 FailedInsertStrategy.SEND_BACK_TO_SOURCE,
@@ -96,7 +96,7 @@ public class ItemPath {
     /**
      * Return the predicate for the attachment at the very end of the pipe.
      */
-    Predicate<ItemVariant> getEndFilter(ServerLevel level) {
+    Predicate<ItemResource> getEndFilter(ServerLevel level) {
         var endPipe = targetPos.relative(getTargetBlockSide());
         if (level.getBlockEntity(endPipe) instanceof PipeBlockEntity pipe) {
             if (pipe.getAttachment(getLastDirection()) instanceof ItemAttachedIo io) {

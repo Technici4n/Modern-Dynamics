@@ -19,28 +19,28 @@
 package dev.technici4n.moderndynamics.attachment.attached;
 
 import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
-import dev.technici4n.moderndynamics.util.FluidVariant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 public class FluidCachedFilter {
-    private final Set<FluidVariant> listedVariants;
+    private final Set<FluidResource> listedResources;
     private final FilterInversionMode filterInversion;
 
-    public FluidCachedFilter(List<FluidVariant> variants,
+    public FluidCachedFilter(List<FluidResource> resources,
             FilterInversionMode filterInversion) {
-        this.listedVariants = new HashSet<>();
+        this.listedResources = new HashSet<>();
         this.filterInversion = filterInversion;
 
-        for (var variant : variants) {
-            if (!variant.isBlank()) {
-                listedVariants.add(variant);
+        for (var resource : resources) {
+            if (!resource.isEmpty()) {
+                listedResources.add(resource);
             }
         }
     }
 
-    public boolean matches(FluidVariant variant) {
-        return (filterInversion == FilterInversionMode.WHITELIST) == listedVariants.contains(variant);
+    public boolean matches(FluidResource resource) {
+        return (filterInversion == FilterInversionMode.WHITELIST) == listedResources.contains(resource);
     }
 }

@@ -19,6 +19,7 @@
 package dev.technici4n.moderndynamics.client.model;
 
 import com.mojang.math.Axis;
+import com.mojang.math.Quadrant;
 import com.mojang.math.Transformation;
 import net.minecraft.client.resources.model.BlockModelRotation;
 import net.minecraft.client.resources.model.ModelState;
@@ -30,20 +31,20 @@ public class MdModels {
      * Rotations are indexed by {@link Direction} id.
      */
     public static final ModelState[] PIPE_BAKE_SETTINGS = new ModelState[] {
-            preRotated(BlockModelRotation.X90_Y0, 270),
-            BlockModelRotation.X270_Y0,
-            BlockModelRotation.X0_Y0,
-            preRotated(BlockModelRotation.X0_Y180, 90),
-            preRotated(BlockModelRotation.X0_Y270, 90),
-            BlockModelRotation.X0_Y90,
+            preRotated(BlockModelRotation.get(Quadrant.fromXYZAngles(Quadrant.R90, Quadrant.R0, Quadrant.R0)), 270),
+            BlockModelRotation.get(Quadrant.fromXYZAngles(Quadrant.R270, Quadrant.R0, Quadrant.R0)),
+            BlockModelRotation.get(Quadrant.fromXYZAngles(Quadrant.R0, Quadrant.R0, Quadrant.R0)),
+            preRotated(BlockModelRotation.get(Quadrant.fromXYZAngles(Quadrant.R0, Quadrant.R180, Quadrant.R0)), 90),
+            preRotated(BlockModelRotation.get(Quadrant.fromXYZAngles(Quadrant.R0, Quadrant.R270, Quadrant.R0)), 90),
+            BlockModelRotation.get(Quadrant.fromXYZAngles(Quadrant.R0, Quadrant.R90, Quadrant.R0)),
     };
 
     public static ModelState preRotated(BlockModelRotation rotation, float preAngle) {
         Transformation preRotation = new Transformation(null, Axis.ZP.rotationDegrees(preAngle), null, null);
-        Transformation combined = rotation.getRotation().compose(preRotation);
+        Transformation combined = rotation.transformation().compose(preRotation);
         return new ModelState() {
             @Override
-            public Transformation getRotation() {
+            public Transformation transformation() {
                 return combined;
             }
         };

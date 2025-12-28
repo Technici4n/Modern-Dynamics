@@ -21,97 +21,36 @@ package dev.technici4n.moderndynamics.init;
 import dev.technici4n.moderndynamics.extender.MachineExtenderBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.util.MdId;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
+import java.util.List;
+import net.neoforged.neoforge.registries.DeferredBlock;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class MdBlocks {
 
-    public static final PipeBlock ITEM_PIPE = new PipeBlock("item_pipe");
-    public static final PipeBlock FLUID_PIPE = new PipeBlock("fluid_pipe");
+    public static DeferredRegister.Blocks DR = DeferredRegister.createBlocks(MdId.MOD_ID);
 
-    public static final PipeBlock LV_CABLE = new PipeBlock("lv_cable").setTransparent(false);
-    public static final PipeBlock MV_CABLE = new PipeBlock("mv_cable").setTransparent(false);
-    public static final PipeBlock HV_CABLE = new PipeBlock("hv_cable").setTransparent(false);
-    public static final PipeBlock EV_CABLE = new PipeBlock("ev_cable").setTransparent(false);
-    public static final PipeBlock SUPERCONDUCTOR_CABLE = new PipeBlock("superconductor_cable").setTransparent(false);
+    public static final DeferredBlock<PipeBlock> ITEM_PIPE = DR.registerBlock("item_pipe", PipeBlock::new);
+    public static final DeferredBlock<PipeBlock> FLUID_PIPE = DR.registerBlock("fluid_pipe", PipeBlock::new);
 
-    public static final MachineExtenderBlock MACHINE_EXTENDER = new MachineExtenderBlock();
+    public static final DeferredBlock<PipeBlock> LV_CABLE = DR.registerBlock("lv_cable", props -> new PipeBlock(props).setTransparent(false));
+    public static final DeferredBlock<PipeBlock> MV_CABLE = DR.registerBlock("mv_cable", props -> new PipeBlock(props).setTransparent(false));
+    public static final DeferredBlock<PipeBlock> HV_CABLE = DR.registerBlock("hv_cable", props -> new PipeBlock(props).setTransparent(false));
+    public static final DeferredBlock<PipeBlock> EV_CABLE = DR.registerBlock("ev_cable", props -> new PipeBlock(props).setTransparent(false));
+    public static final DeferredBlock<PipeBlock> SUPERCONDUCTOR_CABLE = DR.registerBlock("superconductor_cable",
+            props -> new PipeBlock(props).setTransparent(false));
 
-    public static final PipeBlock[] ALL_PIPES = new PipeBlock[] {
-            ITEM_PIPE,
-            FLUID_PIPE,
-            // MI energy cables
-            LV_CABLE,
-            MV_CABLE,
-            HV_CABLE,
-            EV_CABLE,
-            SUPERCONDUCTOR_CABLE,
-    };
+    public static final DeferredBlock<MachineExtenderBlock> MACHINE_EXTENDER = DR.registerBlock("machine_extender", MachineExtenderBlock::new);
 
-    /*
-     * public static final PipeBlock BASIC_ITEM_PIPE_OPAQUE = new PipeBlock("basic_item_pipe_opaque");
-     * public static final PipeBlock FAST_ITEM_PIPE = new PipeBlock("fast_item_pipe");
-     * public static final PipeBlock FAST_ITEM_PIPE_OPAQUE = new PipeBlock("fast_item_pipe_opaque");
-     * public static final PipeBlock CONDUCTIVE_ITEM_PIPE = new PipeBlock("conductive_item_pipe");
-     * public static final PipeBlock CONDUCTIVE_ITEM_PIPE_OPAQUE = new PipeBlock("conductive_item_pipe_opaque");
-     * public static final PipeBlock CONDUCTIVE_FAST_ITEM_PIPE = new PipeBlock("conductive_fast_item_pipe");
-     * public static final PipeBlock CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE = new PipeBlock("conductive_fast_item_pipe_opaque");
-     * 
-     * public static final PipeBlock BASIC_FLUID_PIPE_OPAQUE = new PipeBlock("basic_fluid_pipe_opaque");
-     * public static final PipeBlock FAST_FLUID_PIPE = new PipeBlock("fast_fluid_pipe");
-     * public static final PipeBlock FAST_FLUID_PIPE_OPAQUE = new PipeBlock("fast_fluid_pipe_opaque");
-     * public static final PipeBlock CONDUCTIVE_FLUID_PIPE = new PipeBlock("conductive_fluid_pipe");
-     * public static final PipeBlock CONDUCTIVE_FLUID_PIPE_OPAQUE = new PipeBlock("conductive_fluid_pipe_opaque");
-     * public static final PipeBlock CONDUCTIVE_FAST_FLUID_PIPE = new PipeBlock("conductive_fast_fluid_pipe");
-     * public static final PipeBlock CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE = new PipeBlock("conductive_fast_fluid_pipe_opaque");
-     * 
-     * public static final PipeBlock BASIC_ENERGY_PIPE = new PipeBlock("basic_energy_pipe");
-     * public static final PipeBlock IMPROVED_ENERGY_PIPE = new PipeBlock("improved_energy_pipe");
-     * public static final PipeBlock ADVANCED_ENERGY_PIPE = new PipeBlock("advanced_energy_pipe");
-     * 
-     * // These are modeled as blocks because they're placeable, but do not conduct energy
-     * public static final PipeBlock EMPTY_REINFORCED_ENERGY_PIPE = new PipeBlock("empty_reinforced_energy_pipe");
-     * public static final PipeBlock EMPTY_SIGNALUM_ENERGY_PIPE = new PipeBlock("empty_signalum_energy_pipe");
-     * public static final PipeBlock EMPTY_RESONANT_ENERGY_PIPE = new PipeBlock("empty_resonant_energy_pipe");
-     * public static final PipeBlock EMPTY_SUPERCONDUCTING_PIPE = new PipeBlock("empty_superconducting_pipe");
-     * 
-     * public static final PipeBlock[] ALL_PIPES = new PipeBlock[] {
-     * // Item transport
-     * ITEM_PIPE,
-     * BASIC_ITEM_PIPE_OPAQUE,
-     * FAST_ITEM_PIPE,
-     * FAST_ITEM_PIPE_OPAQUE,
-     * CONDUCTIVE_ITEM_PIPE,
-     * CONDUCTIVE_ITEM_PIPE_OPAQUE,
-     * CONDUCTIVE_FAST_ITEM_PIPE,
-     * CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE,
-     * // Fluid transport
-     * FLUID_PIPE,
-     * BASIC_FLUID_PIPE_OPAQUE,
-     * FAST_FLUID_PIPE,
-     * FAST_FLUID_PIPE_OPAQUE,
-     * CONDUCTIVE_FLUID_PIPE,
-     * CONDUCTIVE_FLUID_PIPE_OPAQUE,
-     * CONDUCTIVE_FAST_FLUID_PIPE,
-     * CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE,
-     * // Energy transport
-     * BASIC_ENERGY_PIPE,
-     * IMPROVED_ENERGY_PIPE,
-     * ADVANCED_ENERGY_PIPE,
-     * // Empty higher tier energy pipes (do not conduct energy)
-     * EMPTY_REINFORCED_ENERGY_PIPE,
-     * EMPTY_SIGNALUM_ENERGY_PIPE,
-     * EMPTY_RESONANT_ENERGY_PIPE,
-     * EMPTY_SUPERCONDUCTING_PIPE,
-     * };
-     */
-
-    public static void init() {
-        for (var block : ALL_PIPES) {
-            Registry.register(BuiltInRegistries.BLOCK, MdId.of(block.id), block);
-        }
-
-        Registry.register(BuiltInRegistries.BLOCK, MdId.of(MACHINE_EXTENDER.id), MACHINE_EXTENDER);
+    public static List<PipeBlock> getAllPipes() {
+        return List.of(
+                ITEM_PIPE.get(),
+                FLUID_PIPE.get(),
+                // MI energy cables
+                LV_CABLE.get(),
+                MV_CABLE.get(),
+                HV_CABLE.get(),
+                EV_CABLE.get(),
+                SUPERCONDUCTOR_CABLE.get());
     }
 
 }

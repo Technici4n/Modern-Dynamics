@@ -20,6 +20,7 @@ package dev.technici4n.moderndynamics.network.item;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.mojang.serialization.Codec;
 import dev.technici4n.moderndynamics.attachment.AttachmentItem;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
@@ -32,36 +33,35 @@ import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItem;
 import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItemSmoothing;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import io.netty.buffer.Unpooled;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.function.Predicate;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.wrapper.EmptyItemHandler;
 import net.neoforged.neoforge.network.connection.ConnectionType;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.transfer.EmptyResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import org.jspecify.annotations.Nullable;
 
 public class ItemHost extends NodeHost {
     public static final NetworkManager<ItemHost, ItemCache> MANAGER = NetworkManager.get(ItemCache.class, ItemCache::new);
     private final List<TravelingItem> travelingItems = new ArrayList<>();
     private final List<ClientTravelingItem> clientTravelingItems = new ArrayList<>();
     private final long[] lastOperationTick = new long[6];
-    private final HostAdjacentCaps<IItemHandler> adjacentCaps = new HostAdjacentCaps<>(this, Capabilities.ItemHandler.BLOCK);
+    private final HostAdjacentCaps<ResourceHandler<ItemResource>> adjacentCaps = new HostAdjacentCaps<>(this, Capabilities.Item.BLOCK);
 
     public ItemHost(PipeBlockEntity pipe) {
         super(pipe);
@@ -89,7 +89,7 @@ public class ItemHost extends NodeHost {
     @Override
     @Nullable
     public Object getApiInstance(BlockCapability<?, Direction> lookup, @Nullable Direction side) {
-        if (lookup == Capabilities.ItemHandler.BLOCK && side != null && allowItemConnection(side)) {
+        if (lookup == Capabilities.Item.BLOCK && side != null && allowItemConnection(side)) {
             return buildExternalNetworkInjectStorage(side);
         }
         return null;
@@ -104,14 +104,14 @@ public class ItemHost extends NodeHost {
     /**
      * Storage used for external injections (e.g. via hoppers), does not respect routing mode.
      */
-    private IItemHandler buildExternalNetworkInjectStorage(Direction side) {
-        return new InsertionOnlyItemHandler((resource, maxAmount, simulate) -> {
+    private ResourceHandler<ItemResource> buildExternalNetworkInjectStorage(Direction side) {
+        return new InsertionOnlyItemHandler((resource, maxAmount, tx) -> {
             NetworkNode<ItemHost, ItemCache> node = findNode();
             if (node != null) {
                 var cache = node.getNetworkCache();
                 var paths = cache.pathCache.getPaths(node, side.getOpposite());
                 double speedupFactor = getAttachment(side) instanceof ItemAttachedIo io ? io.getItemSpeedupFactor() : 1;
-                return cache.insertList(node, paths, resource, maxAmount, simulate, speedupFactor, null);
+                return cache.insertList(node, paths, resource, maxAmount, tx, speedupFactor, null);
             } else {
                 // The node can be null on the client or if the pipe was just placed and not initialized yet.
                 return 0;
@@ -138,7 +138,7 @@ public class ItemHost extends NodeHost {
     }
 
     @Nullable
-    protected IItemHandler getAdjacentStorage(Direction side, boolean checkAttachments) {
+    protected ResourceHandler<ItemResource> getAdjacentStorage(Direction side, boolean checkAttachments) {
         if ((inventoryConnections & (1 << side.get3DDataValue())) > 0 && (pipeConnections & (1 << side.get3DDataValue())) == 0
                 && (!checkAttachments || allowItemConnection(side))) {
             return adjacentCaps.getCapability(side);
@@ -205,11 +205,12 @@ public class ItemHost extends NodeHost {
 
             var maxParticipant = new MaxParticipant();
 
-            if (move(
+            if (ResourceHandlerUtil.moveStacking(
                     adjStorage,
                     buildExtractorNetworkInjectStorage(side, extractor, maxParticipant),
                     extractor::matchesItemFilter,
-                    extractor.getMaxItemsExtracted()) > 0) {
+                    extractor.getMaxItemsExtracted(),
+                    null) > 0) {
                 extractor.incrementRoundRobin(maxParticipant.getMax());
             }
         }
@@ -250,23 +251,24 @@ public class ItemHost extends NodeHost {
                     continue;
                 }
 
-                var extractTarget = pipe.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, path.targetPos, path.getTargetBlockSide());
+                var extractTarget = pipe.getLevel().getCapability(Capabilities.Item.BLOCK, path.targetPos, path.getTargetBlockSide());
                 if (extractTarget != null) {
                     // Make sure to check the filter at the endpoint.
                     var endpointFilter = path.getEndFilter(cache.level);
 
-                    InsertionOnlyItemHandler insertStorage = new InsertionOnlyItemHandler((variant, maxAmount, simulate) -> {
-                        return insertTarget.insert(variant, maxAmount, simulate, (v, a) -> {
+                    InsertionOnlyItemHandler insertStorage = new InsertionOnlyItemHandler((resource, maxAmount, simulate) -> {
+                        return insertTarget.insert(resource, maxAmount, simulate, (v, a) -> {
                             var reversedPath = path.reversed();
                             var travelingItem = reversedPath.makeTravelingItem(v, a, attractor.getItemSpeedupFactor());
                             reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
                         });
                     });
-                    toTransfer -= move(
+                    toTransfer -= ResourceHandlerUtil.moveStacking(
                             extractTarget,
                             insertStorage,
                             v -> attractor.matchesItemFilter(v) && endpointFilter.test(v),
-                            toTransfer);
+                            toTransfer,
+                            null);
                     if (toTransfer == 0)
                         break;
                 }
@@ -276,26 +278,6 @@ public class ItemHost extends NodeHost {
                 attractor.incrementRoundRobin(nextPathIndex);
             }
         }
-    }
-
-    private int move(IItemHandler from, IItemHandler to, Predicate<ItemVariant> predicate, int maxAmount) {
-        var moved = 0;
-        for (int i = 0; i < from.getSlots(); i++) {
-            var extracted = from.extractItem(i, maxAmount - moved, true);
-            if (!extracted.isEmpty()) {
-                var variant = ItemVariant.of(extracted);
-                if (predicate.test(variant)) {
-                    var overflow = ItemHandlerHelper.insertItemStacked(to, extracted, true);
-                    var likelyToFit = extracted.getCount() - overflow.getCount();
-                    if (likelyToFit > 0) {
-                        extracted = from.extractItem(i, likelyToFit, false);
-                        overflow = ItemHandlerHelper.insertItemStacked(to, extracted, false);
-                        moved += extracted.getCount() - overflow.getCount();
-                    }
-                }
-            }
-        }
-        return moved;
     }
 
     public void tickMovingItems() {
@@ -340,14 +322,16 @@ public class ItemHost extends NodeHost {
                 var side = travelingItem.path.path[newIndex];
                 var storage = getAdjacentStorage(side, checkAttachments);
                 if (storage == null) {
-                    storage = EmptyItemHandler.INSTANCE;
+                    storage = EmptyResourceHandler.instance();
                 }
                 int inserted = 0;
                 // Check filter.
                 if (!checkAttachments || !(getAttachment(side) instanceof ItemAttachedIo io) ||
-                        io.matchesItemFilter(travelingItem.variant) && io.isEnabledViaRedstone(pipe)) {
-                    var overflow = ItemHandlerHelper.insertItemStacked(storage, travelingItem.variant.toStack(travelingItem.amount), false);
-                    inserted = travelingItem.amount - overflow.getCount();
+                        io.matchesItemFilter(travelingItem.resource) && io.isEnabledViaRedstone(pipe)) {
+                    try (var tx = Transaction.openRoot()) {
+                        inserted = ResourceHandlerUtil.insertStacking(storage, travelingItem.resource, travelingItem.amount, tx);
+                        tx.commit();
+                    }
                 }
                 finishTravel(travelingItem, inserted);
             } else {
@@ -381,14 +365,14 @@ public class ItemHost extends NodeHost {
 
     private void finishTravel(TravelingItem item, int inserted) {
         // In any case, remove the item from the simulated insertion target
-        item.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(item.variant, item.amount);
+        item.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(item.resource, item.amount);
         int leftover = item.amount - inserted;
 
         // Try to stuff first!
         var attachment = getAttachment(item.path.path[item.getPathLength() - 1]);
         if (leftover > 0 && attachment instanceof ItemAttachedIo io && io.getType() != IoAttachmentType.FILTER) {
             boolean wasStuffed = io.isStuffed();
-            io.getStuffedItems().merge(item.variant, item.amount, Integer::sum);
+            io.getStuffedItems().merge(item.resource, item.amount, Integer::sum);
             pipe.setChanged();
             if (wasStuffed != io.isStuffed()) {
                 pipe.sync();
@@ -396,38 +380,38 @@ public class ItemHost extends NodeHost {
         } else if (leftover > 0) {
             if (item.strategy == FailedInsertStrategy.SEND_BACK_TO_SOURCE) {
                 addTravelingItem(new TravelingItem(
-                        item.variant,
+                        item.resource,
                         leftover,
                         item.path.reversed(),
                         FailedInsertStrategy.DROP,
                         item.speedMultiplier,
                         item.getPathLength() - 1 - Math.floor(item.traveledDistance)));
             } else {
-                DropHelper.dropStack(pipe, item.variant, item.amount - inserted);
+                DropHelper.dropStack(pipe, item.resource, item.amount - inserted);
             }
         }
     }
 
     @Override
-    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        super.writeNbt(tag, registries);
-        if (travelingItems.size() > 0) {
-            ListTag list = new ListTag();
+    public void write(ValueOutput output) {
+        super.write(output);
+        if (!travelingItems.isEmpty()) {
+            var travelingItemsOut = output.childrenList("travelingItems");
             for (var travelingItem : travelingItems) {
-                list.add(travelingItem.toNbt(registries));
+                travelingItem.write(travelingItemsOut.addChild());
             }
-            tag.put("travelingItems", list);
         }
     }
 
     @Override
-    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        super.readNbt(tag, registries);
-        ListTag list = tag.getList("travelingItems", CompoundTag.TAG_COMPOUND);
-        for (int i = 0; i < list.size(); ++i) {
-            var item = TravelingItem.fromNbt(list.getCompound(i), registries);
+    public void read(ValueInput input) {
+        super.read(input);
+        travelingItems.clear();
+        var travelingItemsIn = input.childrenListOrEmpty("travelingItems");
+        for (var itemIn : travelingItemsIn) {
+            var item = TravelingItem.read(itemIn);
 
-            if (!item.variant.isBlank()) { // Guard against blank variants in case a mod is removed
+            if (!item.resource.isEmpty()) { // Guard against blank resources in case a mod is removed
                 travelingItems.add(item);
             }
         }
@@ -437,7 +421,7 @@ public class ItemHost extends NodeHost {
     public void addSelf() {
         super.addSelf();
         for (var travelingItem : travelingItems) {
-            travelingItem.path.getInsertionTarget(pipe.getLevel()).startAwaiting(travelingItem.variant, travelingItem.amount);
+            travelingItem.path.getInsertionTarget(pipe.getLevel()).startAwaiting(travelingItem.resource, travelingItem.amount);
         }
     }
 
@@ -445,7 +429,7 @@ public class ItemHost extends NodeHost {
     public void removeSelf() {
         super.removeSelf();
         for (var travelingItem : travelingItems) {
-            travelingItem.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(travelingItem.variant, travelingItem.amount);
+            travelingItem.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(travelingItem.resource, travelingItem.amount);
         }
     }
 
@@ -453,8 +437,8 @@ public class ItemHost extends NodeHost {
     public void onRemoved() {
         super.onRemoved();
         for (var travelingItem : travelingItems) {
-            travelingItem.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(travelingItem.variant, travelingItem.amount);
-            DropHelper.dropStack(pipe, travelingItem.variant, travelingItem.amount);
+            travelingItem.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(travelingItem.resource, travelingItem.amount);
+            DropHelper.dropStack(pipe, travelingItem.resource, travelingItem.amount);
         }
         travelingItems.clear();
     }
@@ -506,11 +490,11 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void writeClientNbt(CompoundTag tag, RegistryAccess registries) {
-        super.writeClientNbt(tag, registries);
+    public void writeClientData(ValueOutput output) {
+        super.writeClientData(output);
 
         if (!travelingItems.isEmpty()) {
-            var buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), registries, ConnectionType.NEOFORGE);
+            var buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), pipe.getLevel().registryAccess(), ConnectionType.NEOFORGE);
             try {
                 buf.writeInt(travelingItems.size());
                 for (var travelingItem : travelingItems) {
@@ -518,7 +502,7 @@ public class ItemHost extends NodeHost {
                 }
                 byte[] bytes = new byte[buf.readableBytes()];
                 buf.readBytes(bytes);
-                tag.putByteArray("items", bytes);
+                output.store("items", Codec.BYTE_BUFFER, ByteBuffer.wrap(bytes));
             } finally {
                 buf.release();
             }
@@ -526,13 +510,13 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void readClientNbt(CompoundTag tag, RegistryAccess registries) {
-        super.readClientNbt(tag, registries);
+    public void readClientData(ValueInput input) {
+        super.readClientData(input);
 
         clientTravelingItems.clear();
-        byte[] bytes = tag.getByteArray("items");
-        if (bytes.length > 0) {
-            var buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(bytes), registries, ConnectionType.NEOFORGE);
+        var buffer = input.read("items", Codec.BYTE_BUFFER).orElse(ByteBuffer.wrap(new byte[0]));
+        if (buffer.hasRemaining()) {
+            var buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(buffer), pipe.getLevel().registryAccess(), ConnectionType.NEOFORGE);
             try {
                 int count = buf.readInt();
                 for (int i = 0; i < count; i++) {

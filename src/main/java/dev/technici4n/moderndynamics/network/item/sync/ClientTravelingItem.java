@@ -18,12 +18,12 @@
  */
 package dev.technici4n.moderndynamics.network.item.sync;
 
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import net.minecraft.core.Direction;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 public final class ClientTravelingItem {
     public final int id;
-    private final ItemVariant variant;
+    private final ItemResource resource;
     private final int amount;
     public final double totalPathDistance;
     public double traveledDistance;
@@ -32,10 +32,10 @@ public final class ClientTravelingItem {
     final double speed;
     public long lastTick;
 
-    public ClientTravelingItem(int id, ItemVariant variant, int amount, double totalPathDistance, double traveledDistance, Direction in,
+    public ClientTravelingItem(int id, ItemResource resource, int amount, double totalPathDistance, double traveledDistance, Direction in,
             Direction out, double speed) {
         this.id = id;
-        this.variant = variant;
+        this.resource = resource;
         this.amount = amount;
         this.totalPathDistance = totalPathDistance;
         this.traveledDistance = traveledDistance;
@@ -44,8 +44,8 @@ public final class ClientTravelingItem {
         this.speed = speed;
     }
 
-    public ItemVariant variant() {
-        return variant;
+    public ItemResource resource() {
+        return resource;
     }
 
     public int amount() {

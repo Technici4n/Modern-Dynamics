@@ -18,59 +18,51 @@
  */
 package dev.technici4n.moderndynamics.attachment.attached;
 
+import com.mojang.serialization.Codec;
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.gui.menu.AttachmentMenuType;
 import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
-import dev.technici4n.moderndynamics.util.FluidVariant;
+import java.util.List;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import org.jspecify.annotations.Nullable;
 
 // TODO: also allow nbt filtering
 public class FluidAttachedIo extends AttachedIo {
-    private final NonNullList<FluidVariant> filters;
+    private static final Codec<List<FluidResource>> FILTER_LIST_CODEC = FluidResource.OPTIONAL_CODEC.listOf(0, Constants.Upgrades.MAX_FILTER);
+
+    private final NonNullList<FluidResource> filters;
     @Nullable
     private FluidCachedFilter cachedFilter = null;
 
-    public FluidAttachedIo(IoAttachmentItem item, CompoundTag configData, Runnable setChangedCallback, HolderLookup.Provider registries) {
-        super(item, configData, setChangedCallback, registries);
+    public FluidAttachedIo(IoAttachmentItem item, ValueInput configData, Runnable setChangedCallback) {
+        super(item, configData, setChangedCallback);
 
-        this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, FluidVariant.blank());
-        var filterTags = configData.getList("filters", CompoundTag.TAG_COMPOUND);
-        for (int i = 0; i < this.filters.size(); i++) {
-            var filterTag = filterTags.getCompound(i);
-            if (!filterTag.isEmpty()) {
-                this.filters.set(i, FluidVariant.fromNbt(filterTag, registries));
+        this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, FluidResource.EMPTY);
+        configData.read("filters", FILTER_LIST_CODEC).ifPresent(filterList -> {
+            for (int i = 0; i < filterList.size(); i++) {
+                if (i < filters.size()) {
+                    filters.set(i, filterList.get(i));
+                }
             }
-        }
+        });
     }
 
     @Override
-    public CompoundTag writeConfigTag(CompoundTag configData, HolderLookup.Provider registries) {
-        super.writeConfigTag(configData, registries);
-
-        var filterTags = new ListTag();
-        for (FluidVariant filter : this.filters) {
-            if (filter.isBlank()) {
-                filterTags.add(new CompoundTag());
-            } else {
-                filterTags.add(filter.toNbt(registries));
-            }
-        }
-        configData.put("filters", filterTags);
-
-        return configData;
+    public void writeConfigTag(ValueOutput output) {
+        super.writeConfigTag(output);
+        output.store("filters", FILTER_LIST_CODEC, filters);
     }
 
     @Override
@@ -78,23 +70,23 @@ public class FluidAttachedIo extends AttachedIo {
         cachedFilter = null;
     }
 
-    public FluidVariant getFilter(int idx) {
+    public FluidResource getFilter(int idx) {
         return filters.get(idx);
     }
 
-    public void setFilter(int idx, FluidVariant variant) {
-        if (!variant.equals(this.filters.get(idx))) {
-            this.filters.set(idx, variant);
+    public void setFilter(int idx, FluidResource resource) {
+        if (!resource.equals(this.filters.get(idx))) {
+            this.filters.set(idx, resource);
             setChangedCallback.run();
             resetCachedFilter();
         }
     }
 
-    public boolean matchesFilter(FluidVariant variant) {
+    public boolean matchesFilter(FluidResource resource) {
         if (cachedFilter == null) {
             cachedFilter = new FluidCachedFilter(filters.subList(0, getFilterSize()), getFilterInversion());
         }
-        return cachedFilter.matches(variant);
+        return cachedFilter.matches(resource);
     }
 
     public int getFluidMaxIo() {

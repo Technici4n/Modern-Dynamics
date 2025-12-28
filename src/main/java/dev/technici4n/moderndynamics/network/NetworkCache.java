@@ -74,7 +74,7 @@ public abstract class NetworkCache<H extends NodeHost, C extends NetworkCache<H,
             var report = CrashReport.forThrowable(t, "Ticking pipe network");
 
             report.addCategory("Network details")
-                    .setDetail("Level", level.dimension().location())
+                    .setDetail("Level", level.dimension().identifier())
                     .setDetail("Number of nodes", nodes.size());
 
             if (nodes.size() > 0) {

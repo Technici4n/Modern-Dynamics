@@ -20,53 +20,83 @@ package dev.technici4n.moderndynamics.test;
 
 import dev.technici4n.moderndynamics.test.framework.MdGameTestHelper;
 import dev.technici4n.moderndynamics.util.MdId;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import net.minecraft.gametest.framework.GameTestGenerator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Consumer;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.StructureUtils;
-import net.minecraft.gametest.framework.TestFunction;
-import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.minecraft.gametest.framework.TestData;
+import net.minecraft.gametest.framework.TestEnvironmentDefinition;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 
-@GameTestHolder
-public class MdGameTests {
-    private final List<Class<?>> testClasses = List.of(
+public final class MdGameTests {
+    private static final ResourceKey<TestEnvironmentDefinition<?>> TEST_ENVIRONMENT_KEY = ResourceKey.create(Registries.TEST_ENVIRONMENT,
+            MdId.of("environment"));
+
+    private static final Identifier TEST_ENVIRONMENT = MdId.of("environment");
+
+    private static final List<Class<?>> testClasses = List.of(
             FluidTransferTest.class,
             ItemDistributionTest.class,
-            ItemTransferTest.class);
+            ItemTransferTest.class,
+            MachineExtenderTest.class);
 
-    @GameTestGenerator
-    public List<TestFunction> generateTests() {
-        var result = new ArrayList<TestFunction>();
+    private static final Map<Identifier, TestData<ResourceKey<TestEnvironmentDefinition<?>>>> tests = new HashMap<>();
 
+    private MdGameTests() {
+    }
+
+    public static void registerFunctions() {
+        tests.clear();
         for (var testClass : testClasses) {
             for (var testMethod : testClass.getMethods()) {
                 var gametest = testMethod.getDeclaredAnnotation(MdGameTest.class);
                 if (gametest != null) {
-                    result.add(new TestFunction(
-                            gametest.batch(),
-                            MdId.MOD_ID + "." + testMethod.getName().toLowerCase(),
-                            MdId.of("empty").toString(),
-                            StructureUtils.getRotationForRotationSteps(gametest.rotationSteps()),
+                    var testData = new TestData<>(
+                            TEST_ENVIRONMENT_KEY,
+                            MdId.of("empty"),
                             gametest.timeoutTicks(),
                             gametest.setupTicks(),
                             gametest.required(),
+                            StructureUtils.getRotationForRotationSteps(gametest.rotationSteps()),
                             gametest.manualOnly(),
                             gametest.attempts(),
                             gametest.requiredSuccesses(),
-                            gametest.skyAccess(),
-                            gameTestHelper -> {
-                                try {
-                                    var testObject = testClass.getConstructor().newInstance();
-                                    testMethod.invoke(testObject, new MdGameTestHelper(gameTestHelper.testInfo));
-                                } catch (ReflectiveOperationException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }));
+                            gametest.skyAccess());
+                    String methodName = testMethod.getName().replaceAll("([A-Z])", "_$1").toLowerCase(Locale.ROOT);
+                    var testId = MdId.of(methodName);
+                    Consumer<GameTestHelper> function = helper -> {
+                        try {
+                            var testObject = testClass.getConstructor().newInstance();
+                            testMethod.invoke(testObject, new MdGameTestHelper(helper.testInfo));
+                        } catch (ReflectiveOperationException e) {
+                            throw new RuntimeException(e);
+                        }
+                    };
+                    ResourceKey<Consumer<GameTestHelper>> functionKey = ResourceKey.create(Registries.TEST_FUNCTION, testId);
+                    Registry.register(BuiltInRegistries.TEST_FUNCTION, functionKey, function);
+                    tests.put(testId, testData);
                 }
             }
         }
+    }
 
-        return result;
+    public static void registerTests(RegisterGameTestsEvent event) {
+        var environment = event.registerEnvironment(TEST_ENVIRONMENT);
+        for (var entry : tests.entrySet()) {
+            var testId = entry.getKey();
+            ResourceKey<Consumer<GameTestHelper>> functionKey = ResourceKey.create(Registries.TEST_FUNCTION, testId);
+            var realizedTestData = entry.getValue().map(ignored -> environment);
+            event.registerTest(entry.getKey(), new FunctionGameTestInstance(functionKey, realizedTestData));
+        }
     }
 
 }

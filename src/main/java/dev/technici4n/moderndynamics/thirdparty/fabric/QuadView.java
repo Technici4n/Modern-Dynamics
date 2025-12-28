@@ -34,15 +34,15 @@ package dev.technici4n.moderndynamics.thirdparty.fabric;
  */
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.geom.builders.UVPair;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.client.model.quad.BakedColors;
+import net.neoforged.neoforge.client.model.quad.BakedNormals;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Interface for reading quad data encoded by {@link MeshBuilder}. Enables models to do analysis, re-texturing or
@@ -97,6 +97,11 @@ public interface QuadView {
      * Retrieve vertical texture coordinates.
      */
     float v(int vertexIndex);
+
+    /**
+     * Whether this quad should be rendered with diffuse lighting
+     */
+    boolean hasShade();
 
     /**
      * Pass a non-null target to avoid allocation - will be returned with values. Otherwise returns a new instance.
@@ -155,7 +160,6 @@ public interface QuadView {
      * be the block face to which the quad is most closely aligned. Always the same as cull face for quads that are on a
      * block face, but never null.
      */
-    @NotNull
     Direction lightFace();
 
     /**
@@ -210,15 +214,31 @@ public interface QuadView {
      *         retain emissive light maps, for example, but the standard Minecraft renderer will not use them.
      */
     default BakedQuad toBakedQuad(TextureAtlasSprite sprite) {
-        int[] vertexData = new int[VANILLA_QUAD_STRIDE];
-        toVanilla(vertexData, 0);
-        // TODO material inspection: set shade as !disableDiffuse
-        // TODO material inspection: set color index to -1 if the material disables it
-        return new BakedQuad(vertexData, colorIndex(), lightFace(), sprite, true);
+        return new BakedQuad(
+                copyPos(0, null),
+                copyPos(1, null),
+                copyPos(2, null),
+                copyPos(3, null),
+                UVPair.pack(u(0), v(0)),
+                UVPair.pack(u(1), v(1)),
+                UVPair.pack(u(2), v(2)),
+                UVPair.pack(u(3), v(3)),
+                colorIndex(),
+                lightFace(),
+                sprite,
+                hasShade(),
+                0 /* emission */,
+                BakedNormals.of(packedNormal(0), packedNormal(1), packedNormal(2), packedNormal(3)),
+                BakedColors.of(color(0), color(1), color(2), color(3)),
+                false);
     }
 
-    default BakedQuad toBlockBakedQuad() {
-        var finder = SpriteFinder.get(Minecraft.getInstance().getModelManager().getAtlas(TextureAtlas.LOCATION_BLOCKS));
-        return toBakedQuad(finder.find(this));
+    private int packedNormal(int vertexIndex) {
+        var x = normalX(vertexIndex);
+        var y = normalY(vertexIndex);
+        var z = normalZ(vertexIndex);
+        return ((int) (x * 127.0f) & 0xFF) |
+                (((int) (y * 127.0f) & 0xFF) << 8) |
+                (((int) (z * 127.0f) & 0xFF) << 16);
     }
 }

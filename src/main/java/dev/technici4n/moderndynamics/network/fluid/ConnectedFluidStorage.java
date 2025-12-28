@@ -21,18 +21,19 @@ package dev.technici4n.moderndynamics.network.fluid;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
 import java.util.function.Function;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import org.jspecify.annotations.Nullable;
 
 public record ConnectedFluidStorage(
-        IFluidHandler storage,
+        ResourceHandler<FluidResource> storage,
         @Nullable FluidAttachedIo attachment,
         /*
          * Rate-limiting version of storage that takes into account the extractor
          */
-        @Nullable IFluidHandler extractorFilteredStorage) {
+        @Nullable ResourceHandler<FluidResource> extractorFilteredStorage) {
 
-    public static Function<ConnectedFluidStorage, IFluidHandler> filterAttractors(boolean allowAttractors) {
+    public static Function<ConnectedFluidStorage, ResourceHandler<FluidResource>> filterAttractors(boolean allowAttractors) {
         return cfs -> {
             boolean hasAttractor = cfs.attachment() != null && cfs.attachment().getType() == IoAttachmentType.ATTRACTOR;
 

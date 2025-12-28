@@ -1,0 +1,7 @@
+{
+  "model": {
+    "type": "moderndynamics:pipe",
+    "pipeType": "superconductor_cable",
+    "transparent": false
+  }
+}

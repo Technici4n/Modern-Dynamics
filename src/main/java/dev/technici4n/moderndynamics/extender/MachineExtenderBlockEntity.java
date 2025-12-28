@@ -21,17 +21,16 @@ package dev.technici4n.moderndynamics.extender;
 import dev.technici4n.moderndynamics.MdBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.ICapabilityInvalidationListener;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class MachineExtenderBlockEntity extends MdBlockEntity {
     private static int registeredApis = 0;
@@ -50,6 +49,11 @@ public class MachineExtenderBlockEntity extends MdBlockEntity {
         int apiId = registeredApis++;
 
         evt.registerBlockEntity(lookup, bet, (sideExtender, direction) -> {
+            // Generally do not forward requests from below, otherwise the proxied entity might recurse
+            if (direction == Direction.DOWN) {
+                return null;
+            }
+
             var cacheIndex = getCacheIndex(apiId, direction);
             if (sideExtender.inApiQuery[cacheIndex]) {
                 return null;
@@ -103,18 +107,18 @@ public class MachineExtenderBlockEntity extends MdBlockEntity {
     }
 
     @Override
-    public void toTag(CompoundTag tag, HolderLookup.Provider registries) {
+    public void toTag(ValueOutput output) {
     }
 
     @Override
-    public void fromTag(CompoundTag tag, HolderLookup.Provider registries) {
+    public void fromTag(ValueInput input) {
     }
 
     @Override
-    public void toClientTag(CompoundTag tag, RegistryAccess registries) {
+    public void toClientTag(ValueOutput output) {
     }
 
     @Override
-    public void fromClientTag(CompoundTag tag, RegistryAccess registries) {
+    public void fromClientTag(ValueInput input) {
     }
 }

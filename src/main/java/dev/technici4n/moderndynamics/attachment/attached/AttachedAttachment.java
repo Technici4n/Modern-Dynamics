@@ -26,13 +26,13 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
 import java.util.List;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Base interface for an active attachment on a pipe.
@@ -43,7 +43,7 @@ public class AttachedAttachment {
      */
     private final AttachmentItem item;
 
-    public AttachedAttachment(AttachmentItem item, CompoundTag configData) {
+    public AttachedAttachment(AttachmentItem item, ValueInput input) {
         this.item = item;
     }
 
@@ -66,7 +66,7 @@ public class AttachedAttachment {
     }
 
     public Component getDisplayName() {
-        return item.getDescription();
+        return item.getName();
     }
 
     public AttachmentModelData getModelData() {
@@ -83,13 +83,12 @@ public class AttachedAttachment {
      *
      * @return True if an update is needed.
      */
-    public boolean update(CompoundTag data) {
+    public boolean update(ValueInput input) {
         return true;
     }
 
     @MustBeInvokedByOverriders
-    public CompoundTag writeConfigTag(CompoundTag configData, HolderLookup.Provider registries) {
-        return configData;
+    public void writeConfigTag(ValueOutput output) {
     }
 
     public boolean hasMenu() {

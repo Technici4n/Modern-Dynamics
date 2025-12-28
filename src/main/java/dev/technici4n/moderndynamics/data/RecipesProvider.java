@@ -18,80 +18,53 @@
  */
 package dev.technici4n.moderndynamics.data;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.hash.HashCode;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.mojang.serialization.JsonOps;
 import dev.technici4n.moderndynamics.init.MdItems;
-import dev.technici4n.moderndynamics.util.MdId;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.CachedOutput;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
-import net.minecraft.data.recipes.ShapedRecipeBuilder;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.neoforged.neoforge.common.conditions.ICondition;
-import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 
 public class RecipesProvider extends RecipeProvider {
 
-    private static final Gson GSON = new GsonBuilder()
-            .setPrettyPrinting()
-            .create();
-    private final PackOutput packOutput;
-
-    public RecipesProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
-        super(packOutput, registries);
-        this.packOutput = packOutput;
+    public RecipesProvider(HolderLookup.Provider registries, RecipeOutput output) {
+        super(registries, output);
     }
 
     @Override
-    protected void buildRecipes(RecipeOutput exporter) {
-        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.ITEM_PIPE, 8)
+    protected void buildRecipes() {
+        shaped(RecipeCategory.TRANSPORTATION, MdItems.ITEM_PIPE, 8)
                 .pattern("igi")
                 .define('i', Items.IRON_INGOT)
                 .define('g', Items.GLASS)
                 .unlockedBy("has_ingot", has(Items.IRON_INGOT))
-                .save(exporter);
-        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.FLUID_PIPE, 8)
+                .save(output);
+        shaped(RecipeCategory.TRANSPORTATION, MdItems.FLUID_PIPE, 8)
                 .pattern("igi")
                 .define('i', Items.COPPER_INGOT)
                 .define('g', Items.GLASS)
                 .unlockedBy("has_ingot", has(Items.COPPER_INGOT))
-                .save(exporter);
+                .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.INHIBITOR, 4)
+        shaped(RecipeCategory.TRANSPORTATION, MdItems.INHIBITOR, 4)
                 .pattern("mnm")
                 .define('m', Items.IRON_INGOT)
                 .define('n', Items.IRON_NUGGET)
                 .unlockedBy("has_item_pipe", has(MdItems.ITEM_PIPE))
-                .save(exporter);
+                .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, MdItems.WRENCH)
+        shaped(RecipeCategory.TOOLS, MdItems.WRENCH)
                 .pattern(" i ")
                 .pattern("lii")
                 .pattern("il ")
                 .define('i', Items.IRON_INGOT)
                 .define('l', Items.LAPIS_LAZULI)
                 .unlockedBy("has_iron", has(Items.IRON_INGOT))
-                .save(exporter);
+                .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.ATTRACTOR, 1)
+        shaped(RecipeCategory.TRANSPORTATION, MdItems.ATTRACTOR, 1)
                 .pattern(" e ")
                 .pattern("mrm")
                 .pattern(" p ")
@@ -100,9 +73,9 @@ public class RecipesProvider extends RecipeProvider {
                 .define('r', Items.REDSTONE)
                 .define('p', Items.PAPER)
                 .unlockedBy("has_ender_pearl", has(Items.ENDER_PEARL))
-                .save(exporter);
+                .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.EXTRACTOR, 1)
+        shaped(RecipeCategory.TRANSPORTATION, MdItems.EXTRACTOR, 1)
                 .pattern(" h ")
                 .pattern("mrm")
                 .pattern(" p ")
@@ -111,9 +84,9 @@ public class RecipesProvider extends RecipeProvider {
                 .define('r', Items.REDSTONE)
                 .define('p', Items.PAPER)
                 .unlockedBy("has_hopper", has(Items.HOPPER))
-                .save(exporter);
+                .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.FILTER, 1)
+        shaped(RecipeCategory.TRANSPORTATION, MdItems.FILTER, 1)
                 .pattern(" l ")
                 .pattern("mrm")
                 .pattern(" p ")
@@ -122,9 +95,9 @@ public class RecipesProvider extends RecipeProvider {
                 .define('r', Items.REDSTONE)
                 .define('p', Items.PAPER)
                 .unlockedBy("has_lapis", has(Items.LAPIS_LAZULI))
-                .save(exporter);
+                .save(output);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, MdItems.MACHINE_EXTENDER, 4)
+        shaped(RecipeCategory.TRANSPORTATION, MdItems.MACHINE_EXTENDER, 4)
                 .pattern("bbb")
                 .pattern("ibf")
                 .pattern("bbb")
@@ -133,67 +106,22 @@ public class RecipesProvider extends RecipeProvider {
                 .define('f', MdItems.FLUID_PIPE)
                 .unlockedBy("has_item_pipe", has(MdItems.ITEM_PIPE))
                 .unlockedBy("has_fluid_pipe", has(MdItems.FLUID_PIPE))
-                .save(exporter);
+                .save(output);
     }
 
-    @Override
-    public CompletableFuture<?> run(CachedOutput output, HolderLookup.Provider registries) {
-        generateMiCableRecipes(output);
-
-        return super.run(output, registries);
-    }
-
-    private void generateMiCableRecipes(CachedOutput output) {
-        generateMiCableRecipes("lv", "tin_cable", output);
-        generateMiCableRecipes("mv", "electrum_cable", output);
-        generateMiCableRecipes("hv", "aluminum_cable", output);
-        generateMiCableRecipes("ev", "annealed_copper_cable", output);
-        generateMiCableRecipes("superconductor", "superconductor_cable", output);
-    }
-
-    private void generateMiCableRecipes(String cableName, String miCable, CachedOutput output) {
-        String mdCableItemId = MdId.of(cableName + "_cable").toString();
-        String miCableItemId = "modern_industrialization:" + miCable;
-        var condition = new ModLoadedCondition("modern_industrialization");
-        writeRawRecipe(output, MdId.of("cable/%s_from_mi".formatted(cableName)), ImmutableMap.of(
-                "type", getRecipeTypeId(RecipeSerializer.SHAPELESS_RECIPE),
-                "ingredients", List.of(
-                        ImmutableMap.of(
-                                "item", miCableItemId)),
-                "result", ImmutableMap.of(
-                        "id", mdCableItemId,
-                        "count", 4)),
-                condition);
-
-        writeRawRecipe(output, MdId.of("cable/%s_to_mi".formatted(cableName)), ImmutableMap.of(
-                "type", getRecipeTypeId(RecipeSerializer.SHAPED_RECIPE),
-                "pattern", List.of("cc", "cc"),
-                "key", ImmutableMap.of(
-                        "c", ImmutableMap.of("item", mdCableItemId)),
-                "result", ImmutableMap.of(
-                        "id", miCableItemId)),
-                condition);
-    }
-
-    private void writeRawRecipe(CachedOutput output, ResourceLocation id, Map<String, Object> recipe, ICondition... conditions) {
-        var path = recipePathProvider.json(id);
-        var outputFile = packOutput.getOutputFolder(PackOutput.Target.DATA_PACK).resolve(path);
-
-        var jsonObject = (JsonObject) GSON.toJsonTree(recipe);
-        ICondition.writeConditions(JsonOps.INSTANCE, jsonObject, Arrays.asList(conditions));
-
-        var content = GSON.toJson(jsonObject).getBytes(StandardCharsets.UTF_8);
-
-        try {
-            output.writeIfNeeded(outputFile, content, HashCode.fromBytes(content));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+    public static final class Runner extends RecipeProvider.Runner {
+        public Runner(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+            super(output, lookupProvider);
         }
-    }
 
-    private static String getRecipeTypeId(RecipeSerializer<?> serializer) {
-        var serializerId = BuiltInRegistries.RECIPE_SERIALIZER.getKey(serializer);
-        Objects.requireNonNull(serializerId, "Serializer " + serializer + " is unregistered");
-        return serializerId.toString();
+        @Override
+        protected RecipeProvider createRecipeProvider(HolderLookup.Provider lookupProvider, RecipeOutput output) {
+            return new RecipesProvider(lookupProvider, output);
+        }
+
+        @Override
+        public String getName() {
+            return "NeoForge recipes";
+        }
     }
 }

@@ -30,27 +30,25 @@ import dev.technici4n.moderndynamics.network.NetworkNode;
 import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.network.shared.TransferLimits;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
-import dev.technici4n.moderndynamics.util.FluidVariant;
 import java.util.List;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.EmptyFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.transfer.DelegatingResourceHandler;
+import net.neoforged.neoforge.transfer.EmptyResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import org.jspecify.annotations.Nullable;
 
 public class FluidHost extends NodeHost {
     private static final NetworkManager<FluidHost, FluidCache> MANAGER = NetworkManager.get(FluidCache.class, FluidCache::new);
 
-    private FluidVariant variant = FluidVariant.blank();
+    private FluidResource resource = FluidResource.EMPTY;
     private int amount = 0;
     private final TransferLimits extractorLimit = new TransferLimits(side -> {
         if (!(getAttachment(side) instanceof FluidAttachedIo io) || io.getType() != IoAttachmentType.EXTRACTOR) {
@@ -60,9 +58,10 @@ public class FluidHost extends NodeHost {
         return io.getFluidMaxIo();
     }, FluidType.BUCKET_VOLUME);
     // Caps
-    private final IFluidHandler[] caps = new IFluidHandler[6];
-    private final IFluidHandler unsidedCap;
-    private final HostAdjacentCaps<IFluidHandler> adjacentCaps = new HostAdjacentCaps<>(this, Capabilities.FluidHandler.BLOCK);
+    @SuppressWarnings("unchecked")
+    private final ResourceHandler<FluidResource>[] caps = new ResourceHandler[6];
+    private final ResourceHandler<FluidResource> unsidedCap;
+    private final HostAdjacentCaps<ResourceHandler<FluidResource>> adjacentCaps = new HostAdjacentCaps<>(this, Capabilities.Fluid.BLOCK);
 
     public FluidHost(PipeBlockEntity pipe) {
         super(pipe);
@@ -71,24 +70,24 @@ public class FluidHost extends NodeHost {
             var dir = Direction.from3DDataValue(i);
             caps[i] = new FilteringFluidHandler(this::getInternalNetworkStorage) {
                 @Override
-                protected boolean canInsert(FluidVariant resource) {
+                protected boolean canInsert(FluidResource resource) {
                     return canMoveOutsideToNetwork(dir, resource);
                 }
 
                 @Override
-                protected boolean canExtract(FluidVariant resource) {
+                protected boolean canExtract(FluidResource resource) {
                     return canMoveNetworkToOutside(dir, resource);
                 }
             };
         }
         unsidedCap = new FilteringFluidHandler(this::getInternalNetworkStorage) {
             @Override
-            protected boolean canInsert(FluidVariant resource) {
+            protected boolean canInsert(FluidResource resource) {
                 return false;
             }
 
             @Override
-            protected boolean canExtract(FluidVariant resource) {
+            protected boolean canExtract(FluidResource resource) {
                 return false;
             }
         };
@@ -102,7 +101,7 @@ public class FluidHost extends NodeHost {
     @Override
     @Nullable
     public Object getApiInstance(BlockCapability<?, Direction> lookup, @Nullable Direction side) {
-        if (lookup == Capabilities.FluidHandler.BLOCK) {
+        if (lookup == Capabilities.Fluid.BLOCK) {
             if (side == null) {
                 return unsidedCap;
             } else if ((pipe.connectionBlacklist & (1 << side.get3DDataValue())) == 0) {
@@ -116,13 +115,13 @@ public class FluidHost extends NodeHost {
         return amount;
     }
 
-    public FluidVariant getVariant() {
-        return variant;
+    public FluidResource getResource() {
+        return resource;
     }
 
-    public void setContents(FluidVariant variant, int nodeFluid) {
-        if (!variant.equals(this.variant) || nodeFluid != this.amount) {
-            this.variant = variant;
+    public void setContents(FluidResource resource, int nodeFluid) {
+        if (!resource.equals(this.resource) || nodeFluid != this.amount) {
+            this.resource = resource;
             this.amount = nodeFluid;
 
             pipe.setChanged();
@@ -150,13 +149,13 @@ public class FluidHost extends NodeHost {
     }
 
     private boolean hasCompatibleFluid(NodeHost other) {
-        return FluidCache.areCompatible(((FluidHost) other).variant, variant);
+        return FluidCache.areCompatible(((FluidHost) other).resource, resource);
     }
 
     @Override
     public void onConnectedTo(NodeHost other) {
-        if (other instanceof FluidHost fh && !fh.variant.isBlank()) {
-            variant = fh.variant;
+        if (other instanceof FluidHost fh && !fh.resource.isEmpty()) {
+            resource = fh.resource;
             pipe.setChanged();
         }
     }
@@ -181,7 +180,7 @@ public class FluidHost extends NodeHost {
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
                 Direction dir = Direction.from3DDataValue(i);
-                IFluidHandler adjacentCap = adjacentCaps.getCapability(dir);
+                var adjacentCap = adjacentCaps.getCapability(dir);
 
                 if (adjacentCap != null) {
                     if (out != null) {
@@ -191,12 +190,12 @@ public class FluidHost extends NodeHost {
                         } else if (attachment.isEnabledViaRedstone(pipe)) {
                             var filteredStorage = new FilteringFluidHandler(adjacentCap) {
                                 @Override
-                                protected boolean canExtract(FluidVariant resource) {
+                                protected boolean canExtract(FluidResource resource) {
                                     return canMoveOutsideToNetwork(dir, resource);
                                 }
 
                                 @Override
-                                protected boolean canInsert(FluidVariant resource) {
+                                protected boolean canInsert(FluidResource resource) {
                                     return canMoveNetworkToOutside(dir, resource);
                                 }
                             };
@@ -232,133 +231,105 @@ public class FluidHost extends NodeHost {
     }
 
     @Override
-    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        super.writeNbt(tag, registries);
-        tag.putInt("amount", amount);
-        tag.put("variant", variant.toNbt(registries));
+    public void write(ValueOutput output) {
+        super.write(output);
+        output.putInt("amount", amount);
+        output.store("resource", FluidResource.OPTIONAL_CODEC, resource);
     }
 
     @Override
-    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        super.readNbt(tag, registries);
-        variant = FluidVariant.fromNbt(tag.getCompound("variant"), registries);
+    public void read(ValueInput input) {
+        super.read(input);
+        resource = input.read("resource", FluidResource.OPTIONAL_CODEC).orElse(FluidResource.EMPTY);
         // Guard against max changes
-        amount = Math.max(0, Math.min(tag.getInt("amount"), Constants.Fluids.CAPACITY));
-        // Guard against removed variant
-        if (variant.isBlank()) {
+        amount = Math.max(0, Math.min(input.getIntOr("amount", 0), Constants.Fluids.CAPACITY));
+        // Guard against removed resource
+        if (resource.isEmpty()) {
             amount = 0;
         }
     }
 
     @Override
-    public void writeClientNbt(CompoundTag tag, RegistryAccess registries) {
-        super.writeClientNbt(tag, registries);
-        tag.putInt("amount", amount);
-        tag.put("variant", variant.toNbt(registries));
+    public void writeClientData(ValueOutput output) {
+        super.writeClientData(output);
+        output.putInt("amount", amount);
+        output.store("resource", FluidResource.OPTIONAL_CODEC, resource);
     }
 
     @Override
-    public void readClientNbt(CompoundTag tag, RegistryAccess registries) {
-        super.readClientNbt(tag, registries);
-        variant = FluidVariant.fromNbt(tag.getCompound("variant"), registries);
-        amount = tag.getInt("amount");
+    public void readClientData(ValueInput input) {
+        super.readClientData(input);
+        resource = input.read("resource", FluidResource.OPTIONAL_CODEC).orElse(FluidResource.EMPTY);
+        amount = input.getIntOr("amount", 0);
     }
 
-    private boolean canMoveNetworkToOutside(Direction side, FluidVariant variant) {
+    private boolean canMoveNetworkToOutside(Direction side, FluidResource resource) {
         if (getAttachment(side) instanceof FluidAttachedIo io) {
-            return io.matchesFilter(variant) && io.isEnabledViaRedstone(pipe) && io.getType() != IoAttachmentType.EXTRACTOR;
+            return io.matchesFilter(resource) && io.isEnabledViaRedstone(pipe) && io.getType() != IoAttachmentType.EXTRACTOR;
         }
         return true;
     }
 
-    private boolean canMoveOutsideToNetwork(Direction side, FluidVariant variant) {
+    private boolean canMoveOutsideToNetwork(Direction side, FluidResource resource) {
         if (getAttachment(side) instanceof FluidAttachedIo io) {
-            return io.matchesFilter(variant) && io.isEnabledViaRedstone(pipe) && io.getType() != IoAttachmentType.ATTRACTOR;
+            return io.matchesFilter(resource) && io.isEnabledViaRedstone(pipe) && io.getType() != IoAttachmentType.ATTRACTOR;
         }
         return true;
     }
 
-    private IFluidHandler getInternalNetworkStorage() {
+    private ResourceHandler<FluidResource> getInternalNetworkStorage() {
         NetworkNode<FluidHost, FluidCache> node = findNode();
 
         if (node != null && node.getHost() == FluidHost.this) {
             return node.getNetworkCache().getOrCreateStorage();
         } else {
-            return EmptyFluidHandler.INSTANCE;
+            return EmptyResourceHandler.instance();
         }
     }
 
     /**
      * Wrapper of a storage that's behind an extractor. Only used for extraction. Used to rate limit the extractor.
      */
-    private class ExtractorStorage implements IFluidHandler {
+    private class ExtractorStorage extends DelegatingResourceHandler<FluidResource> {
         private final int directionId;
-        private final IFluidHandler delegate;
 
-        ExtractorStorage(IFluidHandler delegate, int directionId) {
-            this.delegate = delegate;
+        ExtractorStorage(ResourceHandler<FluidResource> delegate, int directionId) {
+            super(delegate);
             this.directionId = directionId;
         }
 
         @Override
-        public int getTanks() {
-            return delegate.getTanks();
-        }
-
-        @Override
-        public @NotNull FluidStack getFluidInTank(int tank) {
-            return delegate.getFluidInTank(tank);
-        }
-
-        @Override
-        public int getTankCapacity(int tank) {
-            return delegate.getTankCapacity(tank);
-        }
-
-        @Override
-        public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
-            return delegate.isFluidValid(tank, stack);
-        }
-
-        @Override
-        public int fill(FluidStack resource, FluidAction action) {
+        public int insert(int index, FluidResource resource, int amount, TransactionContext tx) {
             throw new UnsupportedOperationException("Should not be used to insert, only to extract!");
         }
 
         @Override
-        public @NotNull FluidStack drain(FluidStack resource, FluidAction action) {
-            var maxAmount = extractorLimit.limit(directionId, resource.getAmount());
-            if (maxAmount <= 0)
-                return FluidStack.EMPTY;
-            if (maxAmount != resource.getAmount()) {
-                resource = resource.copy();
-                resource.setAmount(maxAmount);
-            }
-
-            var transferred = delegate.drain(resource, action);
-            if (action.execute()) {
-                extractorLimit.use(directionId, transferred.getAmount());
-            }
-            return transferred;
+        public int insert(FluidResource resource, int amount, TransactionContext tx) {
+            throw new UnsupportedOperationException("Should not be used to insert, only to extract!");
         }
 
         @Override
-        public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
-            maxDrain = extractorLimit.limit(directionId, maxDrain);
-            if (maxDrain <= 0)
-                return FluidStack.EMPTY;
-
-            var transferred = delegate.drain(maxDrain, action);
-            if (action.execute()) {
-                extractorLimit.use(directionId, transferred.getAmount());
+        public int extract(int index, FluidResource resource, int amount, TransactionContext tx) {
+            amount = extractorLimit.limit(directionId, amount);
+            if (amount <= 0) {
+                return 0;
             }
-            return transferred;
+            var extracted = super.extract(index, resource, amount, tx);
+            extractorLimit.updateSnapshots(tx);
+            extractorLimit.use(directionId, extracted);
+            return extracted;
         }
-    }
 
-    private class SingleTank extends FluidTank {
-        public SingleTank(int capacity) {
-            super(capacity);
+        @Override
+        public int extract(FluidResource resource, int amount, TransactionContext tx) {
+            amount = extractorLimit.limit(directionId, amount);
+            if (amount <= 0) {
+                return 0;
+            }
+            var extracted = super.extract(resource, amount, tx);
+            extractorLimit.updateSnapshots(tx);
+            extractorLimit.use(directionId, extracted);
+            return extracted;
         }
     }
 }

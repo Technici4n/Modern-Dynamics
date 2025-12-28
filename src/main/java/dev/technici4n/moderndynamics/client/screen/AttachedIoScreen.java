@@ -18,9 +18,9 @@
  */
 package dev.technici4n.moderndynamics.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
+import dev.technici4n.moderndynamics.client.compat.RecipeViewer;
 import dev.technici4n.moderndynamics.gui.menu.AttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.ConfigSlot;
 import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
@@ -34,14 +34,19 @@ import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
@@ -59,10 +64,10 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
      */
     private static final int TAB_BORDER = 4;
 
-    private static final float TAB_OPEN_PER_TICK = 0.20f;
+    private static final float TAB_OPEN_PER_TICK = 0.25f;
 
-    public static final ResourceLocation TEXTURE = MdId.of("textures/gui/attachment.png");
-    public static final ResourceLocation TAB_RIGHT_TEXTURE = MdId.of("textures/gui/tab_right.png");
+    public static final Identifier TEXTURE = MdId.of("textures/gui/attachment.png");
+    public static final Identifier TAB_RIGHT_TEXTURE = MdId.of("tab_right");
 
     private boolean redstoneTabOpen;
     private float redstoneTabCurrentOpen;
@@ -73,18 +78,28 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
     private final RedstoneModeButton redstoneModeHigh;
     private final List<RedstoneModeButton> redstoneButtons;
 
+    private final boolean showUpgradesButtonEnabled;
+    private ScreenRectangle upgradePanelBounds;
+
     public AttachedIoScreen(T abstractContainerMenu, Inventory inventory, Component component) {
-        super(abstractContainerMenu, inventory, component);
+        this(abstractContainerMenu, inventory, component, 176, 166);
+    }
+
+    public AttachedIoScreen(T abstractContainerMenu, Inventory inventory, Component component, int imageWidth, int imageHeight) {
+        super(abstractContainerMenu, inventory, component, imageWidth, imageHeight);
 
         this.redstoneModeIgnored = new RedstoneModeButton(RedstoneMode.IGNORED, menu::getRedstoneMode, menu::setRedstoneMode);
         this.redstoneModeLow = new RedstoneModeButton(RedstoneMode.REQUIRES_LOW, menu::getRedstoneMode, menu::setRedstoneMode);
         this.redstoneModeHigh = new RedstoneModeButton(RedstoneMode.REQUIRES_HIGH, menu::getRedstoneMode, menu::setRedstoneMode);
         this.redstoneButtons = List.of(this.redstoneModeIgnored, this.redstoneModeLow, this.redstoneModeHigh);
+        this.showUpgradesButtonEnabled = RecipeViewer.current().canShowUpgradeRecipes();
     }
 
     @Override
     protected void init() {
         super.init();
+
+        this.upgradePanelBounds = UpgradePanel.getRect(leftPos, topPos, showUpgradesButtonEnabled);
 
         // Center the title
         titleLabelX = (imageWidth - font.width(title)) / 2;
@@ -119,6 +134,14 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
 
         // After the buttons, add a handler for opening and closing the tab
         addRenderableWidget(new RedstoneTabOpenCloseHandler());
+
+        if (showUpgradesButtonEnabled) {
+            addRenderableWidget(Button.builder(Component.literal("?"), _ -> {
+                RecipeViewer.current().showUpgradeRecipes();
+            })
+                    .bounds(upgradePanelBounds.left() + 7, upgradePanelBounds.bottom() - 19, 14, 14)
+                    .build());
+        }
     }
 
     @Override
@@ -130,7 +153,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
     @Override
     protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         if (hoveredSlot != null && !hoveredSlot.hasItem() && hoveredSlot instanceof UpgradeSlot) {
-            guiGraphics.renderTooltip(font, List.of(
+            guiGraphics.setTooltipForNextFrame(font, List.of(
                     Component.translatable("gui.moderndynamics.tooltip.slot.upgrade"),
                     Component.translatable("gui.moderndynamics.tooltip.slot.upgrade_desc1").withStyle(ChatFormatting.GOLD),
                     Component.translatable("gui.moderndynamics.tooltip.slot.upgrade_desc2").withStyle(ChatFormatting.GOLD)),
@@ -141,18 +164,18 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
     }
 
     @Override
-    public void renderSlot(GuiGraphics guiGraphics, Slot slot) {
+    public void renderSlot(GuiGraphics guiGraphics, Slot slot, int mouseX, int mouseY) {
         // Skip disabled slots
         if (slot instanceof ConfigSlot<?> configSlot && !configSlot.isActive()) {
             return;
         }
         if (slot instanceof FluidConfigSlot fluidConfigSlot) {
-            var variant = fluidConfigSlot.getFilter();
-            if (!variant.isBlank()) {
+            var resource = fluidConfigSlot.getFilter();
+            if (!resource.isEmpty()) {
                 FluidAttachedIoScreen.drawFluidInGui(guiGraphics, fluidConfigSlot.getFilter(), slot.x, slot.y);
             }
         } else {
-            super.renderSlot(guiGraphics, slot);
+            super.renderSlot(guiGraphics, slot, mouseX, mouseY);
         }
     }
 
@@ -167,29 +190,32 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         renderRedstoneTabBg(guiGraphics, partialTick);
 
         // Background
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
 
         // Upgrade panel background
         guiGraphics.blit(
+                RenderPipelines.GUI_TEXTURED,
                 TEXTURE,
-                leftPos + UpgradePanel.START_LEFT, topPos + UpgradePanel.START_TOP,
+                upgradePanelBounds.left(), upgradePanelBounds.top(),
                 0, 0,
-                UpgradePanel.WIDTH, UpgradePanel.HEIGHT - 5);
-        // Render last 5 rows with a different offset to have a proper corner
+                upgradePanelBounds.width(), upgradePanelBounds.height() - 5,
+                256, 256);
         guiGraphics.blit(
+                RenderPipelines.GUI_TEXTURED,
                 TEXTURE,
-                leftPos + UpgradePanel.START_LEFT, topPos + UpgradePanel.START_TOP + UpgradePanel.HEIGHT - 5,
+                upgradePanelBounds.left(), upgradePanelBounds.bottom() - 5,
                 0, 199,
-                UpgradePanel.WIDTH, 5);
+                upgradePanelBounds.width(), 5,
+                256, 256);
 
         // Draw each slot's background
         for (Slot slot : getMenu().slots) {
             if (slot instanceof ConfigSlot || slot instanceof UpgradeSlot) {
                 if (slot instanceof ConfigSlot<?> cfg && !cfg.isActive()) {
                     // Disabled slot
-                    guiGraphics.blit(TEXTURE, leftPos + slot.x - 1, topPos + slot.y - 1, 216, 162, 18, 18);
+                    guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + slot.x - 1, topPos + slot.y - 1, 216, 162, 18, 18, 256, 256);
                 } else {
-                    guiGraphics.blit(TEXTURE, leftPos + slot.x - 1, topPos + slot.y - 1, 7, 122, 18, 18);
+                    guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + slot.x - 1, topPos + slot.y - 1, 7, 122, 18, 18, 256, 256);
                 }
             }
         }
@@ -199,48 +225,17 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
 
         updateRedstoneTabRect(partialTicks);
 
-        RenderSystem.setShaderColor(0.81f, 0.14f, 0.04f, 1.0f);
-
-        // The background image is treated as a border image,
-        // for context see https://developer.mozilla.org/en-US/docs/Web/CSS/border-image
-        // The border is assumed to be 4 PX
-
         var tabX = redstoneTabRect.getX();
         var tabY = redstoneTabRect.getY();
         var tabWidth = redstoneTabRect.getWidth();
         var tabHeight = redstoneTabRect.getHeight();
 
-        var tabRight = tabX + tabWidth;
-        var tabBottom = tabY + tabHeight;
+        var color = ARGB.colorFromFloat(1.0f, 0.81f, 0.14f, 0.04f);
 
-        // Draw all four corners clock-wise starting from top-left
-        guiGraphics.blit(TAB_RIGHT_TEXTURE, tabX, tabY, 0, 0, TAB_BORDER, TAB_BORDER);
-        guiGraphics.blit(TAB_RIGHT_TEXTURE, tabRight - TAB_BORDER, tabY, 256 - TAB_BORDER, 0, TAB_BORDER, TAB_BORDER);
-        guiGraphics.blit(TAB_RIGHT_TEXTURE, tabRight - TAB_BORDER, tabBottom - TAB_BORDER, 256 - TAB_BORDER, 256 - TAB_BORDER, TAB_BORDER,
-                TAB_BORDER);
-        guiGraphics.blit(TAB_RIGHT_TEXTURE, tabX, tabBottom - TAB_BORDER, 0, 256 - TAB_BORDER, TAB_BORDER, TAB_BORDER);
-
-        // Draw the borders between the corners in the same order
-        guiGraphics.blit(TAB_RIGHT_TEXTURE, tabX + TAB_BORDER, tabY, tabWidth - 2 * TAB_BORDER, TAB_BORDER, TAB_BORDER, 0, 256 - 2 * TAB_BORDER,
-                TAB_BORDER, 256, 256);
-        guiGraphics.blit(TAB_RIGHT_TEXTURE, tabRight - TAB_BORDER, tabY + TAB_BORDER, TAB_BORDER, tabHeight - 2 * TAB_BORDER, 256 - TAB_BORDER,
-                TAB_BORDER, TAB_BORDER,
-                256 - 2 * TAB_BORDER, 256, 256);
-        guiGraphics.blit(TAB_RIGHT_TEXTURE, tabX + TAB_BORDER, tabBottom - TAB_BORDER, tabWidth - 2 * TAB_BORDER, TAB_BORDER, TAB_BORDER,
-                256 - TAB_BORDER,
-                256 - 2 * TAB_BORDER, TAB_BORDER, 256, 256);
-        guiGraphics.blit(TAB_RIGHT_TEXTURE, tabX, tabY + TAB_BORDER, TAB_BORDER, tabHeight - 2 * TAB_BORDER, 0, TAB_BORDER, TAB_BORDER,
-                256 - 2 * TAB_BORDER, 256, 256);
-
-        // Center
-        guiGraphics.blit(TAB_RIGHT_TEXTURE, tabX + TAB_BORDER, tabY + TAB_BORDER, TAB_BORDER, TAB_BORDER, tabWidth - 2 * TAB_BORDER,
-                tabHeight - 2 * TAB_BORDER);
-
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX, tabY, tabWidth, tabHeight, color);
 
         var scissorRect = getRedstoneTabScissorRect();
-        RenderSystem.enableScissor(
-                scissorRect.getX(), scissorRect.getY(), scissorRect.getWidth(), scissorRect.getHeight());
+        guiGraphics.enableScissor(scissorRect.left(), scissorRect.top(), scissorRect.right(), scissorRect.bottom());
         // Tell the buttons the scissor rect since they need to be cut off too
         redstoneModeIgnored.setScissorRect(scissorRect);
         redstoneModeLow.setScissorRect(scissorRect);
@@ -261,30 +256,30 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
                 tabY + 3);
 
         var header = Component.translatable("gui.moderndynamics.setting.redstone_control.header");
-        guiGraphics.drawString(font, header, tabX + TAB_BORDER + 16, tabY + TAB_BORDER + 4, 0xe1c92f);
+        guiGraphics.drawString(font, header, tabX + TAB_BORDER + 16, tabY + TAB_BORDER + 4, 0xffe1c92f);
 
         /* Draw a sub-header that indicates whether the attachment is currently operating based on the status or not */
         var subHeaderStatus = Component.translatable("gui.moderndynamics.setting.redstone_control.status_header");
-        guiGraphics.drawString(font, subHeaderStatus, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 42, 0xaaafb8);
+        guiGraphics.drawString(font, subHeaderStatus, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 42, 0xffaaafb8);
         Component enabledStatusText;
         if (menu.isEnabledViaRedstone()) {
             enabledStatusText = Component.translatable("gui.moderndynamics.setting.redstone_control.enabled");
         } else {
             enabledStatusText = Component.translatable("gui.moderndynamics.setting.redstone_control.disabled");
         }
-        guiGraphics.drawString(font, enabledStatusText, tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 54, 0, false);
+        guiGraphics.drawString(font, enabledStatusText, tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 54, 0xff000000, false);
 
         /* Draw a sub-header that simply spells out the currently chosen redstone mode again */
         var subHeaderSetting = Component.translatable("gui.moderndynamics.setting.redstone_control.signal_required_header");
-        guiGraphics.drawString(font, subHeaderSetting, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 66, 0xaaafb8);
-        guiGraphics.drawString(font, menu.getRedstoneMode().getTranslation(), tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 78, 0, false);
+        guiGraphics.drawString(font, subHeaderSetting, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 66, 0xffaaafb8);
+        guiGraphics.drawString(font, menu.getRedstoneMode().getTranslation(), tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 78, 0xff000000, false);
 
-        RenderSystem.disableScissor();
+        guiGraphics.disableScissor();
     }
 
     public void appendExclusionZones(Consumer<Rect2i> consumer) {
         // Upgrades
-        consumer.accept(new Rect2i(leftPos + UpgradePanel.START_LEFT, topPos + UpgradePanel.START_TOP, UpgradePanel.WIDTH, UpgradePanel.HEIGHT));
+        consumer.accept(new Rect2i(upgradePanelBounds.left(), upgradePanelBounds.top(), upgradePanelBounds.width(), upgradePanelBounds.height()));
         // Redstone tab
         consumer.accept(redstoneTabRect);
     }
@@ -309,17 +304,14 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         }
     }
 
-    private Rect2i getRedstoneTabScissorRect() {
+    private ScreenRectangle getRedstoneTabScissorRect() {
         var tabRect = redstoneTabRect;
 
-        // Scissor rect is in physical window coordinates not the rescaled UI space
-        double scale = this.minecraft.getWindow().getGuiScale();
-        return new Rect2i(
-                (int) ((tabRect.getX() + TAB_BORDER) * scale),
-                // glScissor has y=0 at the bottom of the screen
-                (int) ((height - (tabRect.getY() + tabRect.getHeight() - TAB_BORDER)) * scale),
-                (int) ((tabRect.getWidth() - 2 * TAB_BORDER) * scale),
-                (int) ((tabRect.getHeight() - 2 * TAB_BORDER) * scale));
+        return new ScreenRectangle(
+                tabRect.getX() + TAB_BORDER,
+                tabRect.getY() + TAB_BORDER,
+                tabRect.getWidth() - 2 * TAB_BORDER,
+                tabRect.getHeight() - 2 * TAB_BORDER);
     }
 
     private float getCurrentRedstoneTabOpen(float partialTicks) {
@@ -354,12 +346,13 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         updateRedstoneTabRect(0);
     }
 
-    protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop, int mouseButton) {
-        if (!super.hasClickedOutside(mouseX, mouseY, guiLeft, guiTop, mouseButton)) {
+    @Override
+    protected boolean hasClickedOutside(double mx, double my, int xo, int yo) {
+        if (!super.hasClickedOutside(mx, my, xo, yo)) {
             return false;
         }
 
-        return !UpgradePanel.isInside(mouseX - leftPos, mouseY - topPos) && !isInRedstoneTabRect(mouseX, mouseY);
+        return !upgradePanelBounds.containsPoint((int) mx, (int) my) && !isInRedstoneTabRect(mx, my);
     }
 
     private boolean isInRedstoneTabRect(double mouseX, double mouseY) {
@@ -371,12 +364,17 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
 
     private class RedstoneTabOpenCloseHandler implements GuiEventListener, NarratableEntry, Renderable {
         @Override
-        public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            if (isInRedstoneTabRect(mouseX, mouseY) && button == 0) {
+        public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+            if (isInRedstoneTabRect(event.x(), event.y()) && event.button() == 0) {
                 redstoneTabOpen = !redstoneTabOpen;
                 return true;
             }
             return false;
+        }
+
+        @Override
+        public boolean isMouseOver(double mouseX, double mouseY) {
+            return isInRedstoneTabRect(mouseX, mouseY);
         }
 
         @Override
@@ -406,7 +404,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
                         menu.getRedstoneMode().getTranslation()
                                 .copy()
                                 .withStyle(ChatFormatting.YELLOW));
-                guiGraphics.renderComponentTooltip(font, lines, mouseX, mouseY);
+                guiGraphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
             }
         }
     }

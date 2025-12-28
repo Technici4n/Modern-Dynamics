@@ -20,19 +20,20 @@ package dev.technici4n.moderndynamics.network.item;
 
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItem;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.concurrent.atomic.AtomicInteger;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 public class TravelingItem {
     private static final AtomicInteger NEXT_ID = new AtomicInteger();
 
     public final int id = NEXT_ID.getAndIncrement();
-    public final ItemVariant variant;
+    public final ItemResource resource;
     public final int amount;
     public final ItemPath path;
     public final FailedInsertStrategy strategy;
@@ -40,13 +41,13 @@ public class TravelingItem {
     public double traveledDistance;
     public long lastTick;
 
-    public TravelingItem(ItemVariant variant, int amount, ItemPath path, FailedInsertStrategy strategy, double speedMultiplier,
+    public TravelingItem(ItemResource resource, int amount, ItemPath path, FailedInsertStrategy strategy, double speedMultiplier,
             double traveledDistance) {
         if (speedMultiplier < 0.5) {
             // Upgrade path from before the speed multiplier was added.
             speedMultiplier = 0.5;
         }
-        this.variant = variant;
+        this.resource = resource;
         this.amount = amount;
         this.path = path;
         this.strategy = strategy;
@@ -65,35 +66,33 @@ public class TravelingItem {
         return speedMultiplier * Constants.Items.SPEED_IN_PIPES;
     }
 
-    public CompoundTag toNbt(HolderLookup.Provider registries) {
-        CompoundTag nbt = new CompoundTag();
-        nbt.put("v", variant.toNbt(registries));
-        nbt.putInt("a", amount);
-        nbt.put("start", SerializationHelper.posToNbt(path.startingPos));
-        nbt.put("end", SerializationHelper.posToNbt(path.targetPos));
-        nbt.putString("path", SerializationHelper.encodePath(path.path));
-        nbt.putDouble("speedMultiplier", speedMultiplier);
-        nbt.putString("strategy", strategy.getSerializedName());
-        nbt.putDouble("d", traveledDistance);
-        return nbt;
+    public void write(ValueOutput output) {
+        output.store("r", ItemResource.OPTIONAL_CODEC, resource);
+        output.putInt("a", amount);
+        output.store("start", BlockPos.CODEC, path.startingPos);
+        output.store("end", BlockPos.CODEC, path.targetPos);
+        output.putString("path", SerializationHelper.encodePath(path.path));
+        output.putDouble("speedMultiplier", speedMultiplier);
+        output.putString("strategy", strategy.getSerializedName());
+        output.putDouble("d", traveledDistance);
     }
 
-    public static TravelingItem fromNbt(CompoundTag nbt, HolderLookup.Provider registries) {
+    public static TravelingItem read(ValueInput input) {
         return new TravelingItem(
-                ItemVariant.fromNbt(nbt.getCompound("v"), registries),
-                nbt.getInt("a"),
+                input.read("r", ItemResource.OPTIONAL_CODEC).orElse(ItemResource.EMPTY),
+                input.getIntOr("a", 0),
                 new ItemPath(
-                        SerializationHelper.posFromNbt(nbt.getCompound("start")),
-                        SerializationHelper.posFromNbt(nbt.getCompound("end")),
-                        SerializationHelper.decodePath(nbt.getString("path"))),
-                FailedInsertStrategy.bySerializedName(nbt.getString("strategy")),
-                nbt.getDouble("speedMultiplier"),
-                nbt.getDouble("d"));
+                        input.read("start", BlockPos.CODEC).orElse(BlockPos.ZERO),
+                        input.read("end", BlockPos.CODEC).orElse(BlockPos.ZERO),
+                        SerializationHelper.decodePath(input.getStringOr("path", ""))),
+                FailedInsertStrategy.bySerializedName(input.getStringOr("strategy", "")),
+                input.getDoubleOr("speedMultiplier", 0),
+                input.getDoubleOr("d", 0));
     }
 
     void writeClient(RegistryFriendlyByteBuf buf) {
         buf.writeInt(id);
-        ItemVariant.STREAM_CODEC.encode(buf, variant);
+        ItemResource.STREAM_CODEC.encode(buf, resource);
         buf.writeInt(amount);
         buf.writeDouble(getPathLength() - 1);
         buf.writeDouble(traveledDistance);
@@ -106,7 +105,7 @@ public class TravelingItem {
     static ClientTravelingItem readClient(RegistryFriendlyByteBuf buf) {
         return new ClientTravelingItem(
                 buf.readInt(),
-                ItemVariant.STREAM_CODEC.decode(buf),
+                ItemResource.STREAM_CODEC.decode(buf),
                 buf.readInt(),
                 buf.readDouble(),
                 buf.readDouble(),

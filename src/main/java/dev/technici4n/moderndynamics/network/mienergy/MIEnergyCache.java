@@ -25,7 +25,7 @@ import dev.technici4n.moderndynamics.network.energy.EnergyCache;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.server.level.ServerLevel;
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
 public class MIEnergyCache extends NetworkCache<MIEnergyHost, MIEnergyCache> {
     private long energy = 0;
@@ -65,7 +65,7 @@ public class MIEnergyCache extends NetworkCache<MIEnergyHost, MIEnergyCache> {
         combine();
 
         // Gather inventory connections
-        List<IEnergyStorage> storages = new ArrayList<>();
+        List<EnergyHandler> storages = new ArrayList<>();
 
         for (var node : nodes) {
             if (node.getHost().isTicking()) {
@@ -77,9 +77,9 @@ public class MIEnergyCache extends NetworkCache<MIEnergyHost, MIEnergyCache> {
 
         // tier.getMax() is an int and energy is unsigned, so casting to (int) is safe
         // Extract
-        energy += EnergyCache.transferForTargets(IEnergyStorage::extractEnergy, storages, (int) Math.min(maxEnergy - energy, tier.getMax()));
+        energy += EnergyCache.transferForTargets(EnergyHandler::extract, storages, (int) Math.min(maxEnergy - energy, tier.getMax()));
         // Insert
-        energy -= EnergyCache.transferForTargets(IEnergyStorage::receiveEnergy, storages, (int) Math.min(energy, tier.getMax()));
+        energy -= EnergyCache.transferForTargets(EnergyHandler::insert, storages, (int) Math.min(energy, tier.getMax()));
     }
 
     // Energy is unsigned. Hence we handle only one case of satured addition (same sign)

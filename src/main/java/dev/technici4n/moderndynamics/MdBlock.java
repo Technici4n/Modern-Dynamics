@@ -26,16 +26,14 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class MdBlock extends Block implements EntityBlock {
 
-    public final String id;
     private BlockEntityType<PipeBlockEntity> blockEntityType;
 
-    public MdBlock(String id, Properties properties) {
+    public MdBlock(Properties properties) {
         super(properties);
-        this.id = id;
     }
 
     @Nullable

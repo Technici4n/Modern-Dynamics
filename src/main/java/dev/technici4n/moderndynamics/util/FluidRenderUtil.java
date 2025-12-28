@@ -18,34 +18,64 @@
  */
 package dev.technici4n.moderndynamics.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.data.AtlasIds;
+import net.minecraft.network.chat.Component;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 public final class FluidRenderUtil {
     private FluidRenderUtil() {
     }
 
-    public static TextureAtlasSprite getStillSprite(FluidVariant variant) {
-        if (variant.isBlank()) {
+    public static TextureAtlasSprite getStillSprite(FluidResource resource) {
+        if (resource.isEmpty()) {
             return null;
         }
 
-        var renderProps = IClientFluidTypeExtensions.of(variant.getFluid());
-        var stack = variant.toStack(1);
+        var renderProps = IClientFluidTypeExtensions.of(resource.getFluid());
+        var stack = resource.toStack(1);
         var texture = renderProps.getStillTexture(stack);
         if (texture == null) {
             return null;
         }
 
-        var atlas = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS);
-        return atlas.apply(texture);
+        return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(texture);
     }
 
-    public static int getTint(FluidVariant variant) {
-        var renderProps = IClientFluidTypeExtensions.of(variant.getFluid());
-        var stack = variant.toStack(1);
+    public static int getTint(FluidResource resource) {
+        var renderProps = IClientFluidTypeExtensions.of(resource.getFluid());
+        var stack = resource.toStack(1);
         return renderProps.getTintColor(stack);
+    }
+
+    public static List<Component> getTooltip(FluidResource resource) {
+        var tooltip = new ArrayList<Component>();
+        tooltip.add(resource.toStack(1).getHoverName());
+
+        var modId = BuiltInRegistries.FLUID.getKey(resource.getFluid()).getNamespace();
+
+        // Heuristic: If the last line doesn't include the modname, add it ourselves
+        var modName = formatModName(modId);
+        if (tooltip.isEmpty() || !tooltip.get(tooltip.size() - 1).getString().equals(modName)) {
+            tooltip.add(Component.literal(modName));
+        }
+
+        return tooltip;
+    }
+
+    private static String formatModName(String modId) {
+        return "" + ChatFormatting.BLUE + ChatFormatting.ITALIC + getModName(modId);
+    }
+
+    private static String getModName(String modId) {
+        return ModList.get().getModContainerById(modId).map(mc -> mc.getModInfo().getDisplayName())
+                .orElse(modId);
     }
 }
