@@ -23,7 +23,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.Containers;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -83,7 +82,7 @@ public class MachineExtenderBlock extends MdBlock {
                 sideExtender.inNeighborUpdate = true;
 
                 try {
-                    sideExtender.getLevel().updateNeighborsAtExceptFromFacing(pos, this, Direction.DOWN, orientation);
+                    level.updateNeighborsAtExceptFromFacing(pos, this, Direction.DOWN, orientation);
                 } finally {
                     sideExtender.inNeighborUpdate = false;
                 }
@@ -94,38 +93,8 @@ public class MachineExtenderBlock extends MdBlock {
 
     @Override
     public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighbor) {
-        if (pos.below().equals(neighbor) && level instanceof Level actualLevel) {
+        if (pos.below().equals(neighbor) && level instanceof ServerLevel actualLevel) {
             actualLevel.updateNeighborsAtExceptFromFacing(pos, this, Direction.DOWN, null);
         }
-    }
-
-    @Override
-    protected boolean hasAnalogOutputSignal(BlockState state) {
-        return true;
-    }
-
-    @Override
-    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
-        if (direction == Direction.DOWN || SIGNAL_FORWARDING.isBound()) {
-            return 0;
-        }
-
-        // Seek to the first non-extender below
-        var below = pos.below();
-        while (below.getY() > 0 && level.getBlockState(below).is(this)) {
-            below = below.below();
-        }
-
-        // Ensure we don't get recursively called
-        var source = below;
-        return ScopedValue.where(SIGNAL_FORWARDING, null).call(() -> {
-            return level.getBlockState(source).getAnalogOutputSignal(level, source, Direction.UP);
-        });
-    }
-
-    @Override
-    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
-        // This mirrors what ChestBlock does
-        Containers.updateNeighboursAfterDestroy(state, level, pos);
     }
 }
