@@ -98,7 +98,7 @@ public final class MdBlockEntities {
      * MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE);
      * public static final BlockEntityType<PipeBlockEntity> CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE = register(NyiPipeBlockEntity::new,
      * MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE);
-     * 
+     *
      * public static final BlockEntityType<PipeBlockEntity> BASIC_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.BASIC, MdBlocks.BASIC_ENERGY_PIPE);
      * public static final BlockEntityType<PipeBlockEntity> IMPROVED_ENERGY_PIPE = createEnergyPipe(EnergyPipeTier.IMPROVED,
      * MdBlocks.IMPROVED_ENERGY_PIPE);

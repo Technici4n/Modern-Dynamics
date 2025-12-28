@@ -1,7 +1,7 @@
 plugins {
     id 'net.neoforged.moddev'
     id 'maven-publish'
-    id 'com.diffplug.spotless'
+    id 'dev.lukebemish.immaculate'
     id 'com.matthewprenger.cursegradle'
     id "com.modrinth.minotaur"
 }
@@ -202,61 +202,53 @@ publishing {
     }
 }
 
-spotless {
-    format 'misc', {
-        target '*.gradle', '*.md', '.gitignore'
-
-        trimTrailingWhitespace()
-        indentWithSpaces()
-        endWithNewline()
-    }
-    java {
-        importOrder()
-
-        removeUnusedImports()
-
-        eclipse().configFile('eclipse-format.xml')
-
-        indentWithSpaces()
-        endWithNewline()
-        licenseHeaderFile 'license_header.java'
-    }
-    format 'json', {
-        target 'src/**/lang/*.json'
-        addStep(JsonOrderStep.create())
-    }
-}
-
-import com.diffplug.spotless.FormatterFunc
-import com.diffplug.spotless.FormatterStep
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+immaculate {
+    workflows.register('misc') {
+        files.from fileTree(projectDir).filter {
+            it.name.endsWith('.gradle') || it.name.endsWith('.md') || it.name == '.gitignore'
+        }
 
-final class JsonOrderStep {
-    private JsonOrderStep() {}
-    private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setLenient().setPrettyPrinting().create();
-
-    static FormatterStep create() {
-        return FormatterStep.create(
-                'jsonOrderStep',
-                new State(),
-                {
-                    new FormatterFunc() {
-                        String apply(String input) {
-                            TreeMap<String, Object> jsonMap = GSON.fromJson(input, TreeMap.class);
-                            String sortedJson = GSON.toJson(jsonMap);
-                            String prettyPrinted = sortedJson.replace('  "', '    "').replace('\\u0027', '\'');
-                            return prettyPrinted;
-                        }
-                    }
-                },
-        );
+        noTrailingSpaces()
+        noTabs()
+        trailingNewline()
     }
+    workflows.register('java') {
+        java()
+        googleFixImports()
+        eclipse() {
+            version '3.42.0'
+            config = file('eclipse-format.xml')
+        }
 
-    private static final class State implements Serializable {
-        private static final long serialVersionUID = 1L;
+        noTrailingSpaces()
+        noTabs()
+        trailingNewline()
 
-        private final int formatVersion = 1;
+        custom 'noNotNull', { String fileContents ->
+            if (fileContents.contains('@NotNull') || fileContents.contains('@Nonnull')) {
+                throw new GradleException('@NotNull and @Nonnull are disallowed.')
+            }
+        }
+
+        custom 'jspecifyNullable', { String fileContents ->
+            return fileContents
+                    .replace('javax.annotation.Nullable', 'org.jspecify.annotations.Nullable')
+                    .replace('org.jetbrains.annotations.Nullable', 'org.jspecify.annotations.Nullable')
+        }
+    }
+    workflows.register('json') {
+        files.from fileTree(projectDir) {
+            include 'src/**/lang/*.json'
+        }
+        custom 'sortLangKeys', { String fileContents ->
+            Gson GSON = new GsonBuilder().disableHtmlEscaping().setLenient().setPrettyPrinting().create();
+            TreeMap<String, Object> jsonMap = GSON.fromJson(fileContents, TreeMap.class);
+            String sortedJson = GSON.toJson(jsonMap);
+            String prettyPrinted = sortedJson.replace('  "', '    "').replace('\\u0027', '\'');
+            return prettyPrinted;
+        }
     }
 }
 
