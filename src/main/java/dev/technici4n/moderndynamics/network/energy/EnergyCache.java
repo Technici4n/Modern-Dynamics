@@ -23,7 +23,10 @@ import dev.technici4n.moderndynamics.network.NetworkCache;
 import dev.technici4n.moderndynamics.network.NetworkNode;
 import java.util.*;
 import net.minecraft.server.level.ServerLevel;
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.transfer.TransferPreconditions;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
     private SimpleEnergyStorage energyStorage = null;
@@ -32,24 +35,26 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
         super(level, nodes);
     }
 
-    public int getEnergyStored() {
+    public int getStorageAmount() {
         combine();
-        return energyStorage.getEnergyStored();
+        return energyStorage.getAmountAsInt();
     }
 
-    public int getMaxEnergyStored() {
+    public int getStorageCapacity() {
         combine();
-        return energyStorage.getMaxEnergyStored();
+        return energyStorage.getCapacityAsInt();
     }
 
-    public int insert(int maxAmount, boolean simulate) {
+    public int insert(int amount, TransactionContext tx) {
+        TransferPreconditions.checkNonNegative(amount);
         combine();
-        return energyStorage.receiveEnergy(maxAmount, simulate);
+        return energyStorage.insert(amount, tx);
     }
 
-    public int extract(int maxAmount, boolean simulate) {
+    public int extract(int amount, TransactionContext tx) {
+        TransferPreconditions.checkNonNegative(amount);
         combine();
-        return energyStorage.extractEnergy(maxAmount, simulate);
+        return energyStorage.extract(amount, tx);
     }
 
     @Override
@@ -79,7 +84,7 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
         for (NetworkNode<EnergyHost, EnergyCache> node : nodes) {
             EnergyHost host = node.getHost();
 
-            int nodeEnergy = Math.min(host.getMaxEnergy(), energyStorage.getEnergyStored() / remainingNodes);
+            int nodeEnergy = Math.min(host.getMaxEnergy(), energyStorage.getAmountAsInt() / remainingNodes);
             host.setEnergy(nodeEnergy);
             energyStorage.reduceEnergyStored(nodeEnergy);
             remainingNodes--;
@@ -94,7 +99,7 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
         combine();
 
         // Gather inventory connections
-        List<IEnergyStorage> storages = new ArrayList<>();
+        List<EnergyHandler> storages = new ArrayList<>();
 
         for (var node : nodes) {
             if (node.getHost().isTicking()) {
@@ -103,16 +108,16 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
         }
 
         // Extract
-        var remainingCapacity = energyStorage.getMaxEnergyStored() - energyStorage.getEnergyStored();
-        energyStorage.addEnergyStored(transferForTargets(IEnergyStorage::extractEnergy, storages, remainingCapacity));
+        var remainingCapacity = energyStorage.getCapacityAsInt() - energyStorage.getAmountAsInt();
+        energyStorage.addEnergyStored(transferForTargets(EnergyHandler::extract, storages, remainingCapacity));
         // Insert
-        energyStorage.reduceEnergyStored(transferForTargets(IEnergyStorage::receiveEnergy, storages, energyStorage.getEnergyStored()));
+        energyStorage.reduceEnergyStored(transferForTargets(EnergyHandler::insert, storages, energyStorage.getAmountAsInt()));
     }
 
     /**
      * Dispatch a transfer operation among a list of targets. Will not modify the list.
      */
-    public static int transferForTargets(TransferOperation operation, List<IEnergyStorage> targets, int maxAmount) {
+    public static int transferForTargets(TransferOperation operation, List<EnergyHandler> targets, int maxAmount) {
         // Build target list
         List<EnergyTarget> sortableTargets = new ArrayList<>(targets.size());
         for (var target : targets) {
@@ -120,34 +125,39 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
         }
         // Shuffle for better transfer on average
         Collections.shuffle(sortableTargets);
-        // Simulate the transfer for every target
-        for (EnergyTarget target : sortableTargets) {
-            target.simulationResult = operation.transfer(target.target, maxAmount, true);
+        // Simulate the transfer for every target in an overarching transaction
+        try (var planningTx = Transaction.openRoot()) {
+            for (var target : sortableTargets) {
+                target.simulationResult = operation.transfer(target.target, maxAmount, planningTx);
+            }
         }
         // Sort from low to high result
         sortableTargets.sort(Comparator.comparingLong(t -> t.simulationResult));
         // Actually perform the transfer
         int transferredAmount = 0;
-        for (int i = 0; i < sortableTargets.size(); ++i) {
-            EnergyTarget target = sortableTargets.get(i);
-            int remainingTargets = sortableTargets.size() - i;
-            int remainingAmount = maxAmount - transferredAmount;
-            int targetMaxAmount = Ints.saturatedCast(remainingAmount / remainingTargets);
+        try (var tx = Transaction.openRoot()) {
+            for (int i = 0; i < sortableTargets.size(); ++i) {
+                EnergyTarget target = sortableTargets.get(i);
+                int remainingTargets = sortableTargets.size() - i;
+                int remainingAmount = maxAmount - transferredAmount;
+                int targetMaxAmount = Ints.saturatedCast(remainingAmount / remainingTargets);
 
-            transferredAmount += operation.transfer(target.target, targetMaxAmount, false);
+                transferredAmount += operation.transfer(target.target, targetMaxAmount, tx);
+            }
+            tx.commit();
         }
         return transferredAmount;
     }
 
     public interface TransferOperation {
-        int transfer(IEnergyStorage storage, int maxTransfer, boolean simulate);
+        int transfer(EnergyHandler storage, int maxTransfer, TransactionContext tx);
     }
 
     private static class EnergyTarget {
-        final IEnergyStorage target;
+        final EnergyHandler target;
         int simulationResult;
 
-        EnergyTarget(IEnergyStorage target) {
+        EnergyTarget(EnergyHandler target) {
             this.target = target;
         }
     }
@@ -158,8 +168,8 @@ public class EnergyCache extends NetworkCache<EnergyHost, EnergyCache> {
         if (energyStorage == null) {
             out.append("no energy storage\n");
         } else {
-            out.append("energy = ").append(energyStorage.getEnergyStored()).append("\n");
-            out.append("max energy = ").append(energyStorage.getMaxEnergyStored()).append("\n");
+            out.append("energy = ").append(energyStorage.getAmountAsInt()).append("\n");
+            out.append("max energy = ").append(energyStorage.getCapacityAsInt()).append("\n");
         }
     }
 }

@@ -30,7 +30,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapability;
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import org.jetbrains.annotations.Nullable;
 
 public class MIEnergyHost extends NodeHost {
@@ -38,7 +38,7 @@ public class MIEnergyHost extends NodeHost {
 
     public final MICableTier tier;
     private long energy = 0;
-    private final HostAdjacentCaps<? extends IEnergyStorage> adjacentCaps = new HostAdjacentCaps<>(this, MIProxy.INSTANCE.getLookup());
+    private final HostAdjacentCaps<? extends EnergyHandler> adjacentCaps = new HostAdjacentCaps<>(this, MIProxy.INSTANCE.getLookup());
 
     public MIEnergyHost(PipeBlockEntity pipe, MICableTier tier) {
         super(pipe);
@@ -61,13 +61,13 @@ public class MIEnergyHost extends NodeHost {
         return super.canConnectTo(connectionDirection, adjacentHost) && ((MIEnergyHost) adjacentHost).tier == tier;
     }
 
-    public void gatherCapabilities(@Nullable List<IEnergyStorage> out) {
+    public void gatherCapabilities(@Nullable List<EnergyHandler> out) {
         int oldConnections = inventoryConnections;
 
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
                 Direction dir = Direction.from3DDataValue(i);
-                IEnergyStorage adjacentCap = adjacentCaps.getCapability(dir);
+                EnergyHandler adjacentCap = adjacentCaps.getCapability(dir);
 
                 if (adjacentCap != null && MIProxy.INSTANCE.canConnect(adjacentCap, tier)) {
                     if (out != null) {

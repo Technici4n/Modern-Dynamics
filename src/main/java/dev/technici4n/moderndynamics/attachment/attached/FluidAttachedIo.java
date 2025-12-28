@@ -50,8 +50,13 @@ public class FluidAttachedIo extends AttachedIo {
         super(item, configData, setChangedCallback);
 
         this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, FluidResource.EMPTY);
-        var filterTags = configData.read("filters", FILTER_LIST_CODEC);
-        filterTags.ifPresent(filters::addAll);
+        configData.read("filters", FILTER_LIST_CODEC).ifPresent(filterList -> {
+            for (int i = 0; i < filterList.size(); i++) {
+                if (i < filters.size()) {
+                    filters.set(i, filterList.get(i));
+                }
+            }
+        });
     }
 
     @Override

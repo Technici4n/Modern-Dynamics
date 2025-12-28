@@ -27,9 +27,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerInput;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
 
@@ -52,17 +54,20 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
     public void clicked(int slotIndex, int button, ContainerInput actionType, Player player) {
         if (slotIndex >= 0 && getSlot(slotIndex) instanceof FluidConfigSlot configSlot && configSlot.isActive()) {
 
-            var contained = FluidUtil.getFluidContained(getCarried()).orElse(FluidStack.EMPTY);
+            FluidStack contained = FluidStack.EMPTY;
+            if (!getCarried().isEmpty()) {
+                contained = FluidUtil.getFirstStackContained(getCarried());
+            }
             attachment.setFilter(configSlot.getConfigIdx(), FluidResource.of(contained));
         } else {
             super.clicked(slotIndex, button, actionType, player);
         }
     }
 
-    private boolean matchesAnyFilter(FluidStack stack) {
+    private boolean matchesAnyFilter(FluidResource resource) {
         for (var slot : slots) {
             if (slot instanceof FluidConfigSlot fluidConfig) {
-                if (fluidConfig.getFilter().matches(stack)) {
+                if (!fluidConfig.getFilter().isEmpty() && fluidConfig.getFilter().equals(resource)) {
                     return true;
                 }
             }
@@ -74,14 +79,14 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
     protected boolean trySetFilterOnShiftClick(int clickedSlot) {
         // Find resource that's not configured yet
         FluidResource fluidResource = FluidResource.EMPTY;
-        var fluidHandler = FluidUtil.getFluidHandler(getCarried()).orElse(null);
+        var fluidHandler = ItemAccess.forStack(slots.get(clickedSlot).getItem()).getCapability(Capabilities.Fluid.ITEM);
         if (fluidHandler != null) {
-            for (int i = 0; i < fluidHandler.getTanks(); i++) {
-                var fluidInTank = fluidHandler.getFluidInTank(i);
+            for (int i = 0; i < fluidHandler.size(); i++) {
+                var fluidInTank = fluidHandler.getResource(i);
                 if (fluidInTank.isEmpty() || matchesAnyFilter(fluidInTank)) {
                     continue;
                 }
-                fluidResource = FluidResource.of(fluidInTank);
+                fluidResource = fluidInTank;
                 break;
             }
         }

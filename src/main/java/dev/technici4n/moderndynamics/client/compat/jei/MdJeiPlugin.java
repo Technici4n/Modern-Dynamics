@@ -19,6 +19,7 @@
 package dev.technici4n.moderndynamics.client.compat.jei;
 
 import dev.technici4n.moderndynamics.attachment.upgrade.LoadedUpgrades;
+import dev.technici4n.moderndynamics.client.compat.RecipeViewer;
 import dev.technici4n.moderndynamics.client.screen.AttachedIoScreen;
 import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
 import dev.technici4n.moderndynamics.init.MdItems;
@@ -26,12 +27,11 @@ import dev.technici4n.moderndynamics.util.MdId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.gui.builder.IClickableIngredientFactory;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
-import mezz.jei.api.helpers.IPlatformFluidHelper;
-import mezz.jei.api.ingredients.ITypedIngredient;
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -40,13 +40,10 @@ import mezz.jei.api.runtime.IClickableIngredient;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 @JeiPlugin
 public class MdJeiPlugin implements IModPlugin {
-    private IPlatformFluidHelper<?> platformFluidHelper;
-
     @Override
     public Identifier getPluginUid() {
         return MdId.of("jei");
@@ -54,7 +51,12 @@ public class MdJeiPlugin implements IModPlugin {
 
     @Override
     public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
-        this.platformFluidHelper = jeiRuntime.getJeiHelpers().getPlatformFluidHelper();
+        RecipeViewer.setCurrent(new JeiRecipeViewer(jeiRuntime));
+    }
+
+    @Override
+    public void onRuntimeUnavailable() {
+        RecipeViewer.setCurrent(null);
     }
 
     @Override
@@ -89,33 +91,19 @@ public class MdJeiPlugin implements IModPlugin {
             }
 
             @Override
-            public Optional<IClickableIngredient<?>> getClickableIngredientUnderMouse(AttachedIoScreen<?> screen, double mouseX, double mouseY) {
+            public Optional<? extends IClickableIngredient<?>> getClickableIngredientUnderMouse(IClickableIngredientFactory builder,
+                    AttachedIoScreen<?> screen, double mouseX, double mouseY) {
                 // Ensures that users can press R, U, etc... on fluid config slots.
                 if (screen.getHoveredSlot() instanceof FluidConfigSlot fluidConfig) {
                     var resource = fluidConfig.getFilter();
                     if (!resource.isEmpty()) {
-                        var ing = registration.getJeiHelpers().getIngredientManager();
-                        return ing.createTypedIngredient(resource.toStack(1))
-                                .map(slotArea(screen, fluidConfig));
+                        var slotArea = new Rect2i(screen.getLeftPos() + fluidConfig.x, screen.getTopPos() + fluidConfig.y, 16, 16);
+                        return builder.createBuilder(NeoForgeTypes.FLUID_STACK, resource.toStack(1))
+                                .buildWithArea(slotArea);
                     }
                 }
 
                 return Optional.empty();
-            }
-
-            private static <T> Function<ITypedIngredient<T>, IClickableIngredient<T>> slotArea(AttachedIoScreen<?> screen, Slot slot) {
-                var area = new Rect2i(screen.getLeftPos() + slot.x, screen.getTopPos() + slot.y, 16, 16);
-                return ing -> new IClickableIngredient<>() {
-                    @Override
-                    public ITypedIngredient<T> getTypedIngredient() {
-                        return ing;
-                    }
-
-                    @Override
-                    public Rect2i getArea() {
-                        return area;
-                    }
-                };
             }
         });
 

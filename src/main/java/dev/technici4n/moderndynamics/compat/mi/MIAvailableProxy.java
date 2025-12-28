@@ -24,34 +24,34 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import net.minecraft.core.Direction;
 import net.neoforged.neoforge.capabilities.BlockCapability;
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
 public class MIAvailableProxy implements MIProxy {
-    private static final BlockCapability<? extends IEnergyStorage, Direction> LOOKUP;
+    private static final BlockCapability<? extends EnergyHandler, Direction> LOOKUP;
     private static final MethodHandle CAN_CONNECT;
 
     static {
         try {
             // noinspection unchecked,rawtypes
-            LOOKUP = (BlockCapability<? extends IEnergyStorage, Direction>) Class.forName("aztech.modern_industrialization.api.energy.EnergyApi")
+            LOOKUP = (BlockCapability<? extends EnergyHandler, Direction>) Class.forName("aztech.modern_industrialization.api.energy.EnergyApi")
                     .getField("SIDED").get(null);
 
             var miEnergyStorage = Class.forName("aztech.modern_industrialization.api.energy.MIEnergyStorage");
             var rawMethod = MethodHandles.lookup().findVirtual(miEnergyStorage, "canConnect", MethodType.methodType(boolean.class, String.class));
             // Convert first argument to EnergyStorage because that's what we'll be passing in the invokeExact call.
-            CAN_CONNECT = rawMethod.asType(rawMethod.type().changeParameterType(0, IEnergyStorage.class));
+            CAN_CONNECT = rawMethod.asType(rawMethod.type().changeParameterType(0, EnergyHandler.class));
         } catch (ReflectiveOperationException exception) {
             throw new RuntimeException("Failed to initialize Modern Dynamics MI proxy", exception);
         }
     }
 
     @Override
-    public BlockCapability<? extends IEnergyStorage, Direction> getLookup() {
+    public BlockCapability<? extends EnergyHandler, Direction> getLookup() {
         return LOOKUP;
     }
 
     @Override
-    public boolean canConnect(IEnergyStorage storage, MICableTier tier) {
+    public boolean canConnect(EnergyHandler storage, MICableTier tier) {
         try {
             return (boolean) CAN_CONNECT.invokeExact(storage, tier.getName());
         } catch (Throwable throwable) {

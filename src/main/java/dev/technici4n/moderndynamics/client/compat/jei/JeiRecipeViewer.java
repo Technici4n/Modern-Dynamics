@@ -16,26 +16,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.compat.mi;
+package dev.technici4n.moderndynamics.client.compat.jei;
 
-import dev.technici4n.moderndynamics.network.mienergy.MICableTier;
-import dev.technici4n.moderndynamics.util.MdId;
-import net.minecraft.core.Direction;
-import net.neoforged.neoforge.capabilities.BlockCapability;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import dev.technici4n.moderndynamics.client.compat.RecipeViewer;
+import java.util.List;
+import mezz.jei.api.runtime.IJeiRuntime;
 
-public class MIAbsentProxy implements MIProxy {
-    private static final BlockCapability<? extends EnergyHandler, Direction> MISSING_LOOKUP = BlockCapability.createSided(
-            MdId.of("mi_energy_missing"),
-            EnergyHandler.class);
+public class JeiRecipeViewer implements RecipeViewer {
+    private final IJeiRuntime jeiRuntime;
 
-    @Override
-    public BlockCapability<? extends EnergyHandler, Direction> getLookup() {
-        return MISSING_LOOKUP;
+    public JeiRecipeViewer(IJeiRuntime jeiRuntime) {
+        this.jeiRuntime = jeiRuntime;
     }
 
     @Override
-    public boolean canConnect(EnergyHandler storage, MICableTier tier) {
-        return false;
+    public boolean canShowUpgradeRecipes() {
+        return true;
+    }
+
+    @Override
+    public void showUpgradeRecipes() {
+        jeiRuntime.getRecipesGui().showTypes(List.of(UpgradeCategory.TYPE));
     }
 }

@@ -20,6 +20,7 @@ package dev.technici4n.moderndynamics.client.screen;
 
 import dev.technici4n.moderndynamics.attachment.Setting;
 import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
+import dev.technici4n.moderndynamics.client.compat.RecipeViewer;
 import dev.technici4n.moderndynamics.gui.menu.AttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.ConfigSlot;
 import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
@@ -33,6 +34,7 @@ import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
@@ -76,6 +78,9 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
     private final RedstoneModeButton redstoneModeHigh;
     private final List<RedstoneModeButton> redstoneButtons;
 
+    private final boolean showUpgradesButtonEnabled;
+    private ScreenRectangle upgradePanelBounds;
+
     public AttachedIoScreen(T abstractContainerMenu, Inventory inventory, Component component) {
         this(abstractContainerMenu, inventory, component, 176, 166);
     }
@@ -87,11 +92,14 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         this.redstoneModeLow = new RedstoneModeButton(RedstoneMode.REQUIRES_LOW, menu::getRedstoneMode, menu::setRedstoneMode);
         this.redstoneModeHigh = new RedstoneModeButton(RedstoneMode.REQUIRES_HIGH, menu::getRedstoneMode, menu::setRedstoneMode);
         this.redstoneButtons = List.of(this.redstoneModeIgnored, this.redstoneModeLow, this.redstoneModeHigh);
+        this.showUpgradesButtonEnabled = RecipeViewer.current().canShowUpgradeRecipes();
     }
 
     @Override
     protected void init() {
         super.init();
+
+        this.upgradePanelBounds = UpgradePanel.getRect(leftPos, topPos, showUpgradesButtonEnabled);
 
         // Center the title
         titleLabelX = (imageWidth - font.width(title)) / 2;
@@ -126,6 +134,14 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
 
         // After the buttons, add a handler for opening and closing the tab
         addRenderableWidget(new RedstoneTabOpenCloseHandler());
+
+        if (showUpgradesButtonEnabled) {
+            addRenderableWidget(Button.builder(Component.literal("?"), _ -> {
+                RecipeViewer.current().showUpgradeRecipes();
+            })
+                    .bounds(upgradePanelBounds.left() + 7, upgradePanelBounds.bottom() - 19, 14, 14)
+                    .build());
+        }
     }
 
     @Override
@@ -180,17 +196,16 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         guiGraphics.blit(
                 RenderPipelines.GUI_TEXTURED,
                 TEXTURE,
-                leftPos + UpgradePanel.START_LEFT, topPos + UpgradePanel.START_TOP,
+                upgradePanelBounds.left(), upgradePanelBounds.top(),
                 0, 0,
-                UpgradePanel.WIDTH, UpgradePanel.HEIGHT - 5,
+                upgradePanelBounds.width(), upgradePanelBounds.height() - 5,
                 256, 256);
-        // Render last 5 rows with a different offset to have a proper corner
         guiGraphics.blit(
                 RenderPipelines.GUI_TEXTURED,
                 TEXTURE,
-                leftPos + UpgradePanel.START_LEFT, topPos + UpgradePanel.START_TOP + UpgradePanel.HEIGHT - 5,
+                upgradePanelBounds.left(), upgradePanelBounds.bottom() - 5,
                 0, 199,
-                UpgradePanel.WIDTH, 5,
+                upgradePanelBounds.width(), 5,
                 256, 256);
 
         // Draw each slot's background
@@ -264,7 +279,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
 
     public void appendExclusionZones(Consumer<Rect2i> consumer) {
         // Upgrades
-        consumer.accept(new Rect2i(leftPos + UpgradePanel.START_LEFT, topPos + UpgradePanel.START_TOP, UpgradePanel.WIDTH, UpgradePanel.HEIGHT));
+        consumer.accept(new Rect2i(upgradePanelBounds.left(), upgradePanelBounds.top(), upgradePanelBounds.width(), upgradePanelBounds.height()));
         // Redstone tab
         consumer.accept(redstoneTabRect);
     }
@@ -337,7 +352,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
             return false;
         }
 
-        return !UpgradePanel.isInside(mx - leftPos, my - topPos) && !isInRedstoneTabRect(mx, my);
+        return !upgradePanelBounds.containsPoint((int) mx, (int) my) && !isInRedstoneTabRect(mx, my);
     }
 
     private boolean isInRedstoneTabRect(double mouseX, double mouseY) {

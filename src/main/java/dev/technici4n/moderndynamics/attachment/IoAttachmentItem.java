@@ -89,29 +89,5 @@ public class IoAttachmentItem extends AttachmentItem {
         builder
                 .accept(Component.translatable("gui.moderndynamics.tooltip.attachment_upgrades")
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
-        /*
-         * if (level != null && level.isClientSide()) {
-         * if (MdProxy.INSTANCE.isShiftDown()) {
-         * MutableComponent filters = null;
-         * for (var setting : getSupportedSettings()) {
-         * if (setting.isFilter()) {
-         * if (filters == null) {
-         * filters = setting.getTooltipName().copy();
-         * } else {
-         * filters.append(", ").append(setting.getTooltipName());
-         * }
-         * }
-         * }
-         * if (filters != null) {
-         * filters.withStyle(ChatFormatting.WHITE);
-         * tooltipComponents.add(Component.translatable("gui.moderndynamics.tooltip.filters", filters).withStyle(ChatFormatting.GRAY));
-         * }
-         * } else {
-         * var keyText = Component.translatable("gui.moderndynamics.tooltip.more_info_key").withStyle(ChatFormatting.YELLOW,
-         * ChatFormatting.ITALIC);
-         * tooltipComponents.add(Component.translatable("gui.moderndynamics.tooltip.more_info", keyText).withStyle(ChatFormatting.GRAY));
-         * }
-         * }
-         */
     }
 }

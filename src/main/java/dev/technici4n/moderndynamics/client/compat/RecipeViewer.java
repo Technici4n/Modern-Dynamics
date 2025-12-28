@@ -16,26 +16,32 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package dev.technici4n.moderndynamics.compat.mi;
+package dev.technici4n.moderndynamics.client.compat;
 
-import dev.technici4n.moderndynamics.network.mienergy.MICableTier;
-import dev.technici4n.moderndynamics.util.MdId;
-import net.minecraft.core.Direction;
-import net.neoforged.neoforge.capabilities.BlockCapability;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
-public class MIAbsentProxy implements MIProxy {
-    private static final BlockCapability<? extends EnergyHandler, Direction> MISSING_LOOKUP = BlockCapability.createSided(
-            MdId.of("mi_energy_missing"),
-            EnergyHandler.class);
-
-    @Override
-    public BlockCapability<? extends EnergyHandler, Direction> getLookup() {
-        return MISSING_LOOKUP;
+public interface RecipeViewer {
+    static RecipeViewer current() {
+        return Objects.requireNonNullElse(RecipeViewerHolder.current, NoOpRecipeViewer.INSTANCE);
     }
 
-    @Override
-    public boolean canConnect(EnergyHandler storage, MICableTier tier) {
+    static void setCurrent(@Nullable RecipeViewer current) {
+        RecipeViewerHolder.current = current;
+    }
+
+    default boolean canShowUpgradeRecipes() {
         return false;
     }
+
+    default void showUpgradeRecipes() {
+    }
+}
+
+class RecipeViewerHolder {
+    static RecipeViewer current;
+}
+
+final class NoOpRecipeViewer implements RecipeViewer {
+    static final RecipeViewer INSTANCE = new NoOpRecipeViewer();
 }
