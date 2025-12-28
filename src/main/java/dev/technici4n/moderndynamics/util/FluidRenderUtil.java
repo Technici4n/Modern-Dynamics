@@ -34,13 +34,13 @@ public final class FluidRenderUtil {
     private FluidRenderUtil() {
     }
 
-    public static TextureAtlasSprite getStillSprite(FluidResource variant) {
-        if (variant.isEmpty()) {
+    public static TextureAtlasSprite getStillSprite(FluidResource resource) {
+        if (resource.isEmpty()) {
             return null;
         }
 
-        var renderProps = IClientFluidTypeExtensions.of(variant.getFluid());
-        var stack = variant.toStack(1);
+        var renderProps = IClientFluidTypeExtensions.of(resource.getFluid());
+        var stack = resource.toStack(1);
         var texture = renderProps.getStillTexture(stack);
         if (texture == null) {
             return null;
@@ -49,9 +49,9 @@ public final class FluidRenderUtil {
         return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(texture);
     }
 
-    public static int getTint(FluidResource variant) {
-        var renderProps = IClientFluidTypeExtensions.of(variant.getFluid());
-        var stack = variant.toStack(1);
+    public static int getTint(FluidResource resource) {
+        var renderProps = IClientFluidTypeExtensions.of(resource.getFluid());
+        var stack = resource.toStack(1);
         return renderProps.getTintColor(stack);
     }
 

@@ -21,5 +21,5 @@ package dev.technici4n.moderndynamics.network.item;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
 public interface StartTravelCallback {
-    void startTravel(ItemResource variant, int amount);
+    void startTravel(ItemResource resource, int amount);
 }

@@ -68,11 +68,11 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
 
     @Override
     protected boolean trySetFilterOnShiftClick(int clickedSlot) {
-        var itemVariant = ItemResource.of(slots.get(clickedSlot).getItem());
-        // Check if variant is already configured.
+        var itemResource = ItemResource.of(slots.get(clickedSlot).getItem());
+        // Check if resource is already configured.
         for (var slot : slots) {
             if (slot instanceof ItemConfigSlot) {
-                if (itemVariant.matches(slot.getItem())) {
+                if (itemResource.matches(slot.getItem())) {
                     return false;
                 }
             }
@@ -80,7 +80,7 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
         for (var slot : slots) {
             if (slot instanceof ItemConfigSlot itemConfigSlot) {
                 if (slot.getItem().isEmpty()) {
-                    setFilter(itemConfigSlot.getConfigIdx(), itemVariant, false);
+                    setFilter(itemConfigSlot.getConfigIdx(), itemResource, false);
                     return true;
                 }
             }
@@ -188,10 +188,10 @@ public class ItemAttachedIoMenu extends AttachedIoMenu<ItemAttachedIo> {
         return attachment.getMaxItemsExtractedMaximum();
     }
 
-    public void setFilter(int configIdx, ItemResource variant, boolean sendPacket) {
+    public void setFilter(int configIdx, ItemResource resource, boolean sendPacket) {
         if (isClientSide() && sendPacket) {
-            MdPackets.sendSetFilter(containerId, configIdx, variant);
+            MdPackets.sendSetFilter(containerId, configIdx, resource);
         }
-        attachment.setFilter(configIdx, variant);
+        attachment.setFilter(configIdx, resource);
     }
 }

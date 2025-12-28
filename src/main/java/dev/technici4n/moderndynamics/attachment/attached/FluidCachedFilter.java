@@ -25,22 +25,22 @@ import java.util.Set;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 public class FluidCachedFilter {
-    private final Set<FluidResource> listedVariants;
+    private final Set<FluidResource> listedResources;
     private final FilterInversionMode filterInversion;
 
-    public FluidCachedFilter(List<FluidResource> variants,
+    public FluidCachedFilter(List<FluidResource> resources,
             FilterInversionMode filterInversion) {
-        this.listedVariants = new HashSet<>();
+        this.listedResources = new HashSet<>();
         this.filterInversion = filterInversion;
 
-        for (var variant : variants) {
-            if (!variant.isEmpty()) {
-                listedVariants.add(variant);
+        for (var resource : resources) {
+            if (!resource.isEmpty()) {
+                listedResources.add(resource);
             }
         }
     }
 
-    public boolean matches(FluidResource variant) {
-        return (filterInversion == FilterInversionMode.WHITELIST) == listedVariants.contains(variant);
+    public boolean matches(FluidResource resource) {
+        return (filterInversion == FilterInversionMode.WHITELIST) == listedResources.contains(resource);
     }
 }

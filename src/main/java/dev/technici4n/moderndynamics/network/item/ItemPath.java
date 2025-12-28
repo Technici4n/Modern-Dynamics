@@ -57,8 +57,8 @@ public class ItemPath {
         return ItemHost.MANAGER.findNode(level, startingPos.relative(path[0]));
     }
 
-    public SimulatedInsertionTarget getInsertionTarget(Level world) {
-        return SimulatedInsertionTargets.getTarget(world, targetPos, getTargetBlockSide());
+    public SimulatedInsertionTarget getInsertionTarget(Level level) {
+        return SimulatedInsertionTargets.getTarget(level, targetPos, getTargetBlockSide());
     }
 
     /**
@@ -76,9 +76,9 @@ public class ItemPath {
         return getLastDirection().getOpposite();
     }
 
-    public TravelingItem makeTravelingItem(ItemResource variant, int amount, double speedMultiplier) {
+    public TravelingItem makeTravelingItem(ItemResource resource, int amount, double speedMultiplier) {
         return new TravelingItem(
-                variant,
+                resource,
                 amount,
                 this,
                 FailedInsertStrategy.SEND_BACK_TO_SOURCE,

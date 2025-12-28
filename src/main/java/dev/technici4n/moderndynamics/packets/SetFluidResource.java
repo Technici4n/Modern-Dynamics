@@ -23,19 +23,19 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
-public record SetItemVariant(int syncId, int configIdx, ItemResource variant) implements CustomPacketPayload {
+public record SetFluidResource(int syncId, int configIdx, FluidResource resource) implements CustomPacketPayload {
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, SetItemVariant> STREAM_CODEC = StreamCodec.composite(
+    public static final StreamCodec<RegistryFriendlyByteBuf, SetFluidResource> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT,
-            SetItemVariant::syncId,
+            SetFluidResource::syncId,
             ByteBufCodecs.VAR_INT,
-            SetItemVariant::configIdx,
-            ItemResource.STREAM_CODEC,
-            SetItemVariant::variant,
-            SetItemVariant::new);
-    public static final Type<SetItemVariant> TYPE = new Type<>(MdId.of("set_item_variant"));
+            SetFluidResource::configIdx,
+            FluidResource.STREAM_CODEC,
+            SetFluidResource::resource,
+            SetFluidResource::new);
+    public static final Type<SetFluidResource> TYPE = new Type<>(MdId.of("set_fluid_resource"));
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

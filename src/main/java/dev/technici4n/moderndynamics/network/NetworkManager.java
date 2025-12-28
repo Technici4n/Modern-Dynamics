@@ -77,20 +77,20 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
         this.cacheFactory = cacheFactory;
     }
 
-    public void addNode(ServerLevel world, BlockPos pos, H host) {
+    public void addNode(ServerLevel level, BlockPos pos, H host) {
         if (iteratingOverNetworks) {
             throw new ConcurrentModificationException(
-                    "Node at position " + pos + " in world " + world + " can't be added: networks are being iterated over.");
+                    "Node at position " + pos + " in level " + level + " can't be added: networks are being iterated over.");
         }
 
-        Long2ObjectOpenHashMap<NetworkNode<H, C>> worldNodes = nodes.computeIfAbsent(world, w -> new Long2ObjectOpenHashMap<>());
+        Long2ObjectOpenHashMap<NetworkNode<H, C>> levelNodes = nodes.computeIfAbsent(level, w -> new Long2ObjectOpenHashMap<>());
 
         NetworkNode<H, C> newNode = new NetworkNode<>(host);
 
-        var prevNode = worldNodes.putIfAbsent(pos.asLong(), newNode);
+        var prevNode = levelNodes.putIfAbsent(pos.asLong(), newNode);
         if (prevNode != null) {
-            throw new IllegalArgumentException("Node at position %s in world %s already exists. Existing host: %s. New host: %s.".formatted(pos,
-                    world, prevNode.getHost(), host));
+            throw new IllegalArgumentException("Node at position %s in level %s already exists. Existing host: %s. New host: %s.".formatted(pos,
+                    level, prevNode.getHost(), host));
         }
 
         pendingUpdates.add(newNode);
@@ -98,7 +98,7 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
         for (Direction direction : Direction.values()) {
             BlockPos adjacentPos = pos.relative(direction);
             @Nullable
-            NetworkNode<H, C> adjacentNode = worldNodes.get(adjacentPos.asLong());
+            NetworkNode<H, C> adjacentNode = levelNodes.get(adjacentPos.asLong());
 
             if (adjacentNode != null) {
                 if (host.canConnectTo(direction, adjacentNode.getHost())
@@ -121,22 +121,22 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
         newNode.updateHostConnections();
     }
 
-    public void removeNode(ServerLevel world, BlockPos pos, H host) {
+    public void removeNode(ServerLevel level, BlockPos pos, H host) {
         if (iteratingOverNetworks) {
             throw new ConcurrentModificationException(
-                    "Node at position " + pos + " in world " + world + " can't be removed: networks are being iterated over.");
+                    "Node at position " + pos + " in level " + level + " can't be removed: networks are being iterated over.");
         }
 
-        Long2ObjectOpenHashMap<NetworkNode<H, C>> worldNodes = nodes.computeIfAbsent(world, w -> new Long2ObjectOpenHashMap<>());
+        var levelNodes = nodes.computeIfAbsent(level, _ -> new Long2ObjectOpenHashMap<>());
 
-        NetworkNode<H, C> node = worldNodes.remove(pos.asLong());
+        NetworkNode<H, C> node = levelNodes.remove(pos.asLong());
 
         if (node == null) {
-            throw new IllegalArgumentException("Node at position " + pos + " in world " + world + " can't be removed: it doesn't exist.");
+            throw new IllegalArgumentException("Node at position " + pos + " in level " + level + " can't be removed: it doesn't exist.");
         }
 
         if (node.getHost() != host) {
-            throw new IllegalArgumentException("Node at position " + pos + " in world " + world + " can't be removed: the hosts don't match.");
+            throw new IllegalArgumentException("Node at position " + pos + " in level " + level + " can't be removed: the hosts don't match.");
         }
 
         if (node.network != null) {
@@ -155,20 +155,20 @@ public class NetworkManager<H extends NodeHost, C extends NetworkCache<H, C>> {
         }
     }
 
-    public void refreshNode(ServerLevel world, BlockPos pos, H host) {
-        removeNode(world, pos, host);
-        addNode(world, pos, host);
+    public void refreshNode(ServerLevel level, BlockPos pos, H host) {
+        removeNode(level, pos, host);
+        addNode(level, pos, host);
     }
 
     @Nullable
-    public NetworkNode<H, C> findNode(ServerLevel world, BlockPos pos) {
+    public NetworkNode<H, C> findNode(ServerLevel level, BlockPos pos) {
         updateNetworks();
 
-        return nodes.computeIfAbsent(world, w -> new Long2ObjectOpenHashMap<>()).get(pos.asLong());
+        return nodes.computeIfAbsent(level, w -> new Long2ObjectOpenHashMap<>()).get(pos.asLong());
     }
 
     private void updateNetworks() {
-        if (pendingUpdates.size() == 0)
+        if (pendingUpdates.isEmpty())
             return;
 
         List<NetworkNode<H, C>> pendingUpdatesCopy = new ArrayList<>(pendingUpdates);

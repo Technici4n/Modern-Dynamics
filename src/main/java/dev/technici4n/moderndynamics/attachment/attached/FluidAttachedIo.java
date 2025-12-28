@@ -69,19 +69,19 @@ public class FluidAttachedIo extends AttachedIo {
         return filters.get(idx);
     }
 
-    public void setFilter(int idx, FluidResource variant) {
-        if (!variant.equals(this.filters.get(idx))) {
-            this.filters.set(idx, variant);
+    public void setFilter(int idx, FluidResource resource) {
+        if (!resource.equals(this.filters.get(idx))) {
+            this.filters.set(idx, resource);
             setChangedCallback.run();
             resetCachedFilter();
         }
     }
 
-    public boolean matchesFilter(FluidResource variant) {
+    public boolean matchesFilter(FluidResource resource) {
         if (cachedFilter == null) {
             cachedFilter = new FluidCachedFilter(filters.subList(0, getFilterSize()), getFilterInversion());
         }
-        return cachedFilter.matches(variant);
+        return cachedFilter.matches(resource);
     }
 
     public int getFluidMaxIo() {

@@ -33,11 +33,11 @@ import net.minecraft.world.level.storage.ValueOutput;
 class UpgradeContainer {
     final NonNullList<ItemStack> upgrades = NonNullList.withSize(AttachedIo.UPGRADE_SLOTS, ItemStack.EMPTY);
 
-    public void readNbt(ValueInput input) {
+    public void read(ValueInput input) {
         ContainerHelper.loadAllItems(input, upgrades);
     }
 
-    public void writeNbt(ValueOutput output) {
+    public void write(ValueOutput output) {
         ContainerHelper.saveAllItems(output, upgrades);
     }
 

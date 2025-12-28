@@ -144,7 +144,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
         output.putByte("connections", (byte) getPipeConnections());
         output.putByte("inventoryConnections", (byte) getInventoryConnections());
         for (var host : getHosts()) {
-            host.writeClientNbt(output);
+            host.writeClientData(output);
         }
         var attachments = output.childrenList("attachments");
         for (var direction : Direction.values()) {
@@ -165,7 +165,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
         ContainerHelper.loadAllItems(input, attachmentStacks);
 
         for (var host : getHosts()) {
-            host.readClientNbt(input);
+            host.readClientData(input);
         }
 
         // remesh flag, a bit hacky but it should work ;)
@@ -330,7 +330,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
         }
 
         // Update neighbor's mask as well
-        BlockEntity be = level.getBlockEntity(worldPosition.relative(side));
+        BlockEntity be = level.getBlockEntity(getBlockPos().relative(side));
 
         if (be instanceof PipeBlockEntity neighborPipe) {
             if (addConnection) {
@@ -399,7 +399,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
                                     if (!player.isCreative()) {
                                         DropHelper.dropStacks(this, attachment.getDrops());
                                     }
-                                    level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
+                                    level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
                                     refreshHosts();
                                     scheduleHostUpdates();
                                     setChanged();
@@ -491,7 +491,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
     }
 
     public Vec3 getPosInBlock(HitResult hitResult) {
-        return hitResult.getLocation().subtract(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ());
+        return hitResult.getLocation().subtract(getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ());
     }
 
     @Nullable

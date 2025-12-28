@@ -269,11 +269,11 @@ public abstract class NodeHost {
     }
 
     @MustBeInvokedByOverriders
-    public void writeClientNbt(ValueOutput output) {
+    public void writeClientData(ValueOutput output) {
     }
 
     @MustBeInvokedByOverriders
-    public void readClientNbt(ValueInput input) {
+    public void readClientData(ValueInput input) {
     }
 
     public void clientTick() {

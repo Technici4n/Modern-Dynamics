@@ -47,9 +47,9 @@ public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu>
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         if (getMenu().getCarried().isEmpty() && this.hoveredSlot instanceof FluidConfigSlot fluidSlot) {
-            var variant = fluidSlot.getFilter();
-            if (!variant.isEmpty()) {
-                guiGraphics.setTooltipForNextFrame(font, FluidRenderUtil.getTooltip(variant), Optional.empty(), mouseX, mouseY);
+            var resource = fluidSlot.getFilter();
+            if (!resource.isEmpty()) {
+                guiGraphics.setTooltipForNextFrame(font, FluidRenderUtil.getTooltip(resource), Optional.empty(), mouseX, mouseY);
             }
         } else {
             renderTooltip(guiGraphics, mouseX, mouseY);

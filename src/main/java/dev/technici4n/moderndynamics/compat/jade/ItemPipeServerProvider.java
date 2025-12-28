@@ -70,7 +70,7 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
             if (pipe.getAttachment(side) instanceof ItemAttachedIo io) {
                 if (io.isStuffed()) {
                     var group = new ViewGroup<ItemStack>(new ArrayList<>());
-                    group.views.addAll(variantMapToStacks(io.getStuffedItems()));
+                    group.views.addAll(resourceMapToStacks(io.getStuffedItems()));
                     group.id = "stuffed_" + side.getName();
                     groups.add(group);
                 }
@@ -88,7 +88,7 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
         return groups;
     }
 
-    private static Collection<ItemStack> variantMapToStacks(Map<ItemResource, Integer> map) {
+    private static Collection<ItemStack> resourceMapToStacks(Map<ItemResource, Integer> map) {
         List<ItemStack> stacks = new ArrayList<>();
         for (var entry : map.entrySet()) {
             stacks.add(entry.getKey().toStack(entry.getValue()));
@@ -135,11 +135,11 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
             if (host instanceof ItemHost itemHost) {
                 Map<ItemResource, Integer> items = new HashMap<>();
                 for (var item : itemHost.getClientTravelingItems()) {
-                    items.merge(item.variant(), item.amount(), Integer::sum);
+                    items.merge(item.resource(), item.amount(), Integer::sum);
                 }
 
                 var clientGroup = new ClientViewGroup<ItemView>(new ArrayList<>());
-                for (var stack : variantMapToStacks(items)) {
+                for (var stack : resourceMapToStacks(items)) {
                     clientGroup.views.add(new ItemView(stack));
                 }
                 if (!clientGroup.views.isEmpty()) {

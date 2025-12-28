@@ -64,10 +64,10 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         for (var node : nodes) {
             var host = node.getHost();
 
-            if (!host.getVariant().isEmpty()) {
-                // TODO: what if the host has another variant??? Need to handle that case!
+            if (!host.getResource().isEmpty()) {
+                // TODO: what if the host has another resource??? Need to handle that case!
                 if (fv.isEmpty()) {
-                    fv = host.getVariant();
+                    fv = host.getResource();
                 }
                 amount += host.getAmount();
             }
@@ -117,16 +117,16 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
             }
         }
 
-        boolean changedVariant = false;
+        boolean changedResource = false;
         allowNetworkIo = false;
 
         try {
             // Find item to extract
             if (fluidStorage.isResourceEmpty()) {
-                var newVariant = findVariantForNetwork(targets, attractors);
-                if (!newVariant.isEmpty() && canChangeVariant()) {
-                    fluidStorage.resource = newVariant;
-                    changedVariant = true;
+                var newResource = findResourceForNetwork(targets, attractors);
+                if (!newResource.isEmpty() && canChangeResource()) {
+                    fluidStorage.resource = newResource;
+                    changedResource = true;
                 }
             }
 
@@ -137,17 +137,17 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
                 // Push to connected storages
                 distributeFluid(targets);
 
-                if (fluidStorage.storedAmount == 0 && canChangeVariant()) {
+                if (fluidStorage.storedAmount == 0 && canChangeResource()) {
                     fluidStorage.resource = FluidResource.EMPTY;
-                    changedVariant = true;
+                    changedResource = true;
                 }
             }
         } finally {
             allowNetworkIo = true;
         }
 
-        // Always separate after a change of variant to ensure that the nodes properly update their stored item.
-        if (changedVariant) {
+        // Always separate after a change of resource to ensure that the nodes properly update their stored item.
+        if (changedResource) {
             separate();
         }
 
@@ -161,7 +161,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
      * This guarantees that we have made all the connections that we wanted to before,
      * since changing the item of the network will change how pipes can connect to each other.
      */
-    private boolean canChangeVariant() {
+    private boolean canChangeResource() {
         for (var node : nodes) {
             if (!node.getHost().isTicking()) {
                 return false;
@@ -170,7 +170,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         return true;
     }
 
-    private FluidResource findVariantForNetwork(List<ConnectedFluidStorage> targets, List<FluidAttachedIo> attractors) {
+    private FluidResource findResourceForNetwork(List<ConnectedFluidStorage> targets, List<FluidAttachedIo> attractors) {
         // Look for item matching an extractor
         for (var t : targets) {
             if (t.attachment() != null && t.attachment().getType() == IoAttachmentType.EXTRACTOR) {
@@ -244,7 +244,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
      *
      * @param storageGetter Can return null to skip the target
      */
-    private static int transferForTargets(TransferOperation operation, List<ConnectedFluidStorage> targets, FluidResource variant, int maxAmount,
+    private static int transferForTargets(TransferOperation operation, List<ConnectedFluidStorage> targets, FluidResource resource, int maxAmount,
             Function<ConnectedFluidStorage, ResourceHandler<FluidResource>> storageGetter) {
         if (maxAmount == 0) {
             return 0;
@@ -265,7 +265,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         // Simulate the transfer for every target
         try (var tx = Transaction.openRoot()) {
             for (FluidTarget target : sortableTargets) {
-                target.simulationResult = operation.transfer(target.target, variant, intMaxAmount, tx);
+                target.simulationResult = operation.transfer(target.target, resource, intMaxAmount, tx);
             }
         }
         // Sort from low to high result
@@ -279,7 +279,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
                 long remainingAmount = maxAmount - transferredAmount;
                 int targetMaxAmount = Ints.saturatedCast(remainingAmount / remainingTargets);
 
-                transferredAmount += operation.transfer(target.target, variant, targetMaxAmount, tx);
+                transferredAmount += operation.transfer(target.target, resource, targetMaxAmount, tx);
             }
             tx.commit();
         }
@@ -305,7 +305,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         if (fluidStorage == null) {
             out.append("no item storage\n");
         } else {
-            out.append("item variant = ").append(fluidStorage.resource).append("\n");
+            out.append("fluid resource = ").append(fluidStorage.resource).append("\n");
             out.append("amount = ").append(fluidStorage.storedAmount).append("\n");
             out.append("capacity = ").append(fluidStorage.getCapacity()).append("\n");
         }
@@ -345,7 +345,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
         @Override
         public boolean isValid(int index, @NotNull FluidResource resource) {
             Objects.checkIndex(index, 1);
-            return this.resource.equals(resource) || (this.resource.isEmpty() && canChangeVariant());
+            return this.resource.equals(resource) || (this.resource.isEmpty() && canChangeResource());
         }
 
         @Override
@@ -382,7 +382,7 @@ public class FluidCache extends NetworkCache<FluidHost, FluidCache> {
             if (extractedAmount > 0) {
                 updateSnapshots(tx);
                 storedAmount -= extractedAmount;
-                if (storedAmount == 0 && canChangeVariant()) {
+                if (storedAmount == 0 && canChangeResource()) {
                     this.resource = FluidResource.EMPTY;
                 }
             }

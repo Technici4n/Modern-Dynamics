@@ -61,7 +61,7 @@ public class PipeBlock extends MdBlock implements EntityBlock, SimpleWaterlogged
     private boolean transparent = true;
 
     public PipeBlock(Properties props) {
-        super(props.mapColor(MapColor.METAL).noOcclusion().isRedstoneConductor((state, world, pos) -> false).destroyTime(0.2f));
+        super(props.mapColor(MapColor.METAL).noOcclusion().isRedstoneConductor((_, _, _) -> false).destroyTime(0.2f));
         this.registerDefaultState(this.defaultBlockState().setValue(WATERLOGGED, false));
     }
 
@@ -138,8 +138,8 @@ public class PipeBlock extends MdBlock implements EntityBlock, SimpleWaterlogged
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext ctx) {
-        if (world.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
+        if (level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {
             return pipe.getCachedShape();
         } else {
             return PipeBoundingBoxes.CORE_SHAPE;

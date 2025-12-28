@@ -48,24 +48,24 @@ public class WrenchHelper {
         if (player == null) {
             return;
         }
-        var world = context.getLevel();
+        var level = context.getLevel();
         var pos = context.getClickedPos();
 
-        if (player.isSpectator() || !player.isShiftKeyDown() || !world.mayInteract(player, pos)
+        if (player.isSpectator() || !player.isShiftKeyDown() || !level.mayInteract(player, pos)
                 || !isWrench(player.getItemInHand(context.getHand()))) {
             return;
         }
 
-        var state = world.getBlockState(pos);
+        var state = level.getBlockState(pos);
         if (state.getBlock() instanceof MdBlock) {
-            var entity = world.getBlockEntity(pos);
-            world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+            var entity = level.getBlockEntity(pos);
+            level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
             if (!player.isCreative()) {
-                Block.dropResources(state, world, pos, entity);
+                Block.dropResources(state, level, pos, entity);
             }
             // Play a cool sound
             var group = state.getSoundType();
-            world.playSound(player, pos, group.getBreakSound(), SoundSource.BLOCKS, (group.getVolume() + 1.0F) / 2.0F,
+            level.playSound(player, pos, group.getBreakSound(), SoundSource.BLOCKS, (group.getVolume() + 1.0F) / 2.0F,
                     group.getPitch() * 0.8F);
             e.cancelWithResult(InteractionResult.SUCCESS);
         }

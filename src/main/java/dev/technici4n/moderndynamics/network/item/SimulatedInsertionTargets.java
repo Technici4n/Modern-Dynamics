@@ -30,13 +30,13 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 public class SimulatedInsertionTargets {
     private static final Map<Coord, SimulatedInsertionTarget> TARGETS = new HashMap<>();
 
-    record Coord(ServerLevel world, BlockPos pos, Direction direction) {
+    record Coord(ServerLevel level, BlockPos pos, Direction direction) {
     }
 
     public static SimulatedInsertionTarget getTarget(Level w, BlockPos pos, Direction side) {
-        ServerLevel world = (ServerLevel) w;
-        return TARGETS.computeIfAbsent(new Coord(world, pos, side), coord -> {
-            var cache = BlockCapabilityCache.create(Capabilities.Item.BLOCK, world, pos, side);
+        ServerLevel level = (ServerLevel) w;
+        return TARGETS.computeIfAbsent(new Coord(level, pos, side), coord -> {
+            var cache = BlockCapabilityCache.create(Capabilities.Item.BLOCK, level, pos, side);
             return new SimulatedInsertionTarget(coord, cache::getCapability);
         });
     }

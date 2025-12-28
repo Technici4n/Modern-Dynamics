@@ -104,7 +104,7 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
                     itemState.ty = (float) (to.y() * ratio + from.y() * (1 - ratio));
                     itemState.tz = (float) (to.z() * ratio + from.z() * (1 - ratio));
 
-                    itemState.randomSeed = item.variant().hashCode() + item.id;
+                    itemState.randomSeed = item.resource().hashCode() + item.id;
                     random.setSeed(itemState.randomSeed);
 
                     // Cool rotation
@@ -114,10 +114,10 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
                     // Render multiple items depending on stack size
                     itemState.renderCount = getRenderAmount(item.amount());
 
-                    itemModelResolver.updateForTopItem(itemState.itemStack, item.variant().toStack(), ItemDisplayContext.GROUND, level, null, 0);
+                    itemModelResolver.updateForTopItem(itemState.itemStack, item.resource().toStack(), ItemDisplayContext.GROUND, level, null, 0);
                 }
             } else if (host instanceof FluidHost fluidHost) {
-                var fluid = fluidHost.getVariant();
+                var fluid = fluidHost.getResource();
                 var fill = (float) fluidHost.getAmount() / Constants.Fluids.CAPACITY;
 
                 var renderProps = IClientFluidTypeExtensions.of(fluid.getFluid());

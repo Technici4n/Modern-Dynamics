@@ -30,8 +30,8 @@ import dev.technici4n.moderndynamics.init.MdMenus;
 import dev.technici4n.moderndynamics.network.item.sync.ClientTravelingItemSmoothing;
 import dev.technici4n.moderndynamics.packets.MdPackets;
 import dev.technici4n.moderndynamics.packets.SetAttachmentUpgrades;
-import dev.technici4n.moderndynamics.packets.SetFluidVariant;
-import dev.technici4n.moderndynamics.packets.SetItemVariant;
+import dev.technici4n.moderndynamics.packets.SetFluidResource;
+import dev.technici4n.moderndynamics.packets.SetItemResource;
 import dev.technici4n.moderndynamics.pipe.PipeBlock;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes;
@@ -86,8 +86,8 @@ public final class ModernDynamicsClient {
 
         modEvents.addListener(RegisterClientPayloadHandlersEvent.class, e -> {
             e.register(SetAttachmentUpgrades.TYPE, SetAttachmentUpgrades.HANDLER);
-            e.register(SetItemVariant.TYPE, MdPackets.SET_ITEM_VARIANT_HANDLER);
-            e.register(SetFluidVariant.TYPE, MdPackets.SET_FLUID_VARIANT_HANDLER);
+            e.register(SetItemResource.TYPE, MdPackets.SET_ITEM_RESOURCE_HANDLER);
+            e.register(SetFluidResource.TYPE, MdPackets.SET_FLUID_RESOURCE_HANDLER);
             e.register(MdPackets.SET_FILTER_MODE, MdPackets.SET_FILTER_MODE_HANDLER);
             e.register(MdPackets.SET_FILTER_DAMAGE, MdPackets.SET_FILTER_DAMAGE_HANDLER);
             e.register(MdPackets.SET_FILTER_NBT, MdPackets.SET_FILTER_NBT_HANDLER);

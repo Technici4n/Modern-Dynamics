@@ -46,11 +46,11 @@ public abstract class MdBlockEntity extends BlockEntity {
     // Thank you Fabric API
     public void sync(boolean shouldRemesh) {
         Preconditions.checkNotNull(level); // Maintain distinct failure case from below
-        if (!(level instanceof ServerLevel serverWorld))
-            throw new IllegalStateException("Cannot call sync() on the logical client! Did you check world.isClient first?");
+        if (!(level instanceof ServerLevel serverLevel))
+            throw new IllegalStateException("Cannot call sync() on the logical client! Did you check level.isClient first?");
 
         shouldClientRemesh = shouldRemesh | shouldClientRemesh;
-        serverWorld.getChunkSource().blockChanged(getBlockPos());
+        serverLevel.getChunkSource().blockChanged(getBlockPos());
     }
 
     public void sync() {
@@ -109,7 +109,7 @@ public abstract class MdBlockEntity extends BlockEntity {
         if (!level.isClientSide())
             throw new IllegalStateException("Cannot call remesh() on the server!");
 
-        level.sendBlockUpdated(worldPosition, null, null, 0);
+        level.sendBlockUpdated(getBlockPos(), null, null, 0);
     }
 
     protected final boolean isClientSide() {

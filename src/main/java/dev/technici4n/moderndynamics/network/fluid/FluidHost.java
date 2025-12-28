@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
 public class FluidHost extends NodeHost {
     private static final NetworkManager<FluidHost, FluidCache> MANAGER = NetworkManager.get(FluidCache.class, FluidCache::new);
 
-    private FluidResource variant = FluidResource.EMPTY;
+    private FluidResource resource = FluidResource.EMPTY;
     private int amount = 0;
     private final TransferLimits extractorLimit = new TransferLimits(side -> {
         if (!(getAttachment(side) instanceof FluidAttachedIo io) || io.getType() != IoAttachmentType.EXTRACTOR) {
@@ -115,13 +115,13 @@ public class FluidHost extends NodeHost {
         return amount;
     }
 
-    public FluidResource getVariant() {
-        return variant;
+    public FluidResource getResource() {
+        return resource;
     }
 
-    public void setContents(FluidResource variant, int nodeFluid) {
-        if (!variant.equals(this.variant) || nodeFluid != this.amount) {
-            this.variant = variant;
+    public void setContents(FluidResource resource, int nodeFluid) {
+        if (!resource.equals(this.resource) || nodeFluid != this.amount) {
+            this.resource = resource;
             this.amount = nodeFluid;
 
             pipe.setChanged();
@@ -149,13 +149,13 @@ public class FluidHost extends NodeHost {
     }
 
     private boolean hasCompatibleFluid(NodeHost other) {
-        return FluidCache.areCompatible(((FluidHost) other).variant, variant);
+        return FluidCache.areCompatible(((FluidHost) other).resource, resource);
     }
 
     @Override
     public void onConnectedTo(NodeHost other) {
-        if (other instanceof FluidHost fh && !fh.variant.isEmpty()) {
-            variant = fh.variant;
+        if (other instanceof FluidHost fh && !fh.resource.isEmpty()) {
+            resource = fh.resource;
             pipe.setChanged();
         }
     }
@@ -234,45 +234,45 @@ public class FluidHost extends NodeHost {
     public void write(ValueOutput output) {
         super.write(output);
         output.putInt("amount", amount);
-        output.store("resource", FluidResource.OPTIONAL_CODEC, variant);
+        output.store("resource", FluidResource.OPTIONAL_CODEC, resource);
     }
 
     @Override
     public void read(ValueInput input) {
         super.read(input);
-        variant = input.read("resource", FluidResource.OPTIONAL_CODEC).orElse(FluidResource.EMPTY);
+        resource = input.read("resource", FluidResource.OPTIONAL_CODEC).orElse(FluidResource.EMPTY);
         // Guard against max changes
         amount = Math.max(0, Math.min(input.getIntOr("amount", 0), Constants.Fluids.CAPACITY));
-        // Guard against removed variant
-        if (variant.isEmpty()) {
+        // Guard against removed resource
+        if (resource.isEmpty()) {
             amount = 0;
         }
     }
 
     @Override
-    public void writeClientNbt(ValueOutput output) {
-        super.writeClientNbt(output);
+    public void writeClientData(ValueOutput output) {
+        super.writeClientData(output);
         output.putInt("amount", amount);
-        output.store("resource", FluidResource.OPTIONAL_CODEC, variant);
+        output.store("resource", FluidResource.OPTIONAL_CODEC, resource);
     }
 
     @Override
-    public void readClientNbt(ValueInput input) {
-        super.readClientNbt(input);
-        variant = input.read("resource", FluidResource.OPTIONAL_CODEC).orElse(FluidResource.EMPTY);
+    public void readClientData(ValueInput input) {
+        super.readClientData(input);
+        resource = input.read("resource", FluidResource.OPTIONAL_CODEC).orElse(FluidResource.EMPTY);
         amount = input.getIntOr("amount", 0);
     }
 
-    private boolean canMoveNetworkToOutside(Direction side, FluidResource variant) {
+    private boolean canMoveNetworkToOutside(Direction side, FluidResource resource) {
         if (getAttachment(side) instanceof FluidAttachedIo io) {
-            return io.matchesFilter(variant) && io.isEnabledViaRedstone(pipe) && io.getType() != IoAttachmentType.EXTRACTOR;
+            return io.matchesFilter(resource) && io.isEnabledViaRedstone(pipe) && io.getType() != IoAttachmentType.EXTRACTOR;
         }
         return true;
     }
 
-    private boolean canMoveOutsideToNetwork(Direction side, FluidResource variant) {
+    private boolean canMoveOutsideToNetwork(Direction side, FluidResource resource) {
         if (getAttachment(side) instanceof FluidAttachedIo io) {
-            return io.matchesFilter(variant) && io.isEnabledViaRedstone(pipe) && io.getType() != IoAttachmentType.ATTRACTOR;
+            return io.matchesFilter(resource) && io.isEnabledViaRedstone(pipe) && io.getType() != IoAttachmentType.ATTRACTOR;
         }
         return true;
     }

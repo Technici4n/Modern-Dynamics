@@ -163,17 +163,17 @@ public class ItemAttachedIo extends AttachedIo {
         setMaxItemsExtracted(getMaxItemsExtracted());
     }
 
-    public boolean matchesItemFilter(ItemResource variant) {
-        return getCachedFilter().matchesItem(variant);
+    public boolean matchesItemFilter(ItemResource resource) {
+        return getCachedFilter().matchesItem(resource);
     }
 
     public ItemResource getFilter(int idx) {
         return filters.get(idx);
     }
 
-    public void setFilter(int idx, ItemResource variant) {
-        if (!variant.equals(this.filters.get(idx))) {
-            this.filters.set(idx, variant);
+    public void setFilter(int idx, ItemResource resource) {
+        if (!resource.equals(this.filters.get(idx))) {
+            this.filters.set(idx, resource);
             setChangedCallback.run();
             resetCachedFilter();
         }

@@ -257,8 +257,8 @@ public class ItemHost extends NodeHost {
                     // Make sure to check the filter at the endpoint.
                     var endpointFilter = path.getEndFilter(cache.level);
 
-                    InsertionOnlyItemHandler insertStorage = new InsertionOnlyItemHandler((variant, maxAmount, simulate) -> {
-                        return insertTarget.insert(variant, maxAmount, simulate, (v, a) -> {
+                    InsertionOnlyItemHandler insertStorage = new InsertionOnlyItemHandler((resource, maxAmount, simulate) -> {
+                        return insertTarget.insert(resource, maxAmount, simulate, (v, a) -> {
                             var reversedPath = path.reversed();
                             var travelingItem = reversedPath.makeTravelingItem(v, a, attractor.getItemSpeedupFactor());
                             reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
@@ -329,9 +329,9 @@ public class ItemHost extends NodeHost {
                 int inserted = 0;
                 // Check filter.
                 if (!checkAttachments || !(getAttachment(side) instanceof ItemAttachedIo io) ||
-                        io.matchesItemFilter(travelingItem.variant) && io.isEnabledViaRedstone(pipe)) {
+                        io.matchesItemFilter(travelingItem.resource) && io.isEnabledViaRedstone(pipe)) {
                     try (var tx = Transaction.openRoot()) {
-                        inserted = ResourceHandlerUtil.insertStacking(storage, travelingItem.variant, travelingItem.amount, tx);
+                        inserted = ResourceHandlerUtil.insertStacking(storage, travelingItem.resource, travelingItem.amount, tx);
                         tx.commit();
                     }
                 }
@@ -367,14 +367,14 @@ public class ItemHost extends NodeHost {
 
     private void finishTravel(TravelingItem item, int inserted) {
         // In any case, remove the item from the simulated insertion target
-        item.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(item.variant, item.amount);
+        item.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(item.resource, item.amount);
         int leftover = item.amount - inserted;
 
         // Try to stuff first!
         var attachment = getAttachment(item.path.path[item.getPathLength() - 1]);
         if (leftover > 0 && attachment instanceof ItemAttachedIo io && io.getType() != IoAttachmentType.FILTER) {
             boolean wasStuffed = io.isStuffed();
-            io.getStuffedItems().merge(item.variant, item.amount, Integer::sum);
+            io.getStuffedItems().merge(item.resource, item.amount, Integer::sum);
             pipe.setChanged();
             if (wasStuffed != io.isStuffed()) {
                 pipe.sync();
@@ -382,14 +382,14 @@ public class ItemHost extends NodeHost {
         } else if (leftover > 0) {
             if (item.strategy == FailedInsertStrategy.SEND_BACK_TO_SOURCE) {
                 addTravelingItem(new TravelingItem(
-                        item.variant,
+                        item.resource,
                         leftover,
                         item.path.reversed(),
                         FailedInsertStrategy.DROP,
                         item.speedMultiplier,
                         item.getPathLength() - 1 - Math.floor(item.traveledDistance)));
             } else {
-                DropHelper.dropStack(pipe, item.variant, item.amount - inserted);
+                DropHelper.dropStack(pipe, item.resource, item.amount - inserted);
             }
         }
     }
@@ -413,7 +413,7 @@ public class ItemHost extends NodeHost {
         for (var itemIn : travelingItemsIn) {
             var item = TravelingItem.read(itemIn);
 
-            if (!item.variant.isEmpty()) { // Guard against blank variants in case a mod is removed
+            if (!item.resource.isEmpty()) { // Guard against blank resources in case a mod is removed
                 travelingItems.add(item);
             }
         }
@@ -423,7 +423,7 @@ public class ItemHost extends NodeHost {
     public void addSelf() {
         super.addSelf();
         for (var travelingItem : travelingItems) {
-            travelingItem.path.getInsertionTarget(pipe.getLevel()).startAwaiting(travelingItem.variant, travelingItem.amount);
+            travelingItem.path.getInsertionTarget(pipe.getLevel()).startAwaiting(travelingItem.resource, travelingItem.amount);
         }
     }
 
@@ -431,7 +431,7 @@ public class ItemHost extends NodeHost {
     public void removeSelf() {
         super.removeSelf();
         for (var travelingItem : travelingItems) {
-            travelingItem.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(travelingItem.variant, travelingItem.amount);
+            travelingItem.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(travelingItem.resource, travelingItem.amount);
         }
     }
 
@@ -439,8 +439,8 @@ public class ItemHost extends NodeHost {
     public void onRemoved() {
         super.onRemoved();
         for (var travelingItem : travelingItems) {
-            travelingItem.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(travelingItem.variant, travelingItem.amount);
-            DropHelper.dropStack(pipe, travelingItem.variant, travelingItem.amount);
+            travelingItem.path.getInsertionTarget(pipe.getLevel()).stopAwaiting(travelingItem.resource, travelingItem.amount);
+            DropHelper.dropStack(pipe, travelingItem.resource, travelingItem.amount);
         }
         travelingItems.clear();
     }
@@ -492,8 +492,8 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void writeClientNbt(ValueOutput output) {
-        super.writeClientNbt(output);
+    public void writeClientData(ValueOutput output) {
+        super.writeClientData(output);
 
         if (!travelingItems.isEmpty()) {
             var buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), pipe.getLevel().registryAccess(), ConnectionType.NEOFORGE);
@@ -512,8 +512,8 @@ public class ItemHost extends NodeHost {
     }
 
     @Override
-    public void readClientNbt(ValueInput input) {
-        super.readClientNbt(input);
+    public void readClientData(ValueInput input) {
+        super.readClientData(input);
 
         clientTravelingItems.clear();
         var buffer = input.read("items", Codec.BYTE_BUFFER).orElse(ByteBuffer.wrap(new byte[0]));

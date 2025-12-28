@@ -73,7 +73,7 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
     @Override
     protected boolean trySetFilterOnShiftClick(int clickedSlot) {
         // Find resource that's not configured yet
-        FluidResource fluidVariant = FluidResource.EMPTY;
+        FluidResource fluidResource = FluidResource.EMPTY;
         var fluidHandler = FluidUtil.getFluidHandler(getCarried()).orElse(null);
         if (fluidHandler != null) {
             for (int i = 0; i < fluidHandler.getTanks(); i++) {
@@ -81,16 +81,16 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
                 if (fluidInTank.isEmpty() || matchesAnyFilter(fluidInTank)) {
                     continue;
                 }
-                fluidVariant = FluidResource.of(fluidInTank);
+                fluidResource = FluidResource.of(fluidInTank);
                 break;
             }
         }
 
-        if (!fluidVariant.isEmpty()) {
+        if (!fluidResource.isEmpty()) {
             for (var slot : slots) {
                 if (slot instanceof FluidConfigSlot fluidConfig) {
                     if (fluidConfig.getFilter().isEmpty()) {
-                        setFilter(fluidConfig.getConfigIdx(), fluidVariant, false);
+                        setFilter(fluidConfig.getConfigIdx(), fluidResource, false);
                         return true;
                     }
                 }
@@ -99,10 +99,10 @@ public class FluidAttachedIoMenu extends AttachedIoMenu<FluidAttachedIo> {
         return false;
     }
 
-    public void setFilter(int configIdx, FluidResource variant, boolean sendPacket) {
+    public void setFilter(int configIdx, FluidResource resource, boolean sendPacket) {
         if (isClientSide() && sendPacket) {
-            MdPackets.sendSetFilter(containerId, configIdx, variant);
+            MdPackets.sendSetFilter(containerId, configIdx, resource);
         }
-        attachment.setFilter(configIdx, variant);
+        attachment.setFilter(configIdx, resource);
     }
 }

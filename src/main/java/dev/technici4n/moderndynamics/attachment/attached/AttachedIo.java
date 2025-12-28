@@ -52,7 +52,7 @@ public abstract class AttachedIo extends AttachedAttachment {
         this.setChangedCallback = setChangedCallback;
         this.filterInversion = readEnum(FilterInversionMode.values(), configData, "filterInversion", FilterInversionMode.BLACKLIST);
         this.redstoneMode = readEnum(RedstoneMode.values(), configData, "redstoneMode", RedstoneMode.IGNORED);
-        this.upgradeContainer.readNbt(configData);
+        this.upgradeContainer.read(configData);
     }
 
     @Override
@@ -61,7 +61,7 @@ public abstract class AttachedIo extends AttachedAttachment {
 
         writeEnum(this.filterInversion, output, "filterInversion");
         writeEnum(this.redstoneMode, output, "redstoneMode");
-        this.upgradeContainer.writeNbt(output);
+        this.upgradeContainer.write(output);
     }
 
     public FilterInversionMode getFilterInversion() {

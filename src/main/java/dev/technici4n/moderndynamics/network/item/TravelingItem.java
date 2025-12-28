@@ -33,7 +33,7 @@ public class TravelingItem {
     private static final AtomicInteger NEXT_ID = new AtomicInteger();
 
     public final int id = NEXT_ID.getAndIncrement();
-    public final ItemResource variant;
+    public final ItemResource resource;
     public final int amount;
     public final ItemPath path;
     public final FailedInsertStrategy strategy;
@@ -41,13 +41,13 @@ public class TravelingItem {
     public double traveledDistance;
     public long lastTick;
 
-    public TravelingItem(ItemResource variant, int amount, ItemPath path, FailedInsertStrategy strategy, double speedMultiplier,
+    public TravelingItem(ItemResource resource, int amount, ItemPath path, FailedInsertStrategy strategy, double speedMultiplier,
             double traveledDistance) {
         if (speedMultiplier < 0.5) {
             // Upgrade path from before the speed multiplier was added.
             speedMultiplier = 0.5;
         }
-        this.variant = variant;
+        this.resource = resource;
         this.amount = amount;
         this.path = path;
         this.strategy = strategy;
@@ -67,7 +67,7 @@ public class TravelingItem {
     }
 
     public void write(ValueOutput output) {
-        output.store("r", ItemResource.OPTIONAL_CODEC, variant);
+        output.store("r", ItemResource.OPTIONAL_CODEC, resource);
         output.putInt("a", amount);
         output.store("start", BlockPos.CODEC, path.startingPos);
         output.store("end", BlockPos.CODEC, path.targetPos);
@@ -92,7 +92,7 @@ public class TravelingItem {
 
     void writeClient(RegistryFriendlyByteBuf buf) {
         buf.writeInt(id);
-        ItemResource.STREAM_CODEC.encode(buf, variant);
+        ItemResource.STREAM_CODEC.encode(buf, resource);
         buf.writeInt(amount);
         buf.writeDouble(getPathLength() - 1);
         buf.writeDouble(traveledDistance);

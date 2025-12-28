@@ -42,14 +42,14 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 
 public class MdPackets {
 
-    public static void sendSetFilter(int syncId, int filterSlot, ItemResource variant) {
-        ClientPacketDistributor.sendToServer(new SetItemVariant(
-                syncId, filterSlot, variant));
+    public static void sendSetFilter(int syncId, int filterSlot, ItemResource resource) {
+        ClientPacketDistributor.sendToServer(new SetItemResource(
+                syncId, filterSlot, resource));
     }
 
-    public static void sendSetFilter(int syncId, int filterSlot, FluidResource variant) {
-        ClientPacketDistributor.sendToServer(new SetFluidVariant(
-                syncId, filterSlot, variant));
+    public static void sendSetFilter(int syncId, int filterSlot, FluidResource resource) {
+        ClientPacketDistributor.sendToServer(new SetFluidResource(
+                syncId, filterSlot, resource));
     }
 
     public static final CustomPacketPayload.Type<SetEnum<FilterInversionMode>> SET_FILTER_MODE = new CustomPacketPayload.Type<>(
@@ -134,8 +134,8 @@ public class MdPackets {
             MdId.of("set_max_items_extracted"));
     public static final IPayloadHandler<SetInt> SET_MAX_ITEMS_EXTRACTED_HANDLER = createSetIntHandler(ItemAttachedIoMenu::setMaxItemsExtracted);
 
-    public static final IPayloadHandler<SetItemVariant> SET_ITEM_VARIANT_HANDLER = handler(MdPackets::handleSetItemVariant);
-    public static final IPayloadHandler<SetFluidVariant> SET_FLUID_VARIANT_HANDLER = handler(MdPackets::handleSetFluidVariant);
+    public static final IPayloadHandler<SetItemResource> SET_ITEM_RESOURCE_HANDLER = handler(MdPackets::handleSetItemResource);
+    public static final IPayloadHandler<SetFluidResource> SET_FLUID_RESOURCE_HANDLER = handler(MdPackets::handleSetFluidResource);
 
     public static void sendSetMaxItemsExtracted(int syncId, int value) {
         sendSetInt(syncId, SET_MAX_ITEMS_EXTRACTED, value);
@@ -171,8 +171,8 @@ public class MdPackets {
     public static void register(PayloadRegistrar registrar) {
         registrar.playToClient(SetAttachmentUpgrades.TYPE, SetAttachmentUpgrades.STREAM_CODEC);
 
-        registrar.playBidirectional(SetItemVariant.TYPE, SetItemVariant.STREAM_CODEC, SET_ITEM_VARIANT_HANDLER);
-        registrar.playBidirectional(SetFluidVariant.TYPE, SetFluidVariant.STREAM_CODEC, SET_FLUID_VARIANT_HANDLER);
+        registrar.playBidirectional(SetItemResource.TYPE, SetItemResource.STREAM_CODEC, SET_ITEM_RESOURCE_HANDLER);
+        registrar.playBidirectional(SetFluidResource.TYPE, SetFluidResource.STREAM_CODEC, SET_FLUID_RESOURCE_HANDLER);
         registrar.playBidirectional(SET_FILTER_MODE, SetEnum.codec(SET_FILTER_MODE, FilterInversionMode.class), SET_FILTER_MODE_HANDLER);
         registrar.playBidirectional(SET_FILTER_DAMAGE, SetEnum.codec(SET_FILTER_DAMAGE, FilterDamageMode.class), SET_FILTER_DAMAGE_HANDLER);
         registrar.playBidirectional(SET_FILTER_NBT, SetEnum.codec(SET_FILTER_NBT, FilterNbtMode.class), SET_FILTER_NBT_HANDLER);
@@ -185,17 +185,17 @@ public class MdPackets {
         registrar.playBidirectional(SET_MAX_ITEMS_EXTRACTED, SetInt.codec(SET_MAX_ITEMS_EXTRACTED), SET_MAX_ITEMS_EXTRACTED_HANDLER);
     }
 
-    private static void handleSetItemVariant(Player player, SetItemVariant payload) {
+    private static void handleSetItemResource(Player player, SetItemResource payload) {
         AbstractContainerMenu handler = player.containerMenu;
         if (handler.containerId == payload.syncId() && handler instanceof ItemAttachedIoMenu attachmentMenu) {
-            attachmentMenu.setFilter(payload.configIdx(), payload.variant(), false);
+            attachmentMenu.setFilter(payload.configIdx(), payload.resource(), false);
         }
     }
 
-    private static void handleSetFluidVariant(Player player, SetFluidVariant payload) {
+    private static void handleSetFluidResource(Player player, SetFluidResource payload) {
         AbstractContainerMenu handler = player.containerMenu;
         if (handler.containerId == payload.syncId() && handler instanceof FluidAttachedIoMenu attachmentMenu) {
-            attachmentMenu.setFilter(payload.configIdx(), payload.variant(), false);
+            attachmentMenu.setFilter(payload.configIdx(), payload.resource(), false);
         }
     }
 

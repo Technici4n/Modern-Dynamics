@@ -92,10 +92,10 @@ public class MdJeiPlugin implements IModPlugin {
             public Optional<IClickableIngredient<?>> getClickableIngredientUnderMouse(AttachedIoScreen<?> screen, double mouseX, double mouseY) {
                 // Ensures that users can press R, U, etc... on fluid config slots.
                 if (screen.getHoveredSlot() instanceof FluidConfigSlot fluidConfig) {
-                    var variant = fluidConfig.getFilter();
-                    if (!variant.isEmpty()) {
+                    var resource = fluidConfig.getFilter();
+                    if (!resource.isEmpty()) {
                         var ing = registration.getJeiHelpers().getIngredientManager();
-                        return ing.createTypedIngredient(variant.toStack(1))
+                        return ing.createTypedIngredient(resource.toStack(1))
                                 .map(slotArea(screen, fluidConfig));
                     }
                 }

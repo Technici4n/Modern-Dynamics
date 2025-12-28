@@ -52,17 +52,17 @@ public class SimulatedInsertionTarget {
         return storageFinder.get() != null;
     }
 
-    public int insert(ItemResource variant, int maxAmount, TransactionContext tx, StartTravelCallback callback) {
+    public int insert(ItemResource resource, int maxAmount, TransactionContext tx, StartTravelCallback callback) {
         try {
-            return innerInsert(variant, maxAmount, tx, callback);
+            return innerInsert(resource, maxAmount, tx, callback);
         } catch (Throwable t) {
             var report = CrashReport.forThrowable(t, "Item pipe simulated insertion failed");
 
             var target = report.addCategory("Simulated insertion details");
-            CrashReportCategory.populateBlockDetails(target, coord.world(), coord.pos(), coord.world().getBlockState(coord.pos()));
+            CrashReportCategory.populateBlockDetails(target, coord.level(), coord.pos(), coord.level().getBlockState(coord.pos()));
             target.setDetail("Accessed from side", coord.direction());
             target.setDetail("Storage", () -> Objects.toString(storageFinder.get(), null))
-                    .setDetail("Item variant", variant)
+                    .setDetail("Item resource", resource)
                     .setDetail("Max amount", maxAmount);
 
             throw new ReportedException(report);
