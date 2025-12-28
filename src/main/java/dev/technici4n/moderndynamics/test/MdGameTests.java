@@ -46,7 +46,8 @@ public final class MdGameTests {
     private static final List<Class<?>> testClasses = List.of(
             FluidTransferTest.class,
             ItemDistributionTest.class,
-            ItemTransferTest.class);
+            ItemTransferTest.class,
+            MachineExtenderTest.class);
 
     private static final Map<Identifier, TestData<ResourceKey<TestEnvironmentDefinition<?>>>> tests = new HashMap<>();
 

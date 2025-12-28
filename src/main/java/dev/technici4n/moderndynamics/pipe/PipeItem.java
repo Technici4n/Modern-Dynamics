@@ -28,7 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class PipeItem extends BlockItem {
     public PipeItem(PipeBlock block, Item.Properties props) {
-        super(block, props);
+        super(block, props.useBlockDescriptionPrefix());
         block.setItem(this);
     }
 
