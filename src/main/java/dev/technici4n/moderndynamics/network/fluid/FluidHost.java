@@ -234,13 +234,13 @@ public class FluidHost extends NodeHost {
     public void write(ValueOutput output) {
         super.write(output);
         output.putInt("amount", amount);
-        output.store("variant", FluidResource.CODEC, variant);
+        output.store("resource", FluidResource.OPTIONAL_CODEC, variant);
     }
 
     @Override
     public void read(ValueInput input) {
         super.read(input);
-        variant = input.read("variant", FluidResource.CODEC).orElse(FluidResource.EMPTY);
+        variant = input.read("resource", FluidResource.OPTIONAL_CODEC).orElse(FluidResource.EMPTY);
         // Guard against max changes
         amount = Math.max(0, Math.min(input.getIntOr("amount", 0), Constants.Fluids.CAPACITY));
         // Guard against removed variant
@@ -253,13 +253,13 @@ public class FluidHost extends NodeHost {
     public void writeClientNbt(ValueOutput output) {
         super.writeClientNbt(output);
         output.putInt("amount", amount);
-        output.store("variant", FluidResource.CODEC, variant);
+        output.store("resource", FluidResource.OPTIONAL_CODEC, variant);
     }
 
     @Override
     public void readClientNbt(ValueInput input) {
         super.readClientNbt(input);
-        variant = input.read("variant", FluidResource.CODEC).orElse(FluidResource.EMPTY);
+        variant = input.read("resource", FluidResource.OPTIONAL_CODEC).orElse(FluidResource.EMPTY);
         amount = input.getIntOr("amount", 0);
     }
 

@@ -18,7 +18,6 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
-import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.util.ArrayList;
@@ -30,24 +29,19 @@ import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.TransferPreconditions;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jetbrains.annotations.Nullable;
 
 // TODO: needs to support recursive queries if filters are being used.
-public class SimulatedInsertionTarget extends SnapshotJournal<SimulatedInsertionTarget.Snapshot> {
+public class SimulatedInsertionTarget {
     private final SimulatedInsertionTargets.Coord coord; // used for crash report info
     private final Supplier<@Nullable ResourceHandler<ItemResource>> storageFinder;
-    /**
-     * List of stacks that are already traveling, but for which the target slot is not known.
-     */
-    private Object2IntMap<ItemResource> pendingStacks = new Object2IntLinkedOpenHashMap<>();
-    /**
-     * List of stacks that are already traveling and that the target should accept,
-     * for each slot.
-     */
-    private List<ItemStack> awaitedStacks = new ArrayList<>();
+    private final Object2IntMap<ItemResource> awaitedStacks = new Object2IntLinkedOpenHashMap<>();
+    private final PendingStacks pendingStacksJournal = new PendingStacks();
 
     public SimulatedInsertionTarget(SimulatedInsertionTargets.Coord coord, Supplier<@Nullable ResourceHandler<ItemResource>> storageFinder) {
         this.coord = coord;
@@ -75,141 +69,82 @@ public class SimulatedInsertionTarget extends SnapshotJournal<SimulatedInsertion
         }
     }
 
-    private int innerInsert(ItemResource variant, int maxAmount, TransactionContext tx, StartTravelCallback callback) {
-        Preconditions.checkArgument(!variant.isEmpty(), "blank variant");
-        Preconditions.checkArgument(maxAmount >= 0, "non-negative amount");
+    private int innerInsert(ItemResource resource, int maxAmount, TransactionContext tx, StartTravelCallback callback) {
+        TransferPreconditions.checkNonEmptyNonNegative(resource, maxAmount);
         var targetStorage = storageFinder.get();
         if (targetStorage == null) {
             return 0;
         }
 
-        // Try to plan for pending stacks to begin with...
-        var pendingIterator = pendingStacks.object2IntEntrySet().iterator();
-        while (pendingIterator.hasNext()) {
-            var entry = pendingIterator.next();
-
-            int planned = planForStack(targetStorage, variant, entry.getIntValue(), tx);
-            if (planned == entry.getIntValue()) {
-                pendingIterator.remove();
-            } else {
-                entry.setValue(entry.getIntValue() - planned);
-            }
-        }
-
-        // Plan for this additional stack
-        int inserted = planForStack(targetStorage, variant, maxAmount, tx);
-
-        if (inserted > 0) {
-            callback.startTravel(variant, inserted);
-        }
-
-        return inserted;
-    }
-
-    /**
-     * Try to plan for some stack to be inserted, return how much is anticipated to be insertable.
-     */
-    private int planForStack(ResourceHandler<ItemResource> targetStorage, ItemResource variant, int maxAmount, TransactionContext tx) {
-        updateSnapshots(tx);
-
-        // Extend pending list if necessary
-        int targetSlots = targetStorage.size();
-        while (awaitedStacks.size() < targetSlots) {
-            awaitedStacks.add(ItemStack.EMPTY);
-        }
-
-        // Used to limit stack allocations
-        int leftover = -1;
-
-        for (int i = 0; i < targetSlots; ++i) {
-            var pending = awaitedStacks.get(i);
-
-            if (pending.isEmpty()) {
-                // No pending stack, try to insert as much as we can.
-                if (leftover == -1) {
-                    leftover = maxAmount;
-                }
-
-                int toInsert = leftover;
-                int inserted = targetStorage.insert(i, variant, toInsert, tx);
-
-                if (inserted > 0) {
-                    awaitedStacks.set(i, variant.toStack(inserted));
-                }
-            } else if (variant.matches(pending)) {
-                // Pending stack, try to insert more than what is scheduled.
-                if (leftover == -1) {
-                    leftover = maxAmount;
-                }
-
-                int toInsert = pending.getCount() + leftover;
-                int inserted = targetStorage.insert(i, variant, toInsert, tx);
-
-                int delta = inserted - pending.getCount();
-                if (delta > 0) {
-                    leftover -= delta;
-                    pending.grow(delta);
+        // This tests how much we could insert into this target while considering everything that is already
+        // en-route to it.
+        try (var nested = Transaction.open(tx)) {
+            // Insert everything already en-route
+            for (var entry : awaitedStacks.object2IntEntrySet()) {
+                if (targetStorage.insert(entry.getKey(), entry.getIntValue(), nested) != entry.getIntValue()) {
+                    // We have scheduled too many stacks already, let's not make it worse.
+                    return 0;
                 }
             }
 
-            if (leftover == 0) {
-                break;
-            }
+            // Now check how much more we can send
+            maxAmount = targetStorage.insert(resource, maxAmount, nested);
         }
 
-        return leftover == -1 ? 0 : maxAmount - leftover;
-    }
-
-    public void startAwaiting(ItemResource variant, int amount) {
-        pendingStacks.mergeInt(variant, amount, Integer::sum);
-    }
-
-    public void stopAwaiting(ItemResource variant, int amount) {
-        // Remove from pending stacks first
-        int pending = pendingStacks.getInt(variant);
-        if (pending > 0) {
-            if (pending >= amount) {
-                pendingStacks.put(variant, pending - amount);
-                amount = 0;
-            } else {
-                pendingStacks.removeInt(variant);
-                amount -= pending;
-            }
+        if (maxAmount == 0) {
+            return 0;
         }
 
-        // Then remove from awaited stacks (starting from the end because why not)
-        if (amount > 0) {
-            for (int slot = awaitedStacks.size(); slot-- > 0;) {
-                var awaited = awaitedStacks.get(slot);
+        // Schedule stack to start traveling when the transaction commits
+        pendingStacksJournal.updateSnapshots(tx);
+        startAwaiting(resource, maxAmount);
+        pendingStacksJournal.pendingStacks.add(new PendingStack(resource, maxAmount, callback));
 
-                if (variant.matches(awaited)) {
-                    if (awaited.getCount() > amount) {
-                        awaited.shrink(amount);
-                        amount = 0;
-                    } else {
-                        awaitedStacks.set(slot, ItemStack.EMPTY);
-                        amount -= awaited.getCount();
-                    }
+        return maxAmount;
+    }
 
-                    if (amount == 0) {
-                        break;
-                    }
-                }
-            }
+    public void startAwaiting(ItemResource resource, int amount) {
+        awaitedStacks.mergeInt(resource, amount, Integer::sum);
+    }
+
+    public void stopAwaiting(ItemResource resource, int amount) {
+        var awaited = awaitedStacks.removeInt(resource);
+        if (awaited > amount) {
+            awaitedStacks.put(resource, awaited - amount);
         }
-    }
-
-    @Override
-    protected Snapshot createSnapshot() {
-        return new Snapshot(new Object2IntLinkedOpenHashMap<>(pendingStacks), new ArrayList<>(awaitedStacks));
-    }
-
-    @Override
-    protected void revertToSnapshot(Snapshot snapshot) {
-        this.pendingStacks = snapshot.pendingStacks;
-        this.awaitedStacks = snapshot.awaitedStacks;
     }
 
     public record Snapshot(Object2IntMap<ItemResource> pendingStacks, List<ItemStack> awaitedStacks) {
+    }
+
+    /**
+     * Stack that was accepted in {@link #insert} in a transaction that hasn't been committed yet.
+     */
+    private record PendingStack(ItemResource resource, int amount, StartTravelCallback callback) {
+    }
+
+    private class PendingStacks extends SnapshotJournal<Integer> {
+        private final List<PendingStack> pendingStacks = new ArrayList<>();
+
+        @Override
+        protected Integer createSnapshot() {
+            return pendingStacks.size();
+        }
+
+        @Override
+        protected void revertToSnapshot(Integer snapshot) {
+            while (pendingStacks.size() > snapshot) {
+                var stack = pendingStacks.removeLast();
+                stopAwaiting(stack.resource, stack.amount);
+            }
+        }
+
+        @Override
+        protected void onRootCommit(Integer originalState) {
+            for (var pendingStack : pendingStacks) {
+                pendingStack.callback.startTravel(pendingStack.resource, pendingStack.amount);
+            }
+            pendingStacks.clear();
+        }
     }
 }

@@ -24,8 +24,8 @@ import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.input.InputWithModifiers;
-import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.util.ARGB;
 
@@ -33,7 +33,7 @@ public class RedstoneModeButton extends Button {
     private final RedstoneMode mode;
     private final Supplier<RedstoneMode> getter;
     private final BiConsumer<RedstoneMode, Boolean> setter;
-    private Rect2i scissorRect;
+    private ScreenRectangle scissorRect;
 
     public RedstoneModeButton(RedstoneMode mode, Supplier<RedstoneMode> getter, BiConsumer<RedstoneMode, Boolean> setter) {
         super(0, 0, 16, 16, mode.getTranslation(), button -> {
@@ -48,7 +48,7 @@ public class RedstoneModeButton extends Button {
         this.setter.accept(this.mode, true);
     }
 
-    public void setScissorRect(Rect2i scissorRect) {
+    public void setScissorRect(ScreenRectangle scissorRect) {
         this.scissorRect = scissorRect;
     }
 
@@ -58,11 +58,7 @@ public class RedstoneModeButton extends Button {
             return;
         }
 
-        guiGraphics.enableScissor(
-                scissorRect.getX(),
-                scissorRect.getY(),
-                scissorRect.getWidth(),
-                scissorRect.getHeight());
+        guiGraphics.enableScissor(scissorRect.left(), scissorRect.top(), scissorRect.right(), scissorRect.bottom());
 
         var x = 176;
         if (!isActive()) {

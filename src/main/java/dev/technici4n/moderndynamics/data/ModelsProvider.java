@@ -18,17 +18,22 @@
  */
 package dev.technici4n.moderndynamics.data;
 
+import static net.minecraft.client.data.models.BlockModelGenerators.createBooleanModelDispatch;
+import static net.minecraft.client.data.models.BlockModelGenerators.plainVariant;
+
 import dev.technici4n.moderndynamics.client.model.PipeBlockstateModel;
 import dev.technici4n.moderndynamics.client.model.PipeItemModel;
 import dev.technici4n.moderndynamics.client.model.PipeModelGenerator;
+import dev.technici4n.moderndynamics.extender.MachineExtenderBlock;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdItems;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.data.models.model.TextureMapping;
+import net.minecraft.client.data.models.model.TextureSlot;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
 
 public class ModelsProvider extends ModelSubProvider {
     public ModelsProvider(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
@@ -37,31 +42,8 @@ public class ModelsProvider extends ModelSubProvider {
 
     @Override
     protected void register() {
-        var ext = MdBlocks.MACHINE_EXTENDER.get();
+        machineExtender();
 
-        var columnTexture = TextureMapping.getBlockTexture(ext, "_column");
-        var sideTexture = TextureMapping.getBlockTexture(ext, "_side");
-        var sideTopTexture = TextureMapping.getBlockTexture(ext, "_side_top");
-        var endTexture = TextureMapping.getBlockTexture(ext, "_end");
-
-        simpleBlockAndItem(MdBlocks.MACHINE_EXTENDER.get());
-//
-//        var topModel = blockModels.cubeBottomTop("machine_extender_top", sideTopTexture, columnTexture, endTexture);
-//        var normalModel = models().cubeColumn("machine_extender_normal", sideTexture, columnTexture);
-//
-//        getVariantBuilder(ext)
-//                .partialState().with(MachineExtenderBlock.TOP, true).addModels(new ConfiguredModel(topModel))
-//                .partialState().with(MachineExtenderBlock.TOP, false).addModels(new ConfiguredModel(normalModel));
-//        simpleBlockItem(ext, normalModel);
-//
-//        for (var attachment : MdItems.ALL_ATTACHMENTS) {
-//            itemModels().basicItem(attachment);
-//        }
-//        wrench();
-//        itemModels().basicItem(MdItems.DEBUG_TOOL);
-//
-        // Generate model files referencing the custom loader for Pipe
-        var pipeBaseModel = Identifier.withDefaultNamespace("item/generated");
         for (var pipeBlock : MdBlocks.getAllPipes()) {
             var id = BuiltInRegistries.BLOCK.getKey(pipeBlock).getPath();
 
@@ -69,32 +51,37 @@ public class ModelsProvider extends ModelSubProvider {
             itemModels.itemModelOutput.accept(pipeBlock.asItem(), new PipeItemModel.Unbaked(generator));
 
             blockStateOutput.accept(createSimpleBlock(pipeBlock, customBlockStateModel(new PipeBlockstateModel.Unbaked(generator))));
-
-            // var path = "block/" + pipeBlock.id;
-            // var model = models().getBuilder(path)
-            // .customLoader(PipeModelLoaderBuilder::new)
-            // .pipeType(pipeBlock.id)
-            // .transparent(pipeBlock.isTransparent())
-            // .end();
-            //// Use the block model as the item parent
-            // itemModels().withExistingParent("item/" + pipeBlock.id, modLoc(path));
-            // getVariantBuilder(pipeBlock).partialState().setModels(
-            // ConfiguredModel.builder().modelFile(model).build());
         }
 
         // Generate the model-file for attachments
         for (var item : MdItems.getAllAttachments()) {
             itemModels.generateFlatItem(item, ModelTemplates.FLAT_ITEM);
         }
-        itemModels.generateFlatItem(MdItems.WRENCH.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.generateFlatItem(MdItems.DEBUG_TOOL.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(MdItems.WRENCH.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(MdItems.DEBUG_TOOL.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
     }
 
-    private void wrench() {
-//        Identifier id = Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(MdItems.WRENCH));
-//        itemModels().getBuilder(id.toString())
-//                .parent(new ModelFile.UncheckedModelFile("item/handheld"))
-//                .texture("layer0", Identifier.fromNamespaceAndPath(id.getNamespace(), "item/" + id.getPath()));
+    private void machineExtender() {
+        var ext = MdBlocks.MACHINE_EXTENDER.get();
+        var columnTexture = TextureMapping.getBlockTexture(ext, "_column");
+        var sideTexture = TextureMapping.getBlockTexture(ext, "_side");
+        var sideTopTexture = TextureMapping.getBlockTexture(ext, "_side_top");
+        var endTexture = TextureMapping.getBlockTexture(ext, "_end");
+
+        var topModelTextures = new TextureMapping()
+                .put(TextureSlot.SIDE, sideTopTexture)
+                .put(TextureSlot.TOP, endTexture)
+                .put(TextureSlot.BOTTOM, columnTexture);
+        var topModel = ModelTemplates.CUBE_BOTTOM_TOP.createWithSuffix(ext, "_top", topModelTextures, modelOutput);
+
+        var normalModelTextures = new TextureMapping()
+                .put(TextureSlot.SIDE, sideTexture)
+                .put(TextureSlot.END, columnTexture);
+        var normalModel = ModelTemplates.CUBE_COLUMN.create(ext, normalModelTextures, modelOutput);
+
+        blockStateOutput.accept(
+                MultiVariantGenerator.dispatch(ext)
+                        .with(createBooleanModelDispatch(MachineExtenderBlock.TOP, plainVariant(topModel), plainVariant(normalModel))));
     }
 
 }

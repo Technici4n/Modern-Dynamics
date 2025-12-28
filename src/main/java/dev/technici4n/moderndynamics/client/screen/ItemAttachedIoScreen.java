@@ -182,7 +182,7 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
                 topPos + 18,
                 width,
                 font.lineHeight);
-        guiGraphics.drawString(font, text, rect.getX(), rect.getY(), 0x404040, false);
+        guiGraphics.drawString(font, text, rect.getX(), rect.getY(), 0xff404040, false);
         maxItemsInInventoryTooltipRect = rect;
     }
 
@@ -194,7 +194,7 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
                 topPos + 46,
                 width,
                 font.lineHeight);
-        guiGraphics.drawString(font, text, rect.getX(), rect.getY(), 0x404040, false);
+        guiGraphics.drawString(font, text, rect.getX(), rect.getY(), 0xff404040, false);
         maxItemsExtractedTooltipRect = rect;
     }
 

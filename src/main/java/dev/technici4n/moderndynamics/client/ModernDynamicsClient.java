@@ -18,6 +18,7 @@
  */
 package dev.technici4n.moderndynamics.client;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
 import dev.technici4n.moderndynamics.client.ber.PipeBlockEntityRenderer;
 import dev.technici4n.moderndynamics.client.model.PipeBlockstateModel;
@@ -31,14 +32,26 @@ import dev.technici4n.moderndynamics.packets.MdPackets;
 import dev.technici4n.moderndynamics.packets.SetAttachmentUpgrades;
 import dev.technici4n.moderndynamics.packets.SetFluidVariant;
 import dev.technici4n.moderndynamics.packets.SetItemVariant;
+import dev.technici4n.moderndynamics.pipe.PipeBlock;
+import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
+import dev.technici4n.moderndynamics.pipe.PipeBoundingBoxes;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.ShapeRenderer;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.BlockOutlineRenderState;
+import net.minecraft.client.renderer.state.LevelRenderState;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
+import net.minecraft.world.phys.HitResult;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.CustomBlockOutlineRenderer;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ExtractBlockOutlineRenderStateEvent;
@@ -118,43 +131,53 @@ public final class ModernDynamicsClient {
      * Highlights only the pipe attachment when it's under the mouse cursor to indicate it has special interactions.
      */
     private static void renderPipeAttachmentOutline(ExtractBlockOutlineRenderStateEvent evt) {
-        // TODO 26.1var level = Minecraft.getInstance().level;
-        // TODO 26.1var poseStack = evt.getPoseStack();
-        // TODO 26.1var buffers = evt.getMultiBufferSource();
-        // TODO 26.1var camera = evt.getCamera();
-        // TODO 26.1if (level == null) {
-        // TODO 26.1 return;
-        // TODO 26.1}
-// TODO 26.1
-        // TODO 26.1var blockHitResult = evt.getTarget();
-        // TODO 26.1if (blockHitResult.getType() != HitResult.Type.BLOCK) {
-        // TODO 26.1 return;
-        // TODO 26.1}
-// TODO 26.1
-        // TODO 26.1var pos = blockHitResult.getBlockPos();
-        // TODO 26.1var blockState = level.getBlockState(pos);
-        // TODO 26.1if (blockState.getBlock() instanceof PipeBlock) {
-// TODO 26.1
-        // TODO 26.1 var be = level.getBlockEntity(pos);
-        // TODO 26.1 if (be instanceof PipeBlockEntity pipe) {
-        // TODO 26.1 var hitPosInBlock = Minecraft.getInstance().hitResult.getLocation();
-        // TODO 26.1 hitPosInBlock = hitPosInBlock.subtract(pos.getX(), pos.getY(), pos.getZ());
-// TODO 26.1
-        // TODO 26.1 var hitSide = pipe.hitTestAttachments(hitPosInBlock);
-        // TODO 26.1 if (hitSide != null) {
-        // TODO 26.1 LevelRenderer.renderShape(
-        // TODO 26.1 poseStack,
-        // TODO 26.1 buffers.getBuffer(RenderType.lines()),
-        // TODO 26.1 PipeBoundingBoxes.CONNECTOR_SHAPES[hitSide.ordinal()],
-        // TODO 26.1 (double) pos.getX() - camera.getPosition().x,
-        // TODO 26.1 (double) pos.getY() - camera.getPosition().y,
-        // TODO 26.1 (double) pos.getZ() - camera.getPosition().z,
-        // TODO 26.1 0.0F,
-        // TODO 26.1 0.0F,
-        // TODO 26.1 0.0F,
-        // TODO 26.1 0.4F);
-        // TODO 26.1 evt.setCanceled(true);
-        // TODO 26.1 }
-        // TODO 26.1 }
+        var level = Minecraft.getInstance().level;
+        var camera = evt.getCamera();
+        if (level == null) {
+            return;
+        }
+
+        var blockHitResult = evt.getHitResult();
+        if (blockHitResult.getType() != HitResult.Type.BLOCK) {
+            return;
+        }
+
+        if (evt.getBlockState().getBlock() instanceof PipeBlock) {
+            var pos = evt.getBlockPos();
+            var be = level.getBlockEntity(pos);
+            if (be instanceof PipeBlockEntity pipe) {
+                var hitPosInBlock = Minecraft.getInstance().hitResult.getLocation();
+                hitPosInBlock = hitPosInBlock.subtract(pos.getX(), pos.getY(), pos.getZ());
+
+                var hitSide = pipe.hitTestAttachments(hitPosInBlock);
+                if (hitSide != null) {
+                    evt.getCustomRenderers().add(new OutlineRenderer(
+                            hitSide,
+                            (pos.getX() - camera.position().x),
+                            (pos.getY() - camera.position().y),
+                            (pos.getZ() - camera.position().z)));
+                }
+            }
+        }
+    }
+
+    record OutlineRenderer(Direction hitSide, double x, double y, double z) implements CustomBlockOutlineRenderer {
+        @Override
+        public boolean render(BlockOutlineRenderState renderState,
+                MultiBufferSource.BufferSource buffer,
+                PoseStack poseStack,
+                boolean translucentPass,
+                LevelRenderState levelRenderState) {
+            ShapeRenderer.renderShape(
+                    poseStack,
+                    buffer.getBuffer(RenderTypes.lines()),
+                    PipeBoundingBoxes.CONNECTOR_SHAPES[hitSide.ordinal()],
+                    x,
+                    y,
+                    z,
+                    ARGB.black(0.4F),
+                    7);
+            return true;
+        }
     }
 }

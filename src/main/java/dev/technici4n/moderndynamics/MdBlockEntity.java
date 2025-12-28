@@ -100,6 +100,8 @@ public abstract class MdBlockEntity extends BlockEntity {
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
+
+        toTag(output);
     }
 
     public final void remesh() {

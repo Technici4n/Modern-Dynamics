@@ -1,6 +1,7 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/cube_column",
   "textures": {
-    "all": "moderndynamics:block/machine_extender"
+    "end": "moderndynamics:block/machine_extender_column",
+    "side": "moderndynamics:block/machine_extender_side"
   }
 }

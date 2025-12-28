@@ -36,7 +36,6 @@ package dev.technici4n.moderndynamics.thirdparty.fabric;
 import static dev.technici4n.moderndynamics.thirdparty.fabric.EncodingFormat.EMPTY;
 import static dev.technici4n.moderndynamics.thirdparty.fabric.EncodingFormat.HEADER_BITS;
 import static dev.technici4n.moderndynamics.thirdparty.fabric.EncodingFormat.HEADER_COLOR_INDEX;
-import static dev.technici4n.moderndynamics.thirdparty.fabric.EncodingFormat.HEADER_STRIDE;
 import static dev.technici4n.moderndynamics.thirdparty.fabric.EncodingFormat.HEADER_TAG;
 import static dev.technici4n.moderndynamics.thirdparty.fabric.EncodingFormat.VERTEX_COLOR;
 import static dev.technici4n.moderndynamics.thirdparty.fabric.EncodingFormat.VERTEX_LIGHTMAP;
@@ -45,7 +44,6 @@ import static dev.technici4n.moderndynamics.thirdparty.fabric.EncodingFormat.VER
 import static dev.technici4n.moderndynamics.thirdparty.fabric.EncodingFormat.VERTEX_U;
 import static dev.technici4n.moderndynamics.thirdparty.fabric.EncodingFormat.VERTEX_X;
 
-import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import org.jetbrains.annotations.Nullable;
@@ -172,32 +170,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
     @Override
     public final MutableQuadViewImpl tag(int tag) {
         data[baseIndex + HEADER_TAG] = tag;
-        return this;
-    }
-
-    @Override
-    public final MutableQuadViewImpl fromVanilla(int[] quadData, int startIndex) {
-        System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, VANILLA_QUAD_STRIDE);
-        isGeometryInvalid = true;
-
-        int colorIndex = baseIndex + VERTEX_COLOR;
-
-        for (int i = 0; i < 4; i++) {
-            data[colorIndex] = ColorHelper.fromVanillaColor(data[colorIndex]);
-            colorIndex += VERTEX_STRIDE;
-        }
-
-        return this;
-    }
-
-    @Override
-    public final MutableQuadViewImpl fromVanilla(BakedQuad quad, @Nullable Direction cullFace) {
-        // TODO 26.1. fromVanilla(quad.getVertices(), 0);
-        // TODO 26.1. data[baseIndex + HEADER_BITS] = EncodingFormat.cullFace(0, cullFace);
-        // TODO 26.1. nominalFace(quad.getDirection());
-        // TODO 26.1. colorIndex(quad.getTintIndex());
-
-        tag(0);
         return this;
     }
 }

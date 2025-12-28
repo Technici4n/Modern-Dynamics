@@ -37,6 +37,7 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
@@ -61,10 +62,10 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
      */
     private static final int TAB_BORDER = 4;
 
-    private static final float TAB_OPEN_PER_TICK = 0.20f;
+    private static final float TAB_OPEN_PER_TICK = 0.25f;
 
     public static final Identifier TEXTURE = MdId.of("textures/gui/attachment.png");
-    public static final Identifier TAB_RIGHT_TEXTURE = MdId.of("textures/gui/tab_right.png");
+    public static final Identifier TAB_RIGHT_TEXTURE = MdId.of("tab_right");
 
     private boolean redstoneTabOpen;
     private float redstoneTabCurrentOpen;
@@ -209,45 +210,17 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
 
         updateRedstoneTabRect(partialTicks);
 
-        // The background image is treated as a border image,
-        // for context see https://developer.mozilla.org/en-US/docs/Web/CSS/border-image
-        // The border is assumed to be 4 PX
-
         var tabX = redstoneTabRect.getX();
         var tabY = redstoneTabRect.getY();
         var tabWidth = redstoneTabRect.getWidth();
         var tabHeight = redstoneTabRect.getHeight();
 
-        var tabRight = tabX + tabWidth;
-        var tabBottom = tabY + tabHeight;
-
         var color = ARGB.colorFromFloat(1.0f, 0.81f, 0.14f, 0.04f);
 
-        // Draw all four corners clock-wise starting from top-left
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX, tabY, 0, 0, TAB_BORDER, TAB_BORDER, 256, 256, color);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabRight - TAB_BORDER, tabY, 256 - TAB_BORDER, 0, TAB_BORDER, TAB_BORDER,
-                256, 256, color);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabRight - TAB_BORDER, tabBottom - TAB_BORDER, 256 - TAB_BORDER,
-                256 - TAB_BORDER, TAB_BORDER, TAB_BORDER, 256, 256, color);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX, tabBottom - TAB_BORDER, 0, 256 - TAB_BORDER, TAB_BORDER, TAB_BORDER,
-                256, 256, color);
-
-        // Draw the borders between the corners in the same order
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX + TAB_BORDER, tabY, tabWidth - 2 * TAB_BORDER, TAB_BORDER, TAB_BORDER,
-                0, 256 - 2 * TAB_BORDER, TAB_BORDER, 256, 256, color);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabRight - TAB_BORDER, tabY + TAB_BORDER, TAB_BORDER,
-                tabHeight - 2 * TAB_BORDER, 256 - TAB_BORDER, TAB_BORDER, TAB_BORDER, 256 - 2 * TAB_BORDER, 256, 256, color);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX + TAB_BORDER, tabBottom - TAB_BORDER, tabWidth - 2 * TAB_BORDER,
-                TAB_BORDER, TAB_BORDER, 256 - TAB_BORDER, 256 - 2 * TAB_BORDER, TAB_BORDER, 256, 256, color);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX, tabY + TAB_BORDER, TAB_BORDER, tabHeight - 2 * TAB_BORDER, 0,
-                TAB_BORDER, TAB_BORDER, 256 - 2 * TAB_BORDER, 256, 256, color);
-
-        // Center
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX + TAB_BORDER, tabY + TAB_BORDER, TAB_BORDER, TAB_BORDER,
-                tabWidth - 2 * TAB_BORDER, tabHeight - 2 * TAB_BORDER, 256, 256, color);
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, TAB_RIGHT_TEXTURE, tabX, tabY, tabWidth, tabHeight, color);
 
         var scissorRect = getRedstoneTabScissorRect();
-        guiGraphics.enableScissor(scissorRect.getX(), scissorRect.getY(), scissorRect.getWidth(), scissorRect.getHeight());
+        guiGraphics.enableScissor(scissorRect.left(), scissorRect.top(), scissorRect.right(), scissorRect.bottom());
         // Tell the buttons the scissor rect since they need to be cut off too
         redstoneModeIgnored.setScissorRect(scissorRect);
         redstoneModeLow.setScissorRect(scissorRect);
@@ -268,23 +241,23 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
                 tabY + 3);
 
         var header = Component.translatable("gui.moderndynamics.setting.redstone_control.header");
-        guiGraphics.drawString(font, header, tabX + TAB_BORDER + 16, tabY + TAB_BORDER + 4, 0xe1c92f);
+        guiGraphics.drawString(font, header, tabX + TAB_BORDER + 16, tabY + TAB_BORDER + 4, 0xffe1c92f);
 
         /* Draw a sub-header that indicates whether the attachment is currently operating based on the status or not */
         var subHeaderStatus = Component.translatable("gui.moderndynamics.setting.redstone_control.status_header");
-        guiGraphics.drawString(font, subHeaderStatus, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 42, 0xaaafb8);
+        guiGraphics.drawString(font, subHeaderStatus, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 42, 0xffaaafb8);
         Component enabledStatusText;
         if (menu.isEnabledViaRedstone()) {
             enabledStatusText = Component.translatable("gui.moderndynamics.setting.redstone_control.enabled");
         } else {
             enabledStatusText = Component.translatable("gui.moderndynamics.setting.redstone_control.disabled");
         }
-        guiGraphics.drawString(font, enabledStatusText, tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 54, 0, false);
+        guiGraphics.drawString(font, enabledStatusText, tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 54, 0xff000000, false);
 
         /* Draw a sub-header that simply spells out the currently chosen redstone mode again */
         var subHeaderSetting = Component.translatable("gui.moderndynamics.setting.redstone_control.signal_required_header");
-        guiGraphics.drawString(font, subHeaderSetting, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 66, 0xaaafb8);
-        guiGraphics.drawString(font, menu.getRedstoneMode().getTranslation(), tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 78, 0, false);
+        guiGraphics.drawString(font, subHeaderSetting, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 66, 0xffaaafb8);
+        guiGraphics.drawString(font, menu.getRedstoneMode().getTranslation(), tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 78, 0xff000000, false);
 
         guiGraphics.disableScissor();
     }
@@ -316,17 +289,14 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         }
     }
 
-    private Rect2i getRedstoneTabScissorRect() {
+    private ScreenRectangle getRedstoneTabScissorRect() {
         var tabRect = redstoneTabRect;
 
-        // Scissor rect is in physical window coordinates not the rescaled UI space
-        double scale = this.minecraft.getWindow().getGuiScale();
-        return new Rect2i(
-                (int) ((tabRect.getX() + TAB_BORDER) * scale),
-                // glScissor has y=0 at the bottom of the screen
-                (int) ((height - (tabRect.getY() + tabRect.getHeight() - TAB_BORDER)) * scale),
-                (int) ((tabRect.getWidth() - 2 * TAB_BORDER) * scale),
-                (int) ((tabRect.getHeight() - 2 * TAB_BORDER) * scale));
+        return new ScreenRectangle(
+                tabRect.getX() + TAB_BORDER,
+                tabRect.getY() + TAB_BORDER,
+                tabRect.getWidth() - 2 * TAB_BORDER,
+                tabRect.getHeight() - 2 * TAB_BORDER);
     }
 
     private float getCurrentRedstoneTabOpen(float partialTicks) {
@@ -385,6 +355,11 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
                 return true;
             }
             return false;
+        }
+
+        @Override
+        public boolean isMouseOver(double mouseX, double mouseY) {
+            return isInRedstoneTabRect(mouseX, mouseY);
         }
 
         @Override

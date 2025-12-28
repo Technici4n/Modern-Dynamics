@@ -263,6 +263,7 @@ public abstract class NodeHost {
                         this.attachments[i] = attachmentItem.createAttached(this, attachmentTag);
                     }
                 }
+                i++;
             }
         }
     }

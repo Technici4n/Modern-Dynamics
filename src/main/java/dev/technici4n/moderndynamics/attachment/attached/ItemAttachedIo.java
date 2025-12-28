@@ -58,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ItemAttachedIo extends AttachedIo {
 
-    private static final Codec<List<ItemResource>> FILTER_LIST_CODEC = ItemResource.CODEC.listOf(0, Constants.Upgrades.MAX_FILTER);
+    private static final Codec<List<ItemResource>> FILTER_LIST_CODEC = ItemResource.OPTIONAL_CODEC.listOf(0, Constants.Upgrades.MAX_FILTER);
 
     private final Map<ItemResource, Integer> stuffedItems = new LinkedHashMap<>();
     private int roundRobinIndex;
@@ -90,7 +90,7 @@ public class ItemAttachedIo extends AttachedIo {
 
     record StuffedEntry(ItemResource item, int amount) {
         public static final Codec<StuffedEntry> CODEC = RecordCodecBuilder.create(builder -> builder.group(
-                ItemResource.CODEC.fieldOf("v").forGetter(StuffedEntry::item),
+                ItemResource.OPTIONAL_CODEC.fieldOf("r").forGetter(StuffedEntry::item),
                 Codec.INT.fieldOf("a").forGetter(StuffedEntry::amount)).apply(builder, StuffedEntry::new));
     }
 
@@ -98,8 +98,13 @@ public class ItemAttachedIo extends AttachedIo {
         super(item, configData, setChangedCallback);
 
         this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, ItemResource.EMPTY);
-        var filterTags = configData.read("filters", FILTER_LIST_CODEC);
-        filterTags.ifPresent(filters::addAll);
+        configData.read("filters", FILTER_LIST_CODEC).ifPresent(filterList -> {
+            for (int i = 0; i < filterList.size(); i++) {
+                if (i < filters.size()) {
+                    filters.set(i, filterList.get(i));
+                }
+            }
+        });
 
         this.filterDamage = readEnum(FilterDamageMode.values(), configData, "filterDamage", FilterDamageMode.RESPECT_DAMAGE);
         this.filterNbt = readEnum(FilterNbtMode.values(), configData, "filterNbt", FilterNbtMode.RESPECT_NBT);

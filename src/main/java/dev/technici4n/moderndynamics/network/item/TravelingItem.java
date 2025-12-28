@@ -67,7 +67,7 @@ public class TravelingItem {
     }
 
     public void write(ValueOutput output) {
-        output.store("v", ItemResource.CODEC, variant);
+        output.store("r", ItemResource.OPTIONAL_CODEC, variant);
         output.putInt("a", amount);
         output.store("start", BlockPos.CODEC, path.startingPos);
         output.store("end", BlockPos.CODEC, path.targetPos);
@@ -79,7 +79,7 @@ public class TravelingItem {
 
     public static TravelingItem read(ValueInput input) {
         return new TravelingItem(
-                input.read("v", ItemResource.CODEC).orElse(ItemResource.EMPTY),
+                input.read("r", ItemResource.OPTIONAL_CODEC).orElse(ItemResource.EMPTY),
                 input.getIntOr("a", 0),
                 new ItemPath(
                         input.read("start", BlockPos.CODEC).orElse(BlockPos.ZERO),

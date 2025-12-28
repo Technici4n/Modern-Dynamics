@@ -125,11 +125,6 @@ public class PipeBlock extends MdBlock implements EntityBlock, SimpleWaterlogged
     }
 
     @Override
-    protected int getLightBlock(BlockState state) {
-        return 0; // TODO 26.1: This might already be the result we get from vanilla anyway
-    }
-
-    @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block,
             @org.jspecify.annotations.Nullable Orientation orientation, boolean movedByPiston) {
         if (level.getBlockEntity(pos) instanceof PipeBlockEntity pipe) {

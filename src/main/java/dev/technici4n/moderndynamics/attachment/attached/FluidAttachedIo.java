@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 // TODO: also allow nbt filtering
 public class FluidAttachedIo extends AttachedIo {
-    private static final Codec<List<FluidResource>> FILTER_LIST_CODEC = FluidResource.CODEC.listOf(0, Constants.Upgrades.MAX_FILTER);
+    private static final Codec<List<FluidResource>> FILTER_LIST_CODEC = FluidResource.OPTIONAL_CODEC.listOf(0, Constants.Upgrades.MAX_FILTER);
 
     private final NonNullList<FluidResource> filters;
     @Nullable
