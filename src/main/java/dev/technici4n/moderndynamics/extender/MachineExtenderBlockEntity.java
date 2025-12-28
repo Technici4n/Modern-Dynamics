@@ -49,6 +49,11 @@ public class MachineExtenderBlockEntity extends MdBlockEntity {
         int apiId = registeredApis++;
 
         evt.registerBlockEntity(lookup, bet, (sideExtender, direction) -> {
+            // Generally do not forward requests from below, otherwise the proxied entity might recurse
+            if (direction == Direction.DOWN) {
+                return null;
+            }
+
             var cacheIndex = getCacheIndex(apiId, direction);
             if (sideExtender.inApiQuery[cacheIndex]) {
                 return null;

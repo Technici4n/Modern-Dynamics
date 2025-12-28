@@ -71,7 +71,8 @@ public final class MdGameTests {
                             gametest.attempts(),
                             gametest.requiredSuccesses(),
                             gametest.skyAccess());
-                    var testId = MdId.of(testMethod.getName().toLowerCase(Locale.ROOT));
+                    String methodName = testMethod.getName().replaceAll("([A-Z])", "_$1").toLowerCase(Locale.ROOT);
+                    var testId = MdId.of(methodName);
                     Consumer<GameTestHelper> function = helper -> {
                         try {
                             var testObject = testClass.getConstructor().newInstance();

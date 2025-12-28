@@ -23,6 +23,7 @@ import dev.technici4n.moderndynamics.test.framework.MdGameTestHelper;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RedstoneLampBlock;
@@ -32,8 +33,36 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 public class MachineExtenderTest {
     @MdGameTest
-    public void testForwardWeakSignal(MdGameTestHelper helper) {
-        var l0 = BlockPos.ZERO.above();
+    public void machineExtenderNotForwardingFromBelow(MdGameTestHelper helper) {
+        var origin = new BlockPos(4, 0, 4);
+        helper.setBlock(origin, Blocks.HOPPER);
+        helper.setBlock(origin.above(), MdBlocks.MACHINE_EXTENDER.get());
+
+        helper.startSequence()
+                .thenExecute(() -> {
+                    var hopperPos = helper.absolutePos(origin);
+                    var hopperCap = helper.getLevel().getCapability(Capabilities.Item.BLOCK, hopperPos, Direction.UP);
+
+                    var extenderPos = hopperPos.above();
+                    for (var side : Direction.values()) {
+                        var cap = helper.getLevel().getCapability(Capabilities.Item.BLOCK, extenderPos, side);
+                        if (side != Direction.DOWN) {
+                            if (cap != hopperCap) {
+                                throw helper.assertionException(origin.above(), Component.literal("Should expose Hopper on side " + side));
+                            }
+                        } else {
+                            if (cap != null) {
+                                throw helper.assertionException(origin.above(), Component.literal("Should NOT expose Hopper on side " + side));
+                            }
+                        }
+                    }
+                })
+                .thenSucceed();
+    }
+
+    @MdGameTest
+    public void machineExtenderForwardWeakSignal(MdGameTestHelper helper) {
+        var l0 = new BlockPos(4, 1, 4);
         var l1 = l0.above();
         var l2 = l1.above();
 
