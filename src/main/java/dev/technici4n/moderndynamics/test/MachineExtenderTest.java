@@ -40,19 +40,18 @@ public class MachineExtenderTest {
 
         helper.startSequence()
                 .thenExecute(() -> {
-                    var hopperPos = helper.absolutePos(origin);
-                    var hopperCap = helper.getLevel().getCapability(Capabilities.Item.BLOCK, hopperPos, Direction.UP);
+                    var hopperCap = helper.requireCapability(Capabilities.Item.BLOCK, origin, Direction.UP);
 
-                    var extenderPos = hopperPos.above();
+                    var extenderPos = origin.above();
                     for (var side : Direction.values()) {
-                        var cap = helper.getLevel().getCapability(Capabilities.Item.BLOCK, extenderPos, side);
+                        var cap = helper.getCapability(Capabilities.Item.BLOCK, extenderPos, side);
                         if (side != Direction.DOWN) {
                             if (cap != hopperCap) {
-                                throw helper.assertionException(origin.above(), Component.literal("Should expose Hopper on side " + side));
+                                throw helper.assertionException(extenderPos, Component.literal("Should expose Hopper on side " + side));
                             }
                         } else {
                             if (cap != null) {
-                                throw helper.assertionException(origin.above(), Component.literal("Should NOT expose Hopper on side " + side));
+                                throw helper.assertionException(extenderPos, Component.literal("Should NOT expose Hopper on side " + side));
                             }
                         }
                     }

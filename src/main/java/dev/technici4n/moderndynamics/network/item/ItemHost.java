@@ -205,8 +205,7 @@ public class ItemHost extends NodeHost {
 
             var maxParticipant = new MaxParticipant();
 
-            // TODO 26.1: This was previously stacking on move, but this helper is not.
-            if (ResourceHandlerUtil.move(
+            if (ResourceHandlerUtil.moveStacking(
                     adjStorage,
                     buildExtractorNetworkInjectStorage(side, extractor, maxParticipant),
                     extractor::matchesItemFilter,
@@ -264,8 +263,7 @@ public class ItemHost extends NodeHost {
                             reversedPath.getStartingPoint(cache.level).getHost().addTravelingItem(travelingItem);
                         });
                     });
-                    // TODO 26.1: This was previously stacking on move, but this helper is not.
-                    toTransfer -= ResourceHandlerUtil.move(
+                    toTransfer -= ResourceHandlerUtil.moveStacking(
                             extractTarget,
                             insertStorage,
                             v -> attractor.matchesItemFilter(v) && endpointFilter.test(v),
