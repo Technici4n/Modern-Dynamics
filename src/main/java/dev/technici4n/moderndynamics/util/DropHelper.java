@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 public class DropHelper {
     public static void dropStacks(BlockEntity blockEntity, List<ItemStack> stacks) {
@@ -36,14 +37,14 @@ public class DropHelper {
         Containers.dropItemStack(blockEntity.getLevel(), pos.getX(), pos.getY(), pos.getZ(), stack);
     }
 
-    public static void dropStack(BlockEntity blockEntity, ItemVariant variant, long amount) {
-        splitIntoStacks(variant, amount, stack -> dropStack(blockEntity, stack));
+    public static void dropStack(BlockEntity blockEntity, ItemResource resource, long amount) {
+        splitIntoStacks(resource, amount, stack -> dropStack(blockEntity, stack));
     }
 
-    public static void splitIntoStacks(ItemVariant variant, long amount, Consumer<ItemStack> stackConsumer) {
+    public static void splitIntoStacks(ItemResource resource, long amount, Consumer<ItemStack> stackConsumer) {
         while (amount > 0) {
-            int dropped = (int) Math.min(amount, variant.getMaxStackSize());
-            stackConsumer.accept(variant.toStack(dropped));
+            int dropped = (int) Math.min(amount, resource.getMaxStackSize());
+            stackConsumer.accept(resource.toStack(dropped));
             amount -= dropped;
         }
 

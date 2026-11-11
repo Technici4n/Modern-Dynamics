@@ -35,8 +35,8 @@ public class MdJadePlugin implements IWailaPlugin {
     @Override
     public void registerClient(IWailaClientRegistration registration) {
         registration.registerItemStorageClient(ItemPipeServerProvider.INSTANCE);
-        for (var pipe : MdBlocks.ALL_PIPES) {
-            registration.usePickedResult(pipe);
+        for (var pipe : MdBlocks.getAllPipes()) {
+            // TODO 26.1: registration.usePickedResult(pipe);
         }
     }
 }

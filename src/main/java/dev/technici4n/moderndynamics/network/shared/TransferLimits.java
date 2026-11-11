@@ -22,8 +22,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
 import dev.technici4n.moderndynamics.network.TickHelper;
 import net.minecraft.core.Direction;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 
-public class TransferLimits {
+public class TransferLimits extends SnapshotJournal<int[]> {
     // These numbers are somewhat arbitrary, we can always change them later...
     // TODO: I don't like this, we should cap at bucket capacity...
     private static final int MAX_TICK_DIFF = 20;
@@ -90,6 +91,16 @@ public class TransferLimits {
 
     public void use(int side, int amount) {
         available[side] -= amount;
+    }
+
+    @Override
+    protected int[] createSnapshot() {
+        return available.clone();
+    }
+
+    @Override
+    protected void revertToSnapshot(int[] snapshot) {
+        System.arraycopy(snapshot, 0, available, 0, available.length);
     }
 
     @FunctionalInterface

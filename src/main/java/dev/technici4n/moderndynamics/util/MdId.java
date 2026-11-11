@@ -18,7 +18,7 @@
  */
 package dev.technici4n.moderndynamics.util;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public final class MdId {
     private MdId() {
@@ -26,7 +26,7 @@ public final class MdId {
 
     public static final String MOD_ID = "moderndynamics";
 
-    public static ResourceLocation of(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+    public static Identifier of(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 }

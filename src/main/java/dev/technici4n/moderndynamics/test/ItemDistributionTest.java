@@ -60,7 +60,7 @@ public class ItemDistributionTest {
                 });
         helper.pipe(new BlockPos(1, 1, 2), MdBlocks.ITEM_PIPE);
 
-        ((ChestBlockEntity) helper.getBlockEntity(sourceChest)).setItem(0, new ItemStack(Items.DIAMOND, 6));
+        helper.getBlockEntity(sourceChest, ChestBlockEntity.class).setItem(0, new ItemStack(Items.DIAMOND, 6));
 
         helper.startSequence()
                 .thenWaitUntil(() -> {

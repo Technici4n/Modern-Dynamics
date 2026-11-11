@@ -19,8 +19,8 @@
 package dev.technici4n.moderndynamics.gui.menu;
 
 import dev.technici4n.moderndynamics.attachment.attached.FluidAttachedIo;
-import dev.technici4n.moderndynamics.util.FluidVariant;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 public class FluidConfigSlot extends ConfigSlot<FluidAttachedIo> {
     public FluidConfigSlot(int x, int y, FluidAttachedIo attachment, int configIdx) {
@@ -32,7 +32,7 @@ public class FluidConfigSlot extends ConfigSlot<FluidAttachedIo> {
         return ItemStack.EMPTY;
     }
 
-    public FluidVariant getFilter() {
+    public FluidResource getFilter() {
         return getAttachment().getFilter(getConfigIdx());
     }
 }

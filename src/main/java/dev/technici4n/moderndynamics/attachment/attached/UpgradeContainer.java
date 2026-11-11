@@ -22,23 +22,23 @@ import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.upgrade.LoadedUpgrades;
 import dev.technici4n.moderndynamics.attachment.upgrade.UpgradeType;
 import java.util.function.ToIntFunction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 class UpgradeContainer {
     final NonNullList<ItemStack> upgrades = NonNullList.withSize(AttachedIo.UPGRADE_SLOTS, ItemStack.EMPTY);
 
-    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        ContainerHelper.loadAllItems(tag, upgrades, registries);
+    public void read(ValueInput input) {
+        ContainerHelper.loadAllItems(input, upgrades);
     }
 
-    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        ContainerHelper.saveAllItems(tag, upgrades, registries);
+    public void write(ValueOutput output) {
+        ContainerHelper.saveAllItems(output, upgrades);
     }
 
     public boolean mayPlaceUpgrade(int slot, Item upgrade) {

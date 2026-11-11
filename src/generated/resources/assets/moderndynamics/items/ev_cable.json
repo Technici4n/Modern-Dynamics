@@ -1,0 +1,7 @@
+{
+  "model": {
+    "type": "moderndynamics:pipe",
+    "pipeType": "ev_cable",
+    "transparent": false
+  }
+}

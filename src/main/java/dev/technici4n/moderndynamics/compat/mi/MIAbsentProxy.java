@@ -22,20 +22,20 @@ import dev.technici4n.moderndynamics.network.mienergy.MICableTier;
 import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.core.Direction;
 import net.neoforged.neoforge.capabilities.BlockCapability;
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
 public class MIAbsentProxy implements MIProxy {
-    private static final BlockCapability<? extends IEnergyStorage, Direction> MISSING_LOOKUP = BlockCapability.createSided(
+    private static final BlockCapability<? extends EnergyHandler, Direction> MISSING_LOOKUP = BlockCapability.createSided(
             MdId.of("mi_energy_missing"),
-            IEnergyStorage.class);
+            EnergyHandler.class);
 
     @Override
-    public BlockCapability<? extends IEnergyStorage, Direction> getLookup() {
+    public BlockCapability<? extends EnergyHandler, Direction> getLookup() {
         return MISSING_LOOKUP;
     }
 
     @Override
-    public boolean canConnect(IEnergyStorage storage, MICableTier tier) {
+    public boolean canConnect(EnergyHandler storage, MICableTier tier) {
         return false;
     }
 }

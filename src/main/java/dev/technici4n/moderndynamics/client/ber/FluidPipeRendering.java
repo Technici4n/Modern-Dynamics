@@ -19,18 +19,16 @@
 package dev.technici4n.moderndynamics.client.ber;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.QuadInstance;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.thirdparty.fabric.MeshBuilderImpl;
 import dev.technici4n.moderndynamics.thirdparty.fabric.MutableQuadView;
 import dev.technici4n.moderndynamics.thirdparty.fabric.QuadEmitter;
-import dev.technici4n.moderndynamics.util.FluidRenderUtil;
-import dev.technici4n.moderndynamics.util.FluidVariant;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.LightCoordsUtil;
 
 public class FluidPipeRendering {
     private static final float PIPE_W = 6.0F / 16.0F;
@@ -39,7 +37,6 @@ public class FluidPipeRendering {
     private static final float P2 = 0.5f;
     private static final float P3 = P1 + PIPE_W;
     private static final float P4 = 1f;
-    public static final int FULL_LIGHT = 0x00F0_00F0;
 
     private static final int DOWN = 1 << 0;
     private static final int UP = 1 << 1;
@@ -48,23 +45,11 @@ public class FluidPipeRendering {
     private static final int WEST = 1 << 4;
     private static final int EAST = 1 << 5;
 
-    public static void drawFluidInPipe(PipeBlockEntity pipe, PoseStack ms, MultiBufferSource vcp, FluidVariant fluid, float fill) {
-        int conn = pipe.getClientSideConnections();
-        var level = pipe.getLevel();
-        var pos = pipe.getBlockPos();
-
-        VertexConsumer vc = vcp.getBuffer(RenderType.translucent());
-
-        var renderProps = IClientFluidTypeExtensions.of(fluid.getFluid());
-        var sprite = FluidRenderUtil.getStillSprite(fluid);
-        if (sprite == null || fill < 1e-5) {
-            return;
-        }
-
-        int color = renderProps.getTintColor(fluid.getFluid().defaultFluidState(), level, pos);
-        float r = ((color >> 16) & 255) / 256f;
-        float g = ((color >> 8) & 255) / 256f;
-        float b = (color & 255) / 256f;
+    public static void drawFluidInPipe(int conn, int color, TextureAtlasSprite sprite, float fill, PoseStack.Pose pose, VertexConsumer vc) {
+        var quadInstance = new QuadInstance();
+        quadInstance.setColor(ARGB.opaque(color));
+        quadInstance.setLightCoords(LightCoordsUtil.FULL_BRIGHT);
+        quadInstance.setOverlayCoords(OverlayTexture.NO_OVERLAY);
 
         var meshBuilder = new MeshBuilderImpl();
         QuadBuilder builder = (direction, x, y, z, X, Y, Z) -> {
@@ -72,16 +57,8 @@ public class FluidPipeRendering {
             quad(emitter, direction, x, y, z, X, Y, Z);
             emitter.spriteBake(sprite, MutableQuadView.BAKE_LOCK_UV);
             emitter.color(-1, -1, -1, -1);
-            vc.putBulkData(ms.last(), emitter.toBakedQuad(sprite), r, g, b, 1, FULL_LIGHT, OverlayTexture.NO_OVERLAY);
+            vc.putBakedQuad(pose, emitter.toBakedQuad(sprite), quadInstance);
         };
-
-        /*
-         * var emitter = renderer.meshBuilder().getEmitter();
-         * emitter.square(Direction.UP, 0, 0, 1, 1, 0);
-         * emitter.spriteBake(0, sprite, MutableQuadView.BAKE_LOCK_UV);
-         * emitter.spriteColor(0, -1, -1, -1, -1);
-         * vc.putBulkData(ms.last(), emitter.toBakedQuad(0, sprite, false), r, g, b, FULL_LIGHT, OverlayTexture.NO_OVERLAY);
-         */
 
         float F = fill * PIPE_W;
         float E = 1e-3f;

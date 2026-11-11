@@ -21,7 +21,7 @@ package dev.technici4n.moderndynamics.network.item;
 public class MaxParticipant {
     private int max = 0;
 
-    public void addEntry(int amount, boolean simulate) {
+    public void addEntry(int amount) {
         if (amount > max) {
             max = amount;
         }

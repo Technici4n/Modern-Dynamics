@@ -1,5 +1,0 @@
-{
-  "loader": "moderndynamics:pipe",
-  "pipeType": "superconductor_cable",
-  "transparent": false
-}

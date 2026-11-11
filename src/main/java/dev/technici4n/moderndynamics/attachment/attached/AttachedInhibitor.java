@@ -19,10 +19,10 @@
 package dev.technici4n.moderndynamics.attachment.attached;
 
 import dev.technici4n.moderndynamics.attachment.InhibitorAttachmentItem;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
 
 public class AttachedInhibitor extends AttachedAttachment {
-    public AttachedInhibitor(InhibitorAttachmentItem item, CompoundTag configTag) {
-        super(item, configTag);
+    public AttachedInhibitor(InhibitorAttachmentItem item, ValueInput input) {
+        super(item, input);
     }
 }

@@ -22,14 +22,14 @@ import dev.technici4n.moderndynamics.network.mienergy.MICableTier;
 import net.minecraft.core.Direction;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.capabilities.BlockCapability;
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
 public interface MIProxy {
     String MOD_ID = "modern_industrialization";
 
     MIProxy INSTANCE = ModList.get().isLoaded(MOD_ID) ? new MIAvailableProxy() : new MIAbsentProxy();
 
-    BlockCapability<? extends IEnergyStorage, Direction> getLookup();
+    BlockCapability<? extends EnergyHandler, Direction> getLookup();
 
-    boolean canConnect(IEnergyStorage storage, MICableTier tier);
+    boolean canConnect(EnergyHandler storage, MICableTier tier);
 }

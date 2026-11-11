@@ -29,186 +29,173 @@ import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
 import dev.technici4n.moderndynamics.gui.menu.AttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
-import dev.technici4n.moderndynamics.util.FluidVariant;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.function.BiConsumer;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 public class MdPackets {
 
-    public static void sendSetFilter(int syncId, int filterSlot, ItemVariant variant) {
-        PacketDistributor.sendToServer(new SetItemVariant(
-                syncId, filterSlot, variant));
+    public static void sendSetFilter(int syncId, int filterSlot, ItemResource resource) {
+        ClientPacketDistributor.sendToServer(new SetItemResource(
+                syncId, filterSlot, resource));
     }
 
-    public static void sendSetFilter(int syncId, int filterSlot, FluidVariant variant) {
-        PacketDistributor.sendToServer(new SetFluidVariant(
-                syncId, filterSlot, variant));
+    public static void sendSetFilter(int syncId, int filterSlot, FluidResource resource) {
+        ClientPacketDistributor.sendToServer(new SetFluidResource(
+                syncId, filterSlot, resource));
     }
 
-    private static final CustomPacketPayload.Type<SetEnum<FilterInversionMode>> SET_FILTER_MODE = new CustomPacketPayload.Type<>(
+    public static final CustomPacketPayload.Type<SetEnum<FilterInversionMode>> SET_FILTER_MODE = new CustomPacketPayload.Type<>(
             MdId.of("set_filter_mode"));
-    private static final SetEnumHandler<FilterInversionMode> SET_FILTER_MODE_HANDLER = createSetEnumHandler(AttachedIoMenu.class,
+    public static final IPayloadHandler<SetEnum<FilterInversionMode>> SET_FILTER_MODE_HANDLER = createSetEnumHandler(AttachedIoMenu.class,
             AttachedIoMenu::setFilterMode);
 
     public static void sendSetFilterMode(int syncId, FilterInversionMode filterMode) {
         sendSetEnum(syncId, SET_FILTER_MODE, filterMode);
     }
 
-    private static final CustomPacketPayload.Type<SetEnum<FilterDamageMode>> SET_FILTER_DAMAGE = new CustomPacketPayload.Type<>(
+    public static final CustomPacketPayload.Type<SetEnum<FilterDamageMode>> SET_FILTER_DAMAGE = new CustomPacketPayload.Type<>(
             MdId.of("set_filter_damage"));
-    private static final SetEnumHandler<FilterDamageMode> SET_FILTER_DAMAGE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
+    public static final IPayloadHandler<SetEnum<FilterDamageMode>> SET_FILTER_DAMAGE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
             ItemAttachedIoMenu::setFilterDamage);
 
     public static void sendSetFilterDamage(int syncId, FilterDamageMode value) {
         sendSetEnum(syncId, SET_FILTER_DAMAGE, value);
     }
 
-    private static final CustomPacketPayload.Type<SetEnum<FilterNbtMode>> SET_FILTER_NBT = new CustomPacketPayload.Type<>(MdId.of("set_filter_nbt"));
-    private static final SetEnumHandler<FilterNbtMode> SET_FILTER_NBT_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
+    public static final CustomPacketPayload.Type<SetEnum<FilterNbtMode>> SET_FILTER_NBT = new CustomPacketPayload.Type<>(MdId.of("set_filter_nbt"));
+    public static final IPayloadHandler<SetEnum<FilterNbtMode>> SET_FILTER_NBT_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
             ItemAttachedIoMenu::setFilterNbt);
 
     public static void sendSetFilterNbt(int syncId, FilterNbtMode value) {
         sendSetEnum(syncId, SET_FILTER_NBT, value);
     }
 
-    private static final CustomPacketPayload.Type<SetEnum<FilterModMode>> SET_FILTER_MOD = new CustomPacketPayload.Type<>(MdId.of("set_filter_mod"));
-    private static final SetEnumHandler<FilterModMode> SET_FILTER_MOD_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
+    public static final CustomPacketPayload.Type<SetEnum<FilterModMode>> SET_FILTER_MOD = new CustomPacketPayload.Type<>(MdId.of("set_filter_mod"));
+    public static final IPayloadHandler<SetEnum<FilterModMode>> SET_FILTER_MOD_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
             ItemAttachedIoMenu::setFilterMod);
 
     public static void sendSetFilterMod(int syncId, FilterModMode value) {
         sendSetEnum(syncId, SET_FILTER_MOD, value);
     }
 
-    private static final CustomPacketPayload.Type<SetEnum<FilterSimilarMode>> SET_FILTER_SIMILAR = new CustomPacketPayload.Type<>(
+    public static final CustomPacketPayload.Type<SetEnum<FilterSimilarMode>> SET_FILTER_SIMILAR = new CustomPacketPayload.Type<>(
             MdId.of("set_filter_similar"));
-    private static final SetEnumHandler<FilterSimilarMode> SET_FILTER_SIMILAR_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
+    public static final IPayloadHandler<SetEnum<FilterSimilarMode>> SET_FILTER_SIMILAR_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
             ItemAttachedIoMenu::setFilterSimilar);
 
     public static void sendSetFilterSimilar(int syncId, FilterSimilarMode value) {
         sendSetEnum(syncId, SET_FILTER_SIMILAR, value);
     }
 
-    private static final CustomPacketPayload.Type<SetEnum<RoutingMode>> SET_ROUTING_MODE = new CustomPacketPayload.Type<>(
+    public static final CustomPacketPayload.Type<SetEnum<RoutingMode>> SET_ROUTING_MODE = new CustomPacketPayload.Type<>(
             MdId.of("set_routing_mode"));
-    private static final SetEnumHandler<RoutingMode> SET_ROUTING_MODE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
+    public static final IPayloadHandler<SetEnum<RoutingMode>> SET_ROUTING_MODE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
             ItemAttachedIoMenu::setRoutingMode);
 
     public static void sendSetRoutingMode(int syncId, RoutingMode value) {
         sendSetEnum(syncId, SET_ROUTING_MODE, value);
     }
 
-    private static final CustomPacketPayload.Type<SetEnum<OversendingMode>> SET_OVERSENDING_MODE = new CustomPacketPayload.Type<>(
+    public static final CustomPacketPayload.Type<SetEnum<OversendingMode>> SET_OVERSENDING_MODE = new CustomPacketPayload.Type<>(
             MdId.of("set_oversending_mode"));
-    private static final SetEnumHandler<OversendingMode> SET_OVERSENDING_MODE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
+    public static final IPayloadHandler<SetEnum<OversendingMode>> SET_OVERSENDING_MODE_HANDLER = createSetEnumHandler(ItemAttachedIoMenu.class,
             ItemAttachedIoMenu::setOversendingMode);
 
     public static void sendSetOversendingMode(int syncId, OversendingMode value) {
         sendSetEnum(syncId, SET_OVERSENDING_MODE, value);
     }
 
-    private static final CustomPacketPayload.Type<SetEnum<RedstoneMode>> SET_REDSTONE_MODE = new CustomPacketPayload.Type<>(
+    public static final CustomPacketPayload.Type<SetEnum<RedstoneMode>> SET_REDSTONE_MODE = new CustomPacketPayload.Type<>(
             MdId.of("set_redstone_mode"));
-    private static final SetEnumHandler<RedstoneMode> SET_REDSTONE_MODE_HANDLER = createSetEnumHandler(AttachedIoMenu.class,
+    public static final IPayloadHandler<SetEnum<RedstoneMode>> SET_REDSTONE_MODE_HANDLER = createSetEnumHandler(AttachedIoMenu.class,
             AttachedIoMenu::setRedstoneMode);
 
     public static void sendSetRedstoneMode(int syncId, RedstoneMode value) {
         sendSetEnum(syncId, SET_REDSTONE_MODE, value);
     }
 
-    private static final CustomPacketPayload.Type<SetInt> SET_MAX_ITEMS_IN_INVENTORY = new CustomPacketPayload.Type<>(
+    public static final CustomPacketPayload.Type<SetInt> SET_MAX_ITEMS_IN_INVENTORY = new CustomPacketPayload.Type<>(
             MdId.of("set_max_items_in_inventory"));
-    private static final SetIntHandler SET_MAX_ITEMS_IN_INVENTORY_HANDLER = createSetIntHandler(ItemAttachedIoMenu::setMaxItemsInInventory);
+    public static final IPayloadHandler<SetInt> SET_MAX_ITEMS_IN_INVENTORY_HANDLER = createSetIntHandler(ItemAttachedIoMenu::setMaxItemsInInventory);
 
     public static void sendSetMaxItemsInInventory(int syncId, int value) {
         sendSetInt(syncId, SET_MAX_ITEMS_IN_INVENTORY, value);
     }
 
-    private static final CustomPacketPayload.Type<SetInt> SET_MAX_ITEMS_EXTRACTED = new CustomPacketPayload.Type<>(
+    public static final CustomPacketPayload.Type<SetInt> SET_MAX_ITEMS_EXTRACTED = new CustomPacketPayload.Type<>(
             MdId.of("set_max_items_extracted"));
-    private static final SetIntHandler SET_MAX_ITEMS_EXTRACTED_HANDLER = createSetIntHandler(ItemAttachedIoMenu::setMaxItemsExtracted);
+    public static final IPayloadHandler<SetInt> SET_MAX_ITEMS_EXTRACTED_HANDLER = createSetIntHandler(ItemAttachedIoMenu::setMaxItemsExtracted);
+
+    public static final IPayloadHandler<SetItemResource> SET_ITEM_RESOURCE_HANDLER = handler(MdPackets::handleSetItemResource);
+    public static final IPayloadHandler<SetFluidResource> SET_FLUID_RESOURCE_HANDLER = handler(MdPackets::handleSetFluidResource);
 
     public static void sendSetMaxItemsExtracted(int syncId, int value) {
         sendSetInt(syncId, SET_MAX_ITEMS_EXTRACTED, value);
     }
 
     private static <T extends Enum<T>> void sendSetEnum(int syncId, CustomPacketPayload.Type<SetEnum<T>> packetType, T enumValue) {
-        PacketDistributor.sendToServer(new SetEnum<>(packetType, syncId, enumValue));
+        ClientPacketDistributor.sendToServer(new SetEnum<>(packetType, syncId, enumValue));
     }
 
-    private static <T extends Enum<T>, M extends AbstractContainerMenu> SetEnumHandler<T> createSetEnumHandler(Class<M> menuClass,
+    private static <T extends Enum<T>, M extends AbstractContainerMenu> IPayloadHandler<SetEnum<T>> createSetEnumHandler(Class<M> menuClass,
             EnumSetter<T, M> setter) {
-        return (player, syncId, value) -> {
+        return handler((player, payload) -> {
             AbstractContainerMenu handler = player.containerMenu;
-            if (handler.containerId == syncId) {
-                setter.setEnum(menuClass.cast(handler), value, false);
+            if (handler.containerId == payload.syncId()) {
+                setter.setEnum(menuClass.cast(handler), payload.value(), false);
             }
-        };
+        });
     }
 
     private static void sendSetInt(int syncId, CustomPacketPayload.Type<SetInt> packetType, int value) {
-        PacketDistributor.sendToServer(new SetInt(packetType, syncId, value));
+        ClientPacketDistributor.sendToServer(new SetInt(packetType, syncId, value));
     }
 
-    private static SetIntHandler createSetIntHandler(IntSetter setter) {
-        return (player, syncId, value) -> {
+    private static IPayloadHandler<SetInt> createSetIntHandler(IntSetter setter) {
+        return handler((player, payload) -> {
             AbstractContainerMenu handler = player.containerMenu;
-            if (handler.containerId == syncId && handler instanceof ItemAttachedIoMenu attachmentMenu) {
-                setter.setInt(attachmentMenu, value, false);
+            if (handler.containerId == payload.syncId() && handler instanceof ItemAttachedIoMenu attachmentMenu) {
+                setter.setInt(attachmentMenu, payload.value(), false);
             }
-        };
+        });
     }
 
     public static void register(PayloadRegistrar registrar) {
-        registrar.playToClient(SetAttachmentUpgrades.TYPE, SetAttachmentUpgrades.STREAM_CODEC, SetAttachmentUpgrades.HANDLER);
+        registrar.playToClient(SetAttachmentUpgrades.TYPE, SetAttachmentUpgrades.STREAM_CODEC);
 
-        registrar.playBidirectional(SetItemVariant.TYPE, SetItemVariant.STREAM_CODEC, handler(MdPackets::handleSetItemVariant));
-        registrar.playBidirectional(SetFluidVariant.TYPE, SetFluidVariant.STREAM_CODEC, handler(MdPackets::handleSetFluidVariant));
-
-        registerSetEnum(registrar, SET_FILTER_MODE, FilterInversionMode.class, SET_FILTER_MODE_HANDLER);
-        registerSetEnum(registrar, SET_FILTER_DAMAGE, FilterDamageMode.class, SET_FILTER_DAMAGE_HANDLER);
-        registerSetEnum(registrar, SET_FILTER_NBT, FilterNbtMode.class, SET_FILTER_NBT_HANDLER);
-        registerSetEnum(registrar, SET_FILTER_MOD, FilterModMode.class, SET_FILTER_MOD_HANDLER);
-        registerSetEnum(registrar, SET_FILTER_SIMILAR, FilterSimilarMode.class, SET_FILTER_SIMILAR_HANDLER);
-        registerSetEnum(registrar, SET_ROUTING_MODE, RoutingMode.class, SET_ROUTING_MODE_HANDLER);
-        registerSetEnum(registrar, SET_OVERSENDING_MODE, OversendingMode.class, SET_OVERSENDING_MODE_HANDLER);
-        registerSetEnum(registrar, SET_REDSTONE_MODE, RedstoneMode.class, SET_REDSTONE_MODE_HANDLER);
-        registerSetInt(registrar, MdPackets.SET_MAX_ITEMS_IN_INVENTORY, MdPackets.SET_MAX_ITEMS_IN_INVENTORY_HANDLER);
-        registerSetInt(registrar, MdPackets.SET_MAX_ITEMS_EXTRACTED, MdPackets.SET_MAX_ITEMS_EXTRACTED_HANDLER);
+        registrar.playBidirectional(SetItemResource.TYPE, SetItemResource.STREAM_CODEC, SET_ITEM_RESOURCE_HANDLER);
+        registrar.playBidirectional(SetFluidResource.TYPE, SetFluidResource.STREAM_CODEC, SET_FLUID_RESOURCE_HANDLER);
+        registrar.playBidirectional(SET_FILTER_MODE, SetEnum.codec(SET_FILTER_MODE, FilterInversionMode.class), SET_FILTER_MODE_HANDLER);
+        registrar.playBidirectional(SET_FILTER_DAMAGE, SetEnum.codec(SET_FILTER_DAMAGE, FilterDamageMode.class), SET_FILTER_DAMAGE_HANDLER);
+        registrar.playBidirectional(SET_FILTER_NBT, SetEnum.codec(SET_FILTER_NBT, FilterNbtMode.class), SET_FILTER_NBT_HANDLER);
+        registrar.playBidirectional(SET_FILTER_MOD, SetEnum.codec(SET_FILTER_MOD, FilterModMode.class), SET_FILTER_MOD_HANDLER);
+        registrar.playBidirectional(SET_FILTER_SIMILAR, SetEnum.codec(SET_FILTER_SIMILAR, FilterSimilarMode.class), SET_FILTER_SIMILAR_HANDLER);
+        registrar.playBidirectional(SET_ROUTING_MODE, SetEnum.codec(SET_ROUTING_MODE, RoutingMode.class), SET_ROUTING_MODE_HANDLER);
+        registrar.playBidirectional(SET_OVERSENDING_MODE, SetEnum.codec(SET_OVERSENDING_MODE, OversendingMode.class), SET_OVERSENDING_MODE_HANDLER);
+        registrar.playBidirectional(SET_REDSTONE_MODE, SetEnum.codec(SET_REDSTONE_MODE, RedstoneMode.class), SET_REDSTONE_MODE_HANDLER);
+        registrar.playBidirectional(SET_MAX_ITEMS_IN_INVENTORY, SetInt.codec(SET_MAX_ITEMS_IN_INVENTORY), SET_MAX_ITEMS_IN_INVENTORY_HANDLER);
+        registrar.playBidirectional(SET_MAX_ITEMS_EXTRACTED, SetInt.codec(SET_MAX_ITEMS_EXTRACTED), SET_MAX_ITEMS_EXTRACTED_HANDLER);
     }
 
-    private static <T extends Enum<T>> void registerSetEnum(PayloadRegistrar registrar, CustomPacketPayload.Type<SetEnum<T>> type, Class<T> enumClass,
-            SetEnumHandler<T> handler) {
-        registrar.playBidirectional(type, SetEnum.codec(type, enumClass), handler((player, payload) -> {
-            handler.handleSetEnum(player, payload.syncId(), payload.value());
-        }));
-
-    }
-
-    private static void registerSetInt(PayloadRegistrar registrar, CustomPacketPayload.Type<SetInt> type, SetIntHandler handler) {
-        registrar.playBidirectional(type, SetInt.codec(type), handler((player, payload) -> {
-            handler.handleSetInt(player, payload.syncId(), payload.value());
-        }));
-
-    }
-
-    private static void handleSetItemVariant(Player player, SetItemVariant payload) {
+    private static void handleSetItemResource(Player player, SetItemResource payload) {
         AbstractContainerMenu handler = player.containerMenu;
         if (handler.containerId == payload.syncId() && handler instanceof ItemAttachedIoMenu attachmentMenu) {
-            attachmentMenu.setFilter(payload.configIdx(), payload.variant(), false);
+            attachmentMenu.setFilter(payload.configIdx(), payload.resource(), false);
         }
     }
 
-    private static void handleSetFluidVariant(Player player, SetFluidVariant payload) {
+    private static void handleSetFluidResource(Player player, SetFluidResource payload) {
         AbstractContainerMenu handler = player.containerMenu;
         if (handler.containerId == payload.syncId() && handler instanceof FluidAttachedIoMenu attachmentMenu) {
-            attachmentMenu.setFilter(payload.configIdx(), payload.variant(), false);
+            attachmentMenu.setFilter(payload.configIdx(), payload.resource(), false);
         }
     }
 

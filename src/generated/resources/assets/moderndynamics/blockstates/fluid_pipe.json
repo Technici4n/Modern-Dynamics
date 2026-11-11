@@ -1,7 +1,9 @@
 {
   "variants": {
     "": {
-      "model": "moderndynamics:block/fluid_pipe"
+      "type": "moderndynamics:pipe",
+      "pipeType": "fluid_pipe",
+      "transparent": true
     }
   }
 }

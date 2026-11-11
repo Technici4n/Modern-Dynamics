@@ -25,107 +25,54 @@ import dev.technici4n.moderndynamics.attachment.IoAttachmentType;
 import dev.technici4n.moderndynamics.debug.DebugToolItem;
 import dev.technici4n.moderndynamics.pipe.PipeItem;
 import dev.technici4n.moderndynamics.util.MdId;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
+import java.util.List;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class MdItems {
-    public static final PipeItem ITEM_PIPE = new PipeItem(MdBlocks.ITEM_PIPE);
-    public static final PipeItem FLUID_PIPE = new PipeItem(MdBlocks.FLUID_PIPE);
+    public static DeferredRegister.Items DR = DeferredRegister.createItems(MdId.MOD_ID);
 
-    public static final PipeItem LV_CABLE = new PipeItem(MdBlocks.LV_CABLE);
-    public static final PipeItem MV_CABLE = new PipeItem(MdBlocks.MV_CABLE);
-    public static final PipeItem HV_CABLE = new PipeItem(MdBlocks.HV_CABLE);
-    public static final PipeItem EV_CABLE = new PipeItem(MdBlocks.EV_CABLE);
-    public static final PipeItem SUPERCONDUCTOR_CABLE = new PipeItem(MdBlocks.SUPERCONDUCTOR_CABLE);
+    public static final DeferredItem<PipeItem> ITEM_PIPE = DR.registerItem("item_pipe", props -> new PipeItem(MdBlocks.ITEM_PIPE.get(), props));
+    public static final DeferredItem<PipeItem> FLUID_PIPE = DR.registerItem("fluid_pipe", props -> new PipeItem(MdBlocks.FLUID_PIPE.get(), props));
+    public static final DeferredItem<PipeItem> LV_CABLE = DR.registerItem("lv_cable", props -> new PipeItem(MdBlocks.LV_CABLE.get(), props));
+    public static final DeferredItem<PipeItem> MV_CABLE = DR.registerItem("mv_cable", props -> new PipeItem(MdBlocks.MV_CABLE.get(), props));
+    public static final DeferredItem<PipeItem> HV_CABLE = DR.registerItem("hv_cable", props -> new PipeItem(MdBlocks.HV_CABLE.get(), props));
+    public static final DeferredItem<PipeItem> EV_CABLE = DR.registerItem("ev_cable", props -> new PipeItem(MdBlocks.EV_CABLE.get(), props));
+    public static final DeferredItem<PipeItem> SUPERCONDUCTOR_CABLE = DR.registerItem("superconductor_cable",
+            props -> new PipeItem(MdBlocks.SUPERCONDUCTOR_CABLE.get(), props));
 
-    /*
-     * public static final PipeItem BASIC_ITEM_PIPE_OPAQUE = new PipeItem(MdBlocks.BASIC_ITEM_PIPE_OPAQUE);
-     * public static final PipeItem FAST_ITEM_PIPE = new PipeItem(MdBlocks.FAST_ITEM_PIPE);
-     * public static final PipeItem FAST_ITEM_PIPE_OPAQUE = new PipeItem(MdBlocks.FAST_ITEM_PIPE_OPAQUE);
-     * public static final PipeItem CONDUCTIVE_ITEM_PIPE = new PipeItem(MdBlocks.CONDUCTIVE_ITEM_PIPE);
-     * public static final PipeItem CONDUCTIVE_ITEM_PIPE_OPAQUE = new PipeItem(MdBlocks.CONDUCTIVE_ITEM_PIPE_OPAQUE);
-     * public static final PipeItem CONDUCTIVE_FAST_ITEM_PIPE = new PipeItem(MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE);
-     * public static final PipeItem CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE = new PipeItem(MdBlocks.CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE);
-     * public static final PipeItem BASIC_FLUID_PIPE_OPAQUE = new PipeItem(MdBlocks.BASIC_FLUID_PIPE_OPAQUE);
-     * public static final PipeItem FAST_FLUID_PIPE = new PipeItem(MdBlocks.FAST_FLUID_PIPE);
-     * public static final PipeItem FAST_FLUID_PIPE_OPAQUE = new PipeItem(MdBlocks.FAST_FLUID_PIPE_OPAQUE);
-     * public static final PipeItem CONDUCTIVE_FLUID_PIPE = new PipeItem(MdBlocks.CONDUCTIVE_FLUID_PIPE);
-     * public static final PipeItem CONDUCTIVE_FLUID_PIPE_OPAQUE = new PipeItem(MdBlocks.CONDUCTIVE_FLUID_PIPE_OPAQUE);
-     * public static final PipeItem CONDUCTIVE_FAST_FLUID_PIPE = new PipeItem(MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE);
-     * public static final PipeItem CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE = new PipeItem(MdBlocks.CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE);
-     * public static final PipeItem BASIC_ENERGY_PIPE = new PipeItem(MdBlocks.BASIC_ENERGY_PIPE);
-     * public static final PipeItem IMPROVED_ENERGY_PIPE = new PipeItem(MdBlocks.IMPROVED_ENERGY_PIPE);
-     * public static final PipeItem ADVANCED_ENERGY_PIPE = new PipeItem(MdBlocks.ADVANCED_ENERGY_PIPE);
-     * public static final PipeItem EMPTY_REINFORCED_ENERGY_PIPE = new PipeItem(MdBlocks.EMPTY_REINFORCED_ENERGY_PIPE);
-     * public static final PipeItem EMPTY_SIGNALUM_ENERGY_PIPE = new PipeItem(MdBlocks.EMPTY_SIGNALUM_ENERGY_PIPE);
-     * public static final PipeItem EMPTY_RESONANT_ENERGY_PIPE = new PipeItem(MdBlocks.EMPTY_RESONANT_ENERGY_PIPE);
-     * public static final PipeItem EMPTY_SUPERCONDUCTING_PIPE = new PipeItem(MdBlocks.EMPTY_SUPERCONDUCTING_PIPE);
-     */
+    public static final DeferredItem<AttachmentItem> ATTRACTOR = DR.registerItem("attractor",
+            props -> new IoAttachmentItem(props, MdAttachments.ATTRACTOR, IoAttachmentType.ATTRACTOR));
+    public static final DeferredItem<AttachmentItem> EXTRACTOR = DR.registerItem("extractor",
+            props -> new IoAttachmentItem(props, MdAttachments.EXTRACTOR, IoAttachmentType.EXTRACTOR));
+    public static final DeferredItem<AttachmentItem> FILTER = DR.registerItem("filter",
+            props -> new IoAttachmentItem(props, MdAttachments.FILTER, IoAttachmentType.FILTER));
+    public static final DeferredItem<AttachmentItem> INHIBITOR = DR.registerItem("inhibitor",
+            props -> new InhibitorAttachmentItem(props, MdAttachments.INHIBITOR));
 
-    public static final AttachmentItem ATTRACTOR = new IoAttachmentItem(MdAttachments.ATTRACTOR, IoAttachmentType.ATTRACTOR);
-    public static final AttachmentItem EXTRACTOR = new IoAttachmentItem(MdAttachments.EXTRACTOR, IoAttachmentType.EXTRACTOR);
-    public static final AttachmentItem FILTER = new IoAttachmentItem(MdAttachments.FILTER, IoAttachmentType.FILTER);
-    public static final AttachmentItem INHIBITOR = new InhibitorAttachmentItem(MdAttachments.INHIBITOR);
+    public static final DeferredItem<BlockItem> MACHINE_EXTENDER = DR.registerSimpleBlockItem(MdBlocks.MACHINE_EXTENDER);
 
-    public static final BlockItem MACHINE_EXTENDER = new BlockItem(MdBlocks.MACHINE_EXTENDER, new Item.Properties());
+    public static final DeferredItem<Item> WRENCH = DR.registerItem("wrench", props -> new Item(props.stacksTo(1)));
+    public static final DeferredItem<DebugToolItem> DEBUG_TOOL = DR.registerItem("debug_tool", DebugToolItem::new);
 
-    public static final Item WRENCH = new Item(new Item.Properties().stacksTo(1));
-    public static final DebugToolItem DEBUG_TOOL = new DebugToolItem();
+    public static List<PipeItem> getAllPipes() {
+        return List.of(
+                ITEM_PIPE.get(),
+                FLUID_PIPE.get(),
+                LV_CABLE.get(),
+                MV_CABLE.get(),
+                HV_CABLE.get(),
+                EV_CABLE.get(),
+                SUPERCONDUCTOR_CABLE.get());
+    }
 
-    public static final PipeItem[] ALL_PIPES = new PipeItem[] {
-            ITEM_PIPE,
-            FLUID_PIPE,
-            LV_CABLE,
-            MV_CABLE,
-            HV_CABLE,
-            EV_CABLE,
-            SUPERCONDUCTOR_CABLE,
-            /*
-             * BASIC_ITEM_PIPE_OPAQUE,
-             * FAST_ITEM_PIPE,
-             * FAST_ITEM_PIPE_OPAQUE,
-             * CONDUCTIVE_ITEM_PIPE,
-             * CONDUCTIVE_ITEM_PIPE_OPAQUE,
-             * CONDUCTIVE_FAST_ITEM_PIPE,
-             * CONDUCTIVE_FAST_ITEM_PIPE_OPAQUE,
-             * BASIC_FLUID_PIPE_OPAQUE,
-             * FAST_FLUID_PIPE,
-             * FAST_FLUID_PIPE_OPAQUE,
-             * CONDUCTIVE_FLUID_PIPE,
-             * CONDUCTIVE_FLUID_PIPE_OPAQUE,
-             * CONDUCTIVE_FAST_FLUID_PIPE,
-             * CONDUCTIVE_FAST_FLUID_PIPE_OPAQUE,
-             * BASIC_ENERGY_PIPE,
-             * IMPROVED_ENERGY_PIPE,
-             * ADVANCED_ENERGY_PIPE,
-             * EMPTY_REINFORCED_ENERGY_PIPE,
-             * EMPTY_SIGNALUM_ENERGY_PIPE,
-             * EMPTY_RESONANT_ENERGY_PIPE,
-             * EMPTY_SUPERCONDUCTING_PIPE,
-             */
-    };
-
-    public static final AttachmentItem[] ALL_ATTACHMENTS = new AttachmentItem[] {
-            ATTRACTOR,
-            EXTRACTOR,
-            FILTER,
-            INHIBITOR,
-    };
-
-    public static void init() {
-        for (var pipe : ALL_PIPES) {
-            Registry.register(BuiltInRegistries.ITEM, MdId.of(pipe.getBlock().id), pipe);
-        }
-
-        for (var attachmentItem : ALL_ATTACHMENTS) {
-            Registry.register(BuiltInRegistries.ITEM, MdId.of(attachmentItem.attachment.id), attachmentItem);
-        }
-
-        Registry.register(BuiltInRegistries.ITEM, MdId.of(MdBlocks.MACHINE_EXTENDER.id), MACHINE_EXTENDER);
-
-        Registry.register(BuiltInRegistries.ITEM, MdId.of("wrench"), WRENCH);
-        Registry.register(BuiltInRegistries.ITEM, MdId.of("debug_tool"), DEBUG_TOOL);
+    public static List<AttachmentItem> getAllAttachments() {
+        return List.of(
+                ATTRACTOR.get(),
+                EXTRACTOR.get(),
+                FILTER.get(),
+                INHIBITOR.get());
     }
 }

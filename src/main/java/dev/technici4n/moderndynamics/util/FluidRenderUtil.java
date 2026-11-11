@@ -18,34 +18,73 @@
  */
 package dev.technici4n.moderndynamics.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 public final class FluidRenderUtil {
     private FluidRenderUtil() {
     }
 
-    public static TextureAtlasSprite getStillSprite(FluidVariant variant) {
-        if (variant.isBlank()) {
+    public static TextureAtlasSprite getStillSprite(FluidResource resource) {
+        if (resource.isEmpty()) {
             return null;
         }
 
-        var renderProps = IClientFluidTypeExtensions.of(variant.getFluid());
-        var stack = variant.toStack(1);
-        var texture = renderProps.getStillTexture(stack);
-        if (texture == null) {
-            return null;
-        }
-
-        var atlas = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS);
-        return atlas.apply(texture);
+        return getFluidModel(resource).stillMaterial().sprite();
     }
 
-    public static int getTint(FluidVariant variant) {
-        var renderProps = IClientFluidTypeExtensions.of(variant.getFluid());
-        var stack = variant.toStack(1);
-        return renderProps.getTintColor(stack);
+    public static int getTint(FluidResource resource) {
+        var tintSource = getFluidModel(resource).fluidTintSource();
+        return tintSource == null ? -1 : tintSource.colorAsStack(resource.toStack(1));
+    }
+
+    public static int getTintInWorld(FluidResource resource, ClientLevel level, BlockPos pos) {
+        var tintSource = getFluidModel(resource).fluidTintSource();
+        if (tintSource == null) {
+            return -1;
+        }
+        var fluidState = resource.getFluid().defaultFluidState();
+        return tintSource.colorInWorld(fluidState, fluidState.createLegacyBlock(), level, pos);
+    }
+
+    private static FluidModel getFluidModel(FluidResource resource) {
+        return Minecraft.getInstance()
+                .getModelManager()
+                .getFluidStateModelSet()
+                .get(resource.getFluid().defaultFluidState());
+    }
+
+    public static List<Component> getTooltip(FluidResource resource) {
+        var tooltip = new ArrayList<Component>();
+        tooltip.add(resource.toStack(1).getHoverName());
+
+        var modId = BuiltInRegistries.FLUID.getKey(resource.getFluid()).getNamespace();
+
+        // Heuristic: If the last line doesn't include the modname, add it ourselves
+        var modName = formatModName(modId);
+        if (tooltip.isEmpty() || !tooltip.get(tooltip.size() - 1).getString().equals(modName)) {
+            tooltip.add(Component.literal(modName));
+        }
+
+        return tooltip;
+    }
+
+    private static String formatModName(String modId) {
+        return "" + ChatFormatting.BLUE + ChatFormatting.ITALIC + getModName(modId);
+    }
+
+    private static String getModName(String modId) {
+        return ModList.get().getModContainerById(modId).map(mc -> mc.getModInfo().getDisplayName())
+                .orElse(modId);
     }
 }

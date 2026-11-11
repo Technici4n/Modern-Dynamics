@@ -24,15 +24,14 @@ import dev.technici4n.moderndynamics.util.MdId;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
-public class ItemTagsProvider extends net.minecraft.data.tags.ItemTagsProvider {
-    public ItemTagsProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries, ExistingFileHelper existingFileHelper) {
-        super(packOutput, registries, CompletableFuture.completedFuture(TagLookup.empty()), MdId.MOD_ID, existingFileHelper);
+public class ItemTagsProvider extends net.neoforged.neoforge.common.data.ItemTagsProvider {
+    public ItemTagsProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
+        super(packOutput, registries, MdId.MOD_ID);
     }
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
-        this.tag(MdTags.WRENCHES).add(MdItems.WRENCH);
+        this.tag(MdTags.WRENCHES).add(MdItems.WRENCH.get());
     }
 }

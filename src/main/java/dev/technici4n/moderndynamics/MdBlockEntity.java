@@ -21,15 +21,22 @@ package dev.technici4n.moderndynamics;
 import com.google.common.base.Preconditions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class MdBlockEntity extends BlockEntity {
+    private static final Logger LOG = LoggerFactory.getLogger(MdBlockEntity.class);
+
     private boolean shouldClientRemesh = true;
 
     public MdBlockEntity(BlockEntityType<?> bet, BlockPos pos, BlockState state) {
@@ -39,24 +46,24 @@ public abstract class MdBlockEntity extends BlockEntity {
     // Thank you Fabric API
     public void sync(boolean shouldRemesh) {
         Preconditions.checkNotNull(level); // Maintain distinct failure case from below
-        if (!(level instanceof ServerLevel serverWorld))
-            throw new IllegalStateException("Cannot call sync() on the logical client! Did you check world.isClient first?");
+        if (!(level instanceof ServerLevel serverLevel))
+            throw new IllegalStateException("Cannot call sync() on the logical client! Did you check level.isClient first?");
 
         shouldClientRemesh = shouldRemesh | shouldClientRemesh;
-        serverWorld.getChunkSource().blockChanged(getBlockPos());
+        serverLevel.getChunkSource().blockChanged(getBlockPos());
     }
 
     public void sync() {
         sync(true);
     }
 
-    public abstract void toTag(CompoundTag tag, HolderLookup.Provider registries);
+    public abstract void toTag(ValueOutput output);
 
-    public abstract void fromTag(CompoundTag tag, HolderLookup.Provider registries);
+    public abstract void fromTag(ValueInput input);
 
-    public abstract void toClientTag(CompoundTag tag, RegistryAccess registries);
+    public abstract void toClientTag(ValueOutput output);
 
-    public abstract void fromClientTag(CompoundTag tag, RegistryAccess registries);
+    public abstract void fromClientTag(ValueInput input);
 
     @Override
     public final ClientboundBlockEntityDataPacket getUpdatePacket() {
@@ -65,28 +72,36 @@ public abstract class MdBlockEntity extends BlockEntity {
 
     @Override
     public final CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag nbt = super.getUpdateTag(registries);
-        toClientTag(nbt, (RegistryAccess) registries);
-        nbt.putBoolean("#c", shouldClientRemesh); // mark client tag
-        shouldClientRemesh = false;
-        return nbt;
+        try (var reporter = new ProblemReporter.ScopedCollector(problemPath(), LOG)) {
+            var output = TagValueOutput.createWithContext(reporter, registries);
+            this.saveCustomOnly(output);
+            toClientTag(output);
+            output.putInt("#c", shouldClientRemesh ? 1 : 0); // mark client tag
+            shouldClientRemesh = false;
+            return super.getUpdateTag(registries).merge(output.buildResult());
+        }
     }
 
     @Override
-    protected final void saveAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
-        toTag(nbt, registries);
-    }
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
 
-    @Override
-    public final void loadAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
-        if (nbt.contains("#c")) {
-            fromClientTag(nbt, (RegistryAccess) registries);
-            if (nbt.getBoolean("#c")) {
+        var client = input.getInt("#c");
+        if (client.isPresent()) {
+            fromClientTag(input);
+            if (client.get() > 0) {
                 remesh();
             }
         } else {
-            fromTag(nbt, registries);
+            fromTag(input);
         }
+    }
+
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+
+        toTag(output);
     }
 
     public final void remesh() {
@@ -94,13 +109,13 @@ public abstract class MdBlockEntity extends BlockEntity {
         if (!level.isClientSide())
             throw new IllegalStateException("Cannot call remesh() on the server!");
 
-        level.sendBlockUpdated(worldPosition, null, null, 0);
+        level.sendBlockUpdated(getBlockPos(), null, null, 0);
     }
 
     protected final boolean isClientSide() {
         if (level == null) {
             throw new IllegalStateException("Cannot determine if the BE is client-side if it has no level yet");
         }
-        return level.isClientSide;
+        return level.isClientSide();
     }
 }

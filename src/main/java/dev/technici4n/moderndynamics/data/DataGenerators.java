@@ -23,22 +23,24 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
-@EventBusSubscriber(modid = MdId.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = MdId.MOD_ID)
 public class DataGenerators {
     @SubscribeEvent
-    public static void onGatherData(GatherDataEvent event) {
-        var existingFileHelper = event.getExistingFileHelper();
+    public static void onGatherData(GatherDataEvent.Client event) {
         var registries = event.getLookupProvider();
         var pack = event.getGenerator().getVanillaPack(true);
 
-        pack.addProvider(packOutput -> new ModelsProvider(packOutput, existingFileHelper));
+        // Models
+        pack.addProvider(MdModelProvider.create(MdId.MOD_ID, ModelsProvider::new));
+
         pack.addProvider(PipeModelsProvider::new);
-        pack.addProvider(packOutput -> new SpriteSourceProvider(packOutput, registries, existingFileHelper));
+        pack.addProvider(packOutput -> new SpriteSourceProvider(packOutput, registries));
 
         pack.addProvider(AttachmentUpgradesProvider::new);
-        pack.addProvider(packOutput -> new ItemTagsProvider(packOutput, registries, existingFileHelper));
+        pack.addProvider(packOutput -> new ItemTagsProvider(packOutput, registries));
         pack.addProvider(packOutput -> LootTablesProvider.create(packOutput, registries));
-        pack.addProvider(packOutput -> new RecipesProvider(packOutput, registries));
+        pack.addProvider(packOutput -> new RecipesProvider.Runner(packOutput, registries));
+        pack.addProvider(packOutput -> new MiRecipeGenerator(packOutput, registries));
 
         pack.addProvider(EmptyTestStructureGenerator::new);
     }

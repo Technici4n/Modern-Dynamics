@@ -34,7 +34,7 @@ public class ItemTransferTest {
     public void testHopperInsertingDamagedItem(MdGameTestHelper helper) {
         var targetChest = new BlockPos(0, 1, 0);
         helper.setBlock(targetChest, Blocks.CHEST.defaultBlockState());
-        var chest = (ChestBlockEntity) helper.getBlockEntity(targetChest);
+        var chest = helper.getBlockEntity(targetChest, ChestBlockEntity.class);
 
         var pipe = targetChest.east();
         helper.pipe(pipe, MdBlocks.ITEM_PIPE);
@@ -44,7 +44,7 @@ public class ItemTransferTest {
 
         var damagedItem = Items.DIAMOND_PICKAXE.getDefaultInstance();
         damagedItem.setDamageValue(500);
-        ((HopperBlockEntity) helper.getBlockEntity(hopper)).setItem(0, damagedItem.copy());
+        (helper.getBlockEntity(hopper, HopperBlockEntity.class)).setItem(0, damagedItem.copy());
 
         helper.startSequence()
                 .thenWaitUntil(() -> {
@@ -62,7 +62,7 @@ public class ItemTransferTest {
     public void testExtractorLimitIsForEntireInventory(MdGameTestHelper helper) {
         var sourceChest = new BlockPos(0, 1, 0);
         helper.setBlock(sourceChest, Blocks.CHEST.defaultBlockState());
-        var chest = (ChestBlockEntity) helper.getBlockEntity(sourceChest);
+        var chest = helper.getBlockEntity(sourceChest, ChestBlockEntity.class);
 
         helper.pipe(new BlockPos(1, 1, 0), MdBlocks.ITEM_PIPE)
                 .attachment(Direction.WEST, MdItems.EXTRACTOR)

@@ -24,11 +24,11 @@ import dev.technici4n.moderndynamics.attachment.settings.OversendingMode;
 import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
 import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import java.util.List;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
     @Nullable
@@ -44,8 +44,7 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
     private CycleSettingButton<OversendingMode> oversendingModeButton;
 
     public ItemAttachedIoScreen(ItemAttachedIoMenu handler, Inventory inventory, Component title) {
-        super(handler, inventory, title);
-        this.imageHeight = 204;
+        super(handler, inventory, title, 176, 204);
         this.inventoryLabelY = this.imageHeight - 93;
     }
 
@@ -110,21 +109,21 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
     }
 
     private void adjustMaxItemsInInventory(int i) {
-        if (hasShiftDown()) {
+        if (minecraft.hasShiftDown()) {
             i *= 16;
         }
         menu.setMaxItemsInInventory(menu.getMaxItemsInInventory() + i, true);
     }
 
     private void adjustMaxItemsExtracted(int i) {
-        if (hasShiftDown()) {
+        if (minecraft.hasShiftDown()) {
             i *= 16;
         }
         menu.setMaxItemsExtracted(menu.getMaxItemsExtracted() + i, true);
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (decMaxItemsInInventory != null && incMaxItemsInInventory != null) {
             decMaxItemsInInventory.active = menu.getMaxItemsInInventory() > 0;
             incMaxItemsInInventory.active = menu.getMaxItemsInInventory() < Integer.MAX_VALUE;
@@ -146,21 +145,23 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
             oversendingModeButton.setValue(menu.getOversendingMode());
         }
 
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
 
         // Render tooltips (except buttons, those are handled in the buttons themselves)
         if (maxItemsInInventoryTooltipRect != null && maxItemsInInventoryTooltipRect.contains(Math.round(mouseX), Math.round(mouseY))) {
-            guiGraphics.renderTooltip(font, Component.translatable("gui.moderndynamics.setting.max_items_in_inventory.tooltip"), mouseX, mouseY);
+            guiGraphics.setTooltipForNextFrame(font, Component.translatable("gui.moderndynamics.setting.max_items_in_inventory.tooltip"), mouseX,
+                    mouseY);
         } else if (maxItemsExtractedTooltipRect != null && maxItemsExtractedTooltipRect.contains(Math.round(mouseX), Math.round(mouseY))) {
-            guiGraphics.renderTooltip(font, Component.translatable("gui.moderndynamics.setting.max_items_extracted.tooltip"), mouseX, mouseY);
+            guiGraphics.setTooltipForNextFrame(font, Component.translatable("gui.moderndynamics.setting.max_items_extracted.tooltip"), mouseX,
+                    mouseY);
         } else {
-            this.renderTooltip(guiGraphics, mouseX, mouseY);
+            this.extractTooltip(guiGraphics, mouseX, mouseY);
         }
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float delta, int mouseX, int mouseY) {
-        super.renderBg(guiGraphics, delta, mouseX, mouseY);
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, delta);
 
         // Render current settings for max total items
         if (menu.isSettingSupported(Setting.MAX_ITEMS_IN_INVENTORY)) {
@@ -173,7 +174,7 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
         }
     }
 
-    private void renderMaxItemsInInventoryValue(GuiGraphics guiGraphics) {
+    private void renderMaxItemsInInventoryValue(GuiGraphicsExtractor guiGraphics) {
         var text = getMaxItemsInInventoryText();
         var width = font.width(text);
         var rect = new Rect2i(
@@ -181,11 +182,11 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
                 topPos + 18,
                 width,
                 font.lineHeight);
-        guiGraphics.drawString(font, text, rect.getX(), rect.getY(), 0x404040, false);
+        guiGraphics.text(font, text, rect.getX(), rect.getY(), 0xff404040, false);
         maxItemsInInventoryTooltipRect = rect;
     }
 
-    private void renderMaxItemsExtractedValue(GuiGraphics guiGraphics) {
+    private void renderMaxItemsExtractedValue(GuiGraphicsExtractor guiGraphics) {
         var text = String.valueOf(menu.getMaxItemsExtracted());
         var width = font.width(text);
         var rect = new Rect2i(
@@ -193,7 +194,7 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
                 topPos + 46,
                 width,
                 font.lineHeight);
-        guiGraphics.drawString(font, text, rect.getX(), rect.getY(), 0x404040, false);
+        guiGraphics.text(font, text, rect.getX(), rect.getY(), 0xff404040, false);
         maxItemsExtractedTooltipRect = rect;
     }
 

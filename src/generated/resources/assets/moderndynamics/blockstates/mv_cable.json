@@ -1,7 +1,9 @@
 {
   "variants": {
     "": {
-      "model": "moderndynamics:block/mv_cable"
+      "type": "moderndynamics:pipe",
+      "pipeType": "mv_cable",
+      "transparent": false
     }
   }
 }

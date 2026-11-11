@@ -26,10 +26,9 @@ import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import net.minecraft.world.inventory.MenuType;
 
 public class MdMenus {
-    public static final MenuType<ItemAttachedIoMenu> ITEM_IO = AttachmentMenuType.create("item_io", ItemAttachedIo::new,
-            ItemAttachedIoMenu::new);
-    public static final MenuType<FluidAttachedIoMenu> FLUID_IO = AttachmentMenuType.create("fluid_io",
-            FluidAttachedIo::new, FluidAttachedIoMenu::new);
+    public static final MenuType<ItemAttachedIoMenu> ITEM_IO = AttachmentMenuType.create("item_io", ItemAttachedIo::new, ItemAttachedIoMenu::new);
+    public static final MenuType<FluidAttachedIoMenu> FLUID_IO = AttachmentMenuType.create("fluid_io", FluidAttachedIo::new,
+            FluidAttachedIoMenu::new);
 
     public static void init() {
         // init static

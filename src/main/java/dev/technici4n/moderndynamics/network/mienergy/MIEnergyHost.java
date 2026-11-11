@@ -26,19 +26,19 @@ import dev.technici4n.moderndynamics.network.NodeHost;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import java.util.List;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapability;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import org.jspecify.annotations.Nullable;
 
 public class MIEnergyHost extends NodeHost {
     private static final NetworkManager<MIEnergyHost, MIEnergyCache> MANAGER = NetworkManager.get(MIEnergyCache.class, MIEnergyCache::new);
 
     public final MICableTier tier;
     private long energy = 0;
-    private final HostAdjacentCaps<? extends IEnergyStorage> adjacentCaps = new HostAdjacentCaps<>(this, MIProxy.INSTANCE.getLookup());
+    private final HostAdjacentCaps<? extends EnergyHandler> adjacentCaps = new HostAdjacentCaps<>(this, MIProxy.INSTANCE.getLookup());
 
     public MIEnergyHost(PipeBlockEntity pipe, MICableTier tier) {
         super(pipe);
@@ -61,13 +61,13 @@ public class MIEnergyHost extends NodeHost {
         return super.canConnectTo(connectionDirection, adjacentHost) && ((MIEnergyHost) adjacentHost).tier == tier;
     }
 
-    public void gatherCapabilities(@Nullable List<IEnergyStorage> out) {
+    public void gatherCapabilities(@Nullable List<EnergyHandler> out) {
         int oldConnections = inventoryConnections;
 
         for (int i = 0; i < 6; ++i) {
             if ((inventoryConnections & (1 << i)) > 0 && (pipeConnections & (1 << i)) == 0) {
                 Direction dir = Direction.from3DDataValue(i);
-                IEnergyStorage adjacentCap = adjacentCaps.getCapability(dir);
+                EnergyHandler adjacentCap = adjacentCaps.getCapability(dir);
 
                 if (adjacentCap != null && MIProxy.INSTANCE.canConnect(adjacentCap, tier)) {
                     if (out != null) {
@@ -100,16 +100,16 @@ public class MIEnergyHost extends NodeHost {
     }
 
     @Override
-    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        super.writeNbt(tag, registries);
-        tag.putLong("mi_energy", energy);
+    public void write(ValueOutput output) {
+        super.write(output);
+        output.putLong("mi_energy", energy);
     }
 
     @Override
-    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        super.readNbt(tag, registries);
+    public void read(ValueInput input) {
+        super.read(input);
         // Guard against max energy changes
-        energy = Math.max(0, Math.min(tag.getLong("mi_energy"), getMaxEnergy()));
+        energy = Math.max(0, Math.min(input.getLongOr("mi_energy", 0L), getMaxEnergy()));
     }
 
     @Override

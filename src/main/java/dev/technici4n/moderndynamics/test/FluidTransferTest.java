@@ -23,19 +23,14 @@ import dev.technici4n.moderndynamics.attachment.settings.FilterInversionMode;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.test.framework.MdGameTestHelper;
-import dev.technici4n.moderndynamics.util.FluidVariant;
-import dev.technici4n.moderndynamics.util.MdId;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidType;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
-@GameTestHolder(MdId.MOD_ID)
-@PrefixGameTestTemplate(false)
 public class FluidTransferTest {
     @MdGameTest
     public void cauldronToCauldronExtractor(MdGameTestHelper helper) {
@@ -127,7 +122,7 @@ public class FluidTransferTest {
                 .attachment(Direction.SOUTH, MdItems.ATTRACTOR)
                 .configureFluidIo(Direction.SOUTH, io -> {
                     io.setFilterInversion(FilterInversionMode.WHITELIST);
-                    io.setFilter(0, FluidVariant.of(Fluids.LAVA));
+                    io.setFilter(0, FluidResource.of(Fluids.LAVA));
                 });
         helper.pipe(new BlockPos(2, 1, 0), MdBlocks.FLUID_PIPE);
         helper.setBlock(toEmptyPos, Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3));

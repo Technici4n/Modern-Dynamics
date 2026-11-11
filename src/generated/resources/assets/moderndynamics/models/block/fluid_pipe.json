@@ -1,5 +1,0 @@
-{
-  "loader": "moderndynamics:pipe",
-  "pipeType": "fluid_pipe",
-  "transparent": true
-}

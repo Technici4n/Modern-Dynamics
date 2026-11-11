@@ -20,16 +20,15 @@ package dev.technici4n.moderndynamics.attachment;
 
 import dev.technici4n.moderndynamics.attachment.attached.AttachedInhibitor;
 import dev.technici4n.moderndynamics.network.NodeHost;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
 
 public class InhibitorAttachmentItem extends AttachmentItem {
-    public InhibitorAttachmentItem(RenderedAttachment attachment) {
-        super(attachment);
+    public InhibitorAttachmentItem(Properties properties, RenderedAttachment attachment) {
+        super(properties, attachment);
     }
 
     @Override
-    public AttachedInhibitor createAttached(NodeHost host, CompoundTag configTag, HolderLookup.Provider registries) {
-        return new AttachedInhibitor(this, configTag);
+    public AttachedInhibitor createAttached(NodeHost host, ValueInput input) {
+        return new AttachedInhibitor(this, input);
     }
 }

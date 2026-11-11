@@ -207,7 +207,7 @@ public class AttachedIoMenu<A extends AttachedIo> extends AbstractContainerMenu 
     }
 
     public boolean isClientSide() {
-        return player.getCommandSenderWorld().isClientSide();
+        return player.level().isClientSide();
     }
 
     /**

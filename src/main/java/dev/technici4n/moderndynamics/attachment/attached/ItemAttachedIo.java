@@ -19,6 +19,8 @@
 package dev.technici4n.moderndynamics.attachment.attached;
 
 import com.google.common.base.Preconditions;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.technici4n.moderndynamics.Constants;
 import dev.technici4n.moderndynamics.attachment.IoAttachmentItem;
 import dev.technici4n.moderndynamics.attachment.settings.FilterDamageMode;
@@ -33,18 +35,12 @@ import dev.technici4n.moderndynamics.model.AttachmentModelData;
 import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.DropHelper;
 import dev.technici4n.moderndynamics.util.ExtendedMenuProvider;
-import dev.technici4n.moderndynamics.util.ItemVariant;
-import dev.technici4n.moderndynamics.util.TransferUtil;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -52,15 +48,22 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import org.jspecify.annotations.Nullable;
 
 public class ItemAttachedIo extends AttachedIo {
 
-    private final Map<ItemVariant, Integer> stuffedItems = new LinkedHashMap<>();
+    private static final Codec<List<ItemResource>> FILTER_LIST_CODEC = ItemResource.OPTIONAL_CODEC.listOf(0, Constants.Upgrades.MAX_FILTER);
+
+    private final Map<ItemResource, Integer> stuffedItems = new LinkedHashMap<>();
     private int roundRobinIndex;
 
-    private final NonNullList<ItemVariant> filters;
+    private final NonNullList<ItemResource> filters;
 
     private FilterDamageMode filterDamage;
     private FilterNbtMode filterNbt;
@@ -85,17 +88,23 @@ public class ItemAttachedIo extends AttachedIo {
     @Nullable
     private ItemCachedFilter cachedFilter;
 
-    public ItemAttachedIo(IoAttachmentItem item, CompoundTag configData, Runnable setChangedCallback, HolderLookup.Provider registries) {
-        super(item, configData, setChangedCallback, registries);
+    record StuffedEntry(ItemResource item, int amount) {
+        public static final Codec<StuffedEntry> CODEC = RecordCodecBuilder.create(builder -> builder.group(
+                ItemResource.OPTIONAL_CODEC.fieldOf("r").forGetter(StuffedEntry::item),
+                Codec.INT.fieldOf("a").forGetter(StuffedEntry::amount)).apply(builder, StuffedEntry::new));
+    }
 
-        this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, ItemVariant.blank());
-        var filterTags = configData.getList("filters", CompoundTag.TAG_COMPOUND);
-        for (int i = 0; i < this.filters.size(); i++) {
-            var filterTag = filterTags.getCompound(i);
-            if (!filterTag.isEmpty()) {
-                this.filters.set(i, ItemVariant.fromNbt(filterTag, registries));
+    public ItemAttachedIo(IoAttachmentItem item, ValueInput configData, Runnable setChangedCallback) {
+        super(item, configData, setChangedCallback);
+
+        this.filters = NonNullList.withSize(Constants.Upgrades.MAX_FILTER, ItemResource.EMPTY);
+        configData.read("filters", FILTER_LIST_CODEC).ifPresent(filterList -> {
+            for (int i = 0; i < filterList.size(); i++) {
+                if (i < filters.size()) {
+                    filters.set(i, filterList.get(i));
+                }
             }
-        }
+        });
 
         this.filterDamage = readEnum(FilterDamageMode.values(), configData, "filterDamage", FilterDamageMode.RESPECT_DAMAGE);
         this.filterNbt = readEnum(FilterNbtMode.values(), configData, "filterNbt", FilterNbtMode.RESPECT_NBT);
@@ -103,75 +112,43 @@ public class ItemAttachedIo extends AttachedIo {
         this.filterSimilar = readEnum(FilterSimilarMode.values(), configData, "filterSimilar", FilterSimilarMode.IGNORE_SIMILAR);
         this.routingMode = readEnum(RoutingMode.values(), configData, "routingMode", RoutingMode.CLOSEST);
         this.oversendingMode = readEnum(OversendingMode.values(), configData, "oversendingMode", OversendingMode.PREVENT_OVERSENDING);
-        if (configData.contains("maxItemsExtracted", Tag.TAG_INT)) {
-            setMaxItemsExtracted(configData.getInt("maxItemsExtracted"));
-        } else {
-            setMaxItemsExtracted(getMaxItemsExtractedMaximum());
-        }
-        this.maxItemsInInventory = configData.getInt("maxItemsInInventory");
+        setMaxItemsExtracted(configData.getIntOr("maxItemsExtracted", getMaxItemsExtractedMaximum()));
+        this.maxItemsInInventory = configData.getIntOr("maxItemsInInventory", 0);
         this.maxItemsInInventory = Mth.clamp(this.maxItemsInInventory, 0, getMaxItemsExtractedMaximum());
 
         this.stuffedItems.clear();
-        var stuffedTag = configData.getList("stuffed", CompoundTag.TAG_COMPOUND);
-        for (int i = 0; i < stuffedTag.size(); i++) {
-            var compound = stuffedTag.getCompound(i);
-            var variant = ItemVariant.fromNbt(compound.getCompound("v"), registries);
-            var amount = compound.getInt("a");
-
-            if (!variant.isBlank() && amount > 0) {
-                this.stuffedItems.put(variant, amount);
-            }
-        }
-
-        this.roundRobinIndex = Math.max(0, configData.getInt("roundRobinIndex"));
+        configData.list("stuffed", StuffedEntry.CODEC).ifPresent(stuffedItems -> {
+            stuffedItems.forEach(stuffedEntry -> {
+                if (!stuffedEntry.item.isEmpty() && stuffedEntry.amount > 0) {
+                    this.stuffedItems.put(stuffedEntry.item, stuffedEntry.amount);
+                }
+            });
+        });
+        this.roundRobinIndex = Math.max(0, configData.getIntOr("roundRobinIndex", 0));
     }
 
     @Override
-    public CompoundTag writeConfigTag(CompoundTag configData, HolderLookup.Provider registries) {
-        super.writeConfigTag(configData, registries);
+    public void writeConfigTag(ValueOutput output) {
+        super.writeConfigTag(output);
 
-        var filterTags = new ListTag();
-        for (ItemVariant filter : this.filters) {
-            if (filter.isBlank()) {
-                filterTags.add(new CompoundTag());
-            } else {
-                filterTags.add(filter.toNbt(registries));
+        output.store("filters", FILTER_LIST_CODEC, this.filters);
+        writeEnum(this.filterDamage, output, "filterDamage");
+        writeEnum(this.filterNbt, output, "filterNbt");
+        writeEnum(this.filterMod, output, "filterMod");
+        writeEnum(this.filterSimilar, output, "filterSimilar");
+        writeEnum(this.routingMode, output, "routingMode");
+        writeEnum(this.oversendingMode, output, "oversendingMode");
+        output.putInt("maxItemsExtracted", this.maxItemsExtracted);
+        output.putInt("maxItemsInInventory", this.maxItemsInInventory);
+        if (!stuffedItems.isEmpty()) {
+            var stuffedOut = output.list("stuffed", StuffedEntry.CODEC);
+            for (var entry : stuffedItems.entrySet()) {
+                stuffedOut.add(new StuffedEntry(entry.getKey(), entry.getValue()));
             }
         }
-        configData.put("filters", filterTags);
-
-        writeEnum(this.filterDamage, configData, "filterDamage");
-        writeEnum(this.filterNbt, configData, "filterNbt");
-        writeEnum(this.filterMod, configData, "filterMod");
-        writeEnum(this.filterSimilar, configData, "filterSimilar");
-        writeEnum(this.routingMode, configData, "routingMode");
-        writeEnum(this.oversendingMode, configData, "oversendingMode");
-        if (this.maxItemsExtracted < getMaxItemsExtractedMaximum()) {
-            configData.putInt("maxItemsExtracted", this.maxItemsExtracted);
-        } else {
-            configData.remove("maxItemsExtracted");
-        }
-        if (this.maxItemsInInventory > 0) {
-            configData.putInt("maxItemsInInventory", this.maxItemsInInventory);
-        } else {
-            configData.remove("maxItemsInInventory");
-        }
-
-        var stuffedTag = new ListTag();
-        for (var entry : stuffedItems.entrySet()) {
-            var compound = new CompoundTag();
-            compound.put("v", entry.getKey().toNbt(registries));
-            compound.putInt("a", entry.getValue());
-            stuffedTag.add(compound);
-        }
-        if (!stuffedTag.isEmpty()) {
-            configData.put("stuffed", stuffedTag);
-        }
         if (roundRobinIndex != 0) {
-            configData.putInt("roundRobinIndex", roundRobinIndex);
+            output.putInt("roundRobinIndex", roundRobinIndex);
         }
-
-        return configData;
     }
 
     @Override
@@ -186,17 +163,17 @@ public class ItemAttachedIo extends AttachedIo {
         setMaxItemsExtracted(getMaxItemsExtracted());
     }
 
-    public boolean matchesItemFilter(ItemVariant variant) {
-        return getCachedFilter().matchesItem(variant);
+    public boolean matchesItemFilter(ItemResource resource) {
+        return getCachedFilter().matchesItem(resource);
     }
 
-    public ItemVariant getFilter(int idx) {
+    public ItemResource getFilter(int idx) {
         return filters.get(idx);
     }
 
-    public void setFilter(int idx, ItemVariant variant) {
-        if (!variant.equals(this.filters.get(idx))) {
-            this.filters.set(idx, variant);
+    public void setFilter(int idx, ItemResource resource) {
+        if (!resource.equals(this.filters.get(idx))) {
+            this.filters.set(idx, resource);
             setChangedCallback.run();
             resetCachedFilter();
         }
@@ -276,7 +253,7 @@ public class ItemAttachedIo extends AttachedIo {
     /**
      * Returns the raw map of stuffed items, be careful.
      */
-    public Map<ItemVariant, Integer> getStuffedItems() {
+    public Map<ItemResource, Integer> getStuffedItems() {
         return stuffedItems;
     }
 
@@ -396,13 +373,18 @@ public class ItemAttachedIo extends AttachedIo {
         }
     }
 
-    public int moveStuffedToStorage(IItemHandler targetStorage, int maxAmount) {
+    public int moveStuffedToStorage(ResourceHandler<ItemResource> targetStorage, int maxAmount) {
         int totalMoved = 0;
 
         for (var it = stuffedItems.entrySet().iterator(); it.hasNext() && totalMoved < maxAmount;) {
             var entry = it.next();
             int stuffedAmount = entry.getValue();
-            int inserted = TransferUtil.insertItemStacked(targetStorage, entry.getKey(), Math.min(stuffedAmount, maxAmount - totalMoved));
+            int result;
+            try (var tx = Transaction.openRoot()) {
+                result = ResourceHandlerUtil.insertStacking(targetStorage, entry.getKey(), Math.min(stuffedAmount, maxAmount - totalMoved), tx);
+                tx.commit();
+            }
+            int inserted = result;
 
             if (inserted > 0) {
                 totalMoved += inserted;

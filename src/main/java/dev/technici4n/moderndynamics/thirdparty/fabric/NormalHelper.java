@@ -36,7 +36,6 @@ package dev.technici4n.moderndynamics.thirdparty.fabric;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
-import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 /**
@@ -87,11 +86,11 @@ public abstract class NormalHelper {
      * Will work with triangles also. Assumes counter-clockwise winding order, which is the norm. Expects convex quads
      * with all points co-planar.
      */
-    public static void computeFaceNormal(@NotNull Vector3f saveTo, QuadView q) {
+    public static void computeFaceNormal(Vector3f saveTo, QuadView q) {
         final Direction nominalFace = q.nominalFace();
 
         if (GeometryHelper.isQuadParallelToFace(nominalFace, q)) {
-            Vec3i vec = nominalFace.getNormal();
+            Vec3i vec = nominalFace.getUnitVec3i();
             saveTo.set(vec.getX(), vec.getY(), vec.getZ());
             return;
         }

@@ -18,22 +18,22 @@
  */
 package dev.technici4n.moderndynamics.network.energy;
 
-import net.neoforged.neoforge.energy.EnergyStorage;
+import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
 
-class SimpleEnergyStorage extends EnergyStorage {
+class SimpleEnergyStorage extends SimpleEnergyHandler {
     public SimpleEnergyStorage(int capacity, int maxReceive, int maxExtract) {
         super(capacity, maxReceive, maxExtract);
     }
 
     public void setEnergy(int energy) {
-        this.energy = energy;
+        set(energy);
     }
 
     public void addEnergyStored(int energy) {
-        this.energy += energy;
+        set(getAmountAsInt() + energy);
     }
 
     public void reduceEnergyStored(int energy) {
-        this.energy -= energy;
+        set(getAmountAsInt() - energy);
     }
 }

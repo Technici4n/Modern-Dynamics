@@ -30,8 +30,8 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class DebugToolItem extends Item {
-    public DebugToolItem() {
-        super(new Properties());
+    public DebugToolItem(Properties properties) {
+        super(properties);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class DebugToolItem extends Item {
                     message.append("No node found.\n");
                 }
 
-                ctx.getPlayer().displayClientMessage(Component.literal(message.toString()), false);
+                ctx.getPlayer().sendSystemMessage(Component.literal(message.toString()));
 
                 return InteractionResult.CONSUME;
             }

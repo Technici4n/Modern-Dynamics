@@ -23,8 +23,6 @@ import dev.technici4n.moderndynamics.client.screen.FluidAttachedIoScreen;
 import dev.technici4n.moderndynamics.client.screen.ItemAttachedIoScreen;
 import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
 import dev.technici4n.moderndynamics.gui.menu.ItemConfigSlot;
-import dev.technici4n.moderndynamics.util.FluidVariant;
-import dev.technici4n.moderndynamics.util.ItemVariant;
 import java.util.ArrayList;
 import java.util.List;
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
@@ -33,6 +31,8 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 @SuppressWarnings("rawtypes")
 class GhostIngredientHandler implements IGhostIngredientHandler<AttachedIoScreen> {
@@ -85,7 +85,7 @@ class GhostIngredientHandler implements IGhostIngredientHandler<AttachedIoScreen
         @Override
         public void accept(ItemStack ingredient) {
             if (slot.isActive()) {
-                var iv = ItemVariant.of(ingredient);
+                var iv = ItemResource.of(ingredient);
                 ioScreen.getMenu().setFilter(slot.getConfigIdx(), iv, true);
             }
         }
@@ -108,7 +108,7 @@ class GhostIngredientHandler implements IGhostIngredientHandler<AttachedIoScreen
         @Override
         public void accept(FluidStack ingredient) {
             if (slot.isActive()) {
-                var fv = FluidVariant.of(ingredient);
+                var fv = FluidResource.of(ingredient);
                 ioScreen.getMenu().setFilter(slot.getConfigIdx(), fv, true);
             }
         }

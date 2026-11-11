@@ -18,32 +18,21 @@
  */
 package dev.technici4n.moderndynamics.model;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.technici4n.moderndynamics.attachment.RenderedAttachment;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.Holder;
 import net.minecraft.world.item.Item;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Item is also available to make "block picking" work on the client.
  */
 public record AttachmentModelData(String modelId, Item item) {
-    public CompoundTag write(CompoundTag tag) {
-        tag.putString("model", modelId);
-        tag.putString("item", BuiltInRegistries.ITEM.getKey(item).toString());
-        return tag;
-    }
-
-    @Nullable
-    public static AttachmentModelData from(CompoundTag tag) {
-        var modelId = tag.getString("model");
-        var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(tag.getString("item")));
-        if (!modelId.isEmpty()) {
-            return new AttachmentModelData(modelId, item);
-        }
-        return null;
-    }
+    public static MapCodec<AttachmentModelData> MAP_CODEC = RecordCodecBuilder.mapCodec(builder -> builder.group(
+            Codec.STRING.fieldOf("modelId").forGetter(AttachmentModelData::modelId),
+            Item.CODEC.xmap(Holder::value, Item::builtInRegistryHolder).fieldOf("item").forGetter(AttachmentModelData::item))
+            .apply(builder, AttachmentModelData::new));
 
     public static AttachmentModelData from(RenderedAttachment rendered, Item item) {
         return new AttachmentModelData(rendered.id, item);

@@ -24,21 +24,22 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.SerializationHelper;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A node host is what gives its behavior to a {@link NetworkNode}.
@@ -80,14 +81,19 @@ public abstract class NodeHost {
         return null;
     }
 
-    public final void setAttachment(Direction side, AttachmentItem item, CompoundTag data, HolderLookup.Provider registries) {
+    public final void setAttachment(Direction side, AttachmentItem item) {
+        var emptyInput = TagValueInput.create(ProblemReporter.DISCARDING, getLevel().registryAccess(), new CompoundTag());
+        setAttachment(side, item, emptyInput);
+    }
+
+    public final void setAttachment(Direction side, AttachmentItem item, ValueInput input) {
         var current = attachments[side.get3DDataValue()];
         if (current != null && current.getItem() == item) {
-            if (current.update(data)) {
+            if (current.update(input)) {
                 scheduleUpdate();
             }
         } else {
-            attachments[side.get3DDataValue()] = item.createAttached(this, data, registries);
+            attachments[side.get3DDataValue()] = item.createAttached(this, input);
             scheduleUpdate();
             pipe.invalidateCapabilities();
         }
@@ -224,47 +230,50 @@ public abstract class NodeHost {
     }
 
     @MustBeInvokedByOverriders
-    public void writeNbt(CompoundTag tag, HolderLookup.Provider registries) {
+    public void write(ValueOutput output) {
         // Only write a sub-tag if any attachments exist
         if (hasAttachments()) {
-            var attachmentTags = new ListTag();
+            var attachmentTags = output.childrenList("attachments");
             for (var attachment : attachments) {
-                var attachmentTag = new CompoundTag();
+                var attachmentTag = attachmentTags.addChild();
                 if (attachment != null) {
                     var id = BuiltInRegistries.ITEM.getKey(attachment.getItem());
                     attachmentTag.putString("#i", id.toString());
-                    attachment.writeConfigTag(attachmentTag, registries);
+                    attachment.writeConfigTag(attachmentTag);
                 }
-                attachmentTags.add(attachmentTag);
             }
-            tag.put("attachments", attachmentTags);
         }
     }
 
     @MustBeInvokedByOverriders
-    public void readNbt(CompoundTag tag, HolderLookup.Provider registries) {
-        if (tag.contains("attachments", Tag.TAG_LIST)) {
-            var attachmentTags = tag.getList("attachments", Tag.TAG_COMPOUND);
+    public void read(ValueInput input) {
+        var children = input.childrenList("attachments");
+        if (children.isPresent()) {
+            var attachmentTags = children.get();
             for (int i = 0; i < attachments.length; i++) {
                 this.attachments[i] = null;
+            }
 
-                if (i < attachmentTags.size()) {
-                    var attachmentTag = attachmentTags.getCompound(i);
-                    var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(attachmentTag.getString("#i")));
+            var i = 0;
+            for (var attachmentTag : attachmentTags) {
+                Optional<String> id = attachmentTag.getString("#i");
+                if (id.isPresent()) {
+                    var item = BuiltInRegistries.ITEM.getValue(Identifier.parse(id.get()));
                     if ((item instanceof AttachmentItem attachmentItem)) {
-                        this.attachments[i] = attachmentItem.createAttached(this, attachmentTag, registries);
+                        this.attachments[i] = attachmentItem.createAttached(this, attachmentTag);
                     }
                 }
+                i++;
             }
         }
     }
 
     @MustBeInvokedByOverriders
-    public void writeClientNbt(CompoundTag tag, RegistryAccess registries) {
+    public void writeClientData(ValueOutput output) {
     }
 
     @MustBeInvokedByOverriders
-    public void readClientNbt(CompoundTag tag, RegistryAccess registries) {
+    public void readClientData(ValueInput input) {
     }
 
     public void clientTick() {
