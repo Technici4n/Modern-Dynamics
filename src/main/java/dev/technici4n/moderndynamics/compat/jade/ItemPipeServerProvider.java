@@ -120,7 +120,8 @@ public enum ItemPipeServerProvider implements IServerExtensionProvider<ItemStack
                             for (var stack : group.views) {
                                 clientGroup.views.add(new ItemView(stack));
                             }
-                            clientGroup.title = Component.translatable("gui.moderndynamics.tooltip.stuffed", attachmentItem.getName())
+                            clientGroup.title = Component
+                                    .translatable("gui.moderndynamics.tooltip.stuffed", attachmentItem.getName(attachmentItem.getDefaultInstance()))
                                     .withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withBold(true));
                             clientGroups.add(clientGroup);
                         });

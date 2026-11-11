@@ -41,6 +41,8 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 
@@ -82,7 +84,7 @@ public class MiRecipeGenerator implements DataProvider {
         String miCableItemId = "modern_industrialization:" + miCable;
         var condition = new ModLoadedCondition("modern_industrialization");
         writeRawRecipe(output, MdId.of("cable/%s_from_mi".formatted(cableName)), ImmutableMap.of(
-                "type", getRecipeTypeId(RecipeSerializer.SHAPELESS_RECIPE),
+                "type", getRecipeTypeId(ShapelessRecipe.SERIALIZER),
                 "ingredients", List.of(
                         ImmutableMap.of(
                                 "item", miCableItemId)),
@@ -92,7 +94,7 @@ public class MiRecipeGenerator implements DataProvider {
                 condition);
 
         writeRawRecipe(output, MdId.of("cable/%s_to_mi".formatted(cableName)), ImmutableMap.of(
-                "type", getRecipeTypeId(RecipeSerializer.SHAPED_RECIPE),
+                "type", getRecipeTypeId(ShapedRecipe.SERIALIZER),
                 "pattern", List.of("cc", "cc"),
                 "key", ImmutableMap.of(
                         "c", ImmutableMap.of("item", mdCableItemId)),

@@ -21,8 +21,8 @@ package dev.technici4n.moderndynamics.client.model;
 import com.mojang.math.Axis;
 import com.mojang.math.Quadrant;
 import com.mojang.math.Transformation;
-import net.minecraft.client.resources.model.BlockModelRotation;
-import net.minecraft.client.resources.model.ModelState;
+import net.minecraft.client.renderer.block.dispatch.BlockModelRotation;
+import net.minecraft.client.renderer.block.dispatch.ModelState;
 import net.minecraft.core.Direction;
 
 public class MdModels {

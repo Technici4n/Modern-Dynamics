@@ -34,7 +34,7 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
@@ -124,7 +124,7 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
     }
 
     @Override
-    public void draw(UpgradeDisplay recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(UpgradeDisplay recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         slotDrawable.draw(guiGraphics, 2, 2);
 
         var type = recipe.upgradeInfo();
@@ -135,12 +135,12 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
         var font = minecraft.font;
 
         var maxUpgrades = Component.translatable("gui.moderndynamics.tooltip.upgrades_max", type.getSlotLimit());
-        guiGraphics.drawString(font, maxUpgrades, 25, 7, 0xFF404040, false);
+        guiGraphics.text(font, maxUpgrades, 25, 7, 0xFF404040, false);
 
         var effectsText = Component.translatable("gui.moderndynamics.tooltip.upgrades_effects")
                 .withStyle(ChatFormatting.UNDERLINE);
         var effectsTextX = (getWidth() - font.width(effectsText)) / 2;
-        guiGraphics.drawString(font, effectsText, effectsTextX, 5 + 18, 0xFF404040, false);
+        guiGraphics.text(font, effectsText, effectsTextX, 5 + 18, 0xFF404040, false);
 
         var effects = computeEffects(recipe);
 
@@ -149,7 +149,7 @@ public class UpgradeCategory implements IRecipeCategory<UpgradeDisplay> {
         for (var e : effects.effects()) {
             icons[e.iconIndex].draw(guiGraphics, baseX, EFFECT_BASE_Y);
             if (e.count >= 0) {
-                guiGraphics.drawString(font, String.valueOf(e.count), baseX + countXOffset, countY, 0xFF404040, false);
+                guiGraphics.text(font, String.valueOf(e.count), baseX + countXOffset, countY, 0xFF404040, false);
             }
 
             baseX += EFFECT_WIDTH + EFFECT_SPACING;

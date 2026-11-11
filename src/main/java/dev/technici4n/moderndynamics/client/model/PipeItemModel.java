@@ -28,9 +28,10 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ItemOwner;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Matrix4fc;
 import org.jspecify.annotations.Nullable;
 
-public record PipeItemModel(PipeModelGenerator generator) implements ItemModel {
+public record PipeItemModel(PipeModelGenerator generator, Matrix4fc transformation) implements ItemModel {
 
     @Override
     public void update(ItemStackRenderState output,
@@ -43,6 +44,7 @@ public record PipeItemModel(PipeModelGenerator generator) implements ItemModel {
 
         generator.collectParts(PipeModelGenerator.ITEM_DATA, part -> {
             var layer = output.newLayer();
+            layer.setLocalTransform(transformation);
             part.applyToLayer(layer, displayContext);
         });
 
@@ -54,8 +56,8 @@ public record PipeItemModel(PipeModelGenerator generator) implements ItemModel {
         public static final MapCodec<Unbaked> MAP_CODEC = PipeModelGenerator.Unbaked.MAP_CODEC.xmap(Unbaked::new, Unbaked::generator);
 
         @Override
-        public ItemModel bake(ItemModel.BakingContext context) {
-            return new PipeItemModel(generator.bake(context.blockModelBaker()));
+        public ItemModel bake(ItemModel.BakingContext context, Matrix4fc transformation) {
+            return new PipeItemModel(generator.bake(context.blockModelBaker()), transformation);
         }
 
         @Override

@@ -36,33 +36,34 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.item.ModelRenderProperties;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.Material;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ResolvableModel;
+import net.minecraft.client.resources.model.cuboid.ItemTransforms;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.model.pipeline.QuadBakingVertexConsumer;
 
 public class PipeModelGenerator {
+    private final Material.Baked baseMaterial;
     private final TextureAtlasSprite baseSprite;
     private final PipeModelSubPart[] baseMeshes;
     private final PipeModelSubPart[] connectorModels;
     private final PipeModelSubPart[] straightLineModels;
     private final Map<String, PipeModelSubPart[]> attachments;
     private final boolean transparent;
+    private final int materialFlags;
 
-    public PipeModelGenerator(TextureAtlasSprite baseSprite,
+    public PipeModelGenerator(Material.Baked baseMaterial,
             PipeModelSubPart[] connectorModels,
             PipeModelSubPart[] straightLineModels,
             Map<String, PipeModelSubPart[]> attachments,
             boolean transparent) {
-        this.baseSprite = baseSprite;
+        this.baseMaterial = baseMaterial;
+        this.baseSprite = baseMaterial.sprite();
         this.connectorModels = connectorModels;
         this.straightLineModels = straightLineModels;
         this.attachments = attachments;
@@ -98,9 +99,25 @@ public class PipeModelGenerator {
 
             baseMeshes[connections] = new PipeModelSubPart(
                     qe,
-                    new ModelRenderProperties(true, baseSprite, ItemTransforms.NO_TRANSFORMS),
-                    Sheets.cutoutBlockSheet());
+                    new ModelRenderProperties(true, baseMaterial, ItemTransforms.NO_TRANSFORMS));
         }
+
+        int flags = 0;
+        for (var part : baseMeshes) {
+            flags |= part.materialFlags();
+        }
+        for (var part : connectorModels) {
+            flags |= part.materialFlags();
+        }
+        for (var part : straightLineModels) {
+            flags |= part.materialFlags();
+        }
+        for (var parts : attachments.values()) {
+            for (var part : parts) {
+                flags |= part.materialFlags();
+            }
+        }
+        this.materialFlags = flags;
     }
 
     // Pipes in item form only connect to NORTH and SOUTH.
@@ -253,8 +270,12 @@ public class PipeModelGenerator {
         }
     }
 
-    public TextureAtlasSprite particleIcon() {
-        return baseSprite;
+    public int materialFlags() {
+        return materialFlags;
+    }
+
+    public Material.Baked particleMaterial() {
+        return baseMaterial;
     }
 
     public record Unbaked(String pipeType, boolean transparent) {
@@ -263,7 +284,7 @@ public class PipeModelGenerator {
                 Codec.BOOL.fieldOf("transparent").forGetter(Unbaked::transparent)).apply(builder, Unbaked::new));
 
         private Material getBaseTexture() {
-            return new Material(TextureAtlas.LOCATION_BLOCKS, MdId.of("pipe/" + pipeType + "/base"));
+            return new Material(MdId.of("pipe/" + pipeType + "/base"));
         }
 
         private Identifier getConnectorModel() {
@@ -280,10 +301,10 @@ public class PipeModelGenerator {
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
                             e -> loadRotatedModels(e.getValue(), modelBaker)));
-            var baseSprite = modelBaker.sprites().get(getBaseTexture(), () -> "pipe item");
+            var baseMaterial = modelBaker.materials().get(getBaseTexture(), () -> "pipe item");
 
             return new PipeModelGenerator(
-                    baseSprite,
+                    baseMaterial,
                     loadRotatedModels(getConnectorModel(), modelBaker),
                     loadRotatedModels(getStraightModel(), modelBaker),
                     bakedAttachments,

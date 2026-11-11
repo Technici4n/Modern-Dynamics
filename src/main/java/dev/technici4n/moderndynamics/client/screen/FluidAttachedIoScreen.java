@@ -18,13 +18,14 @@
  */
 package dev.technici4n.moderndynamics.client.screen;
 
+import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import dev.technici4n.moderndynamics.gui.menu.FluidAttachedIoMenu;
 import dev.technici4n.moderndynamics.gui.menu.FluidConfigSlot;
 import dev.technici4n.moderndynamics.util.FluidRenderUtil;
 import dev.technici4n.moderndynamics.util.MdId;
 import java.util.Optional;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
@@ -33,7 +34,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu> {
     public static final RenderPipeline GUI_TEXTURED_NOBLEND = RenderPipelines.GUI_TEXTURED.toBuilder()
-            .withoutBlend()
+            .withColorTargetState(ColorTargetState.DEFAULT)
             .withLocation(MdId.of("gui_textured_noblend"))
             .build();
 
@@ -43,8 +44,8 @@ public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu>
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
 
         if (getMenu().getCarried().isEmpty() && this.hoveredSlot instanceof FluidConfigSlot fluidSlot) {
             var resource = fluidSlot.getFilter();
@@ -52,15 +53,15 @@ public class FluidAttachedIoScreen extends AttachedIoScreen<FluidAttachedIoMenu>
                 guiGraphics.setTooltipForNextFrame(font, FluidRenderUtil.getTooltip(resource), Optional.empty(), mouseX, mouseY);
             }
         } else {
-            renderTooltip(guiGraphics, mouseX, mouseY);
+            extractTooltip(guiGraphics, mouseX, mouseY);
         }
     }
 
-    public static void drawFluidInGui(GuiGraphics guiGraphics, FluidResource fluid, int x, int y) {
+    public static void drawFluidInGui(GuiGraphicsExtractor guiGraphics, FluidResource fluid, int x, int y) {
         drawFluidInGui(guiGraphics, fluid, x, y, 16, 1);
     }
 
-    public static void drawFluidInGui(GuiGraphics guiGraphics, FluidResource fluid, int x, int y, int scale, float fractionUp) {
+    public static void drawFluidInGui(GuiGraphicsExtractor guiGraphics, FluidResource fluid, int x, int y, int scale, float fractionUp) {
         TextureAtlasSprite sprite = FluidRenderUtil.getStillSprite(fluid);
         int color = FluidRenderUtil.getTint(fluid);
 

@@ -41,6 +41,7 @@ repositories {
         url "https://modmaven.dev/"
         content {
             includeGroup "mezz.jei"
+            includeGroup "net.mezzdev.config"
         }
     }
     maven {
@@ -272,7 +273,7 @@ if (System.getenv("CURSEFORGE_API_KEY") && !version.endsWith("-SNAPSHOT")) {
             changelogType = "markdown"
             delegate.changelog = changelog
 
-            addGameVersion "26.1-snapshot"
+            addGameVersion "26.1.2"
             addGameVersion "NeoForge"
             addGameVersion "Java 25"
 
@@ -298,7 +299,7 @@ if (System.getenv("MODRINTH_API_KEY") && !version.endsWith("-SNAPSHOT")) {
         delegate.changelog = changelog
         versionType = releaseChannel.toUpperCase()
         uploadFile = jar.archiveFile
-        gameVersions = ["26.1-snapshot-1"]
+        gameVersions = ["26.1.2"]
         loaders = ["neoforge"]
     }
 }

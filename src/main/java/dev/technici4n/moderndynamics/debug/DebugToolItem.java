@@ -59,7 +59,7 @@ public class DebugToolItem extends Item {
                     message.append("No node found.\n");
                 }
 
-                ctx.getPlayer().displayClientMessage(Component.literal(message.toString()), false);
+                ctx.getPlayer().sendSystemMessage(Component.literal(message.toString()));
 
                 return InteractionResult.CONSUME;
             }

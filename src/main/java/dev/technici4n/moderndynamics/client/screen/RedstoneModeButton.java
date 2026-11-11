@@ -22,7 +22,7 @@ import dev.technici4n.moderndynamics.attachment.settings.RedstoneMode;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.input.InputWithModifiers;
@@ -53,7 +53,7 @@ public class RedstoneModeButton extends Button {
     }
 
     @Override
-    public void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         if (scissorRect == null) {
             return;
         }

@@ -19,6 +19,7 @@
 package dev.technici4n.moderndynamics.client.ber;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.QuadInstance;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.technici4n.moderndynamics.thirdparty.fabric.MeshBuilderImpl;
 import dev.technici4n.moderndynamics.thirdparty.fabric.MutableQuadView;
@@ -26,6 +27,7 @@ import dev.technici4n.moderndynamics.thirdparty.fabric.QuadEmitter;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.LightCoordsUtil;
 
 public class FluidPipeRendering {
@@ -44,9 +46,10 @@ public class FluidPipeRendering {
     private static final int EAST = 1 << 5;
 
     public static void drawFluidInPipe(int conn, int color, TextureAtlasSprite sprite, float fill, PoseStack.Pose pose, VertexConsumer vc) {
-        float r = ((color >> 16) & 255) / 256f;
-        float g = ((color >> 8) & 255) / 256f;
-        float b = (color & 255) / 256f;
+        var quadInstance = new QuadInstance();
+        quadInstance.setColor(ARGB.opaque(color));
+        quadInstance.setLightCoords(LightCoordsUtil.FULL_BRIGHT);
+        quadInstance.setOverlayCoords(OverlayTexture.NO_OVERLAY);
 
         var meshBuilder = new MeshBuilderImpl();
         QuadBuilder builder = (direction, x, y, z, X, Y, Z) -> {
@@ -54,7 +57,7 @@ public class FluidPipeRendering {
             quad(emitter, direction, x, y, z, X, Y, Z);
             emitter.spriteBake(sprite, MutableQuadView.BAKE_LOCK_UV);
             emitter.color(-1, -1, -1, -1);
-            vc.putBulkData(pose, emitter.toBakedQuad(sprite), r, g, b, 1, LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+            vc.putBakedQuad(pose, emitter.toBakedQuad(sprite), quadInstance);
         };
 
         float F = fill * PIPE_W;

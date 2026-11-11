@@ -70,7 +70,8 @@ public final class MdGameTests {
                             gametest.manualOnly(),
                             gametest.attempts(),
                             gametest.requiredSuccesses(),
-                            gametest.skyAccess());
+                            gametest.skyAccess(),
+                            0);
                     String methodName = testMethod.getName().replaceAll("([A-Z])", "_$1").toLowerCase(Locale.ROOT);
                     var testId = MdId.of(methodName);
                     Consumer<GameTestHelper> function = helper -> {

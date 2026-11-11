@@ -28,20 +28,20 @@ import dev.technici4n.moderndynamics.pipe.PipeBlockEntity;
 import dev.technici4n.moderndynamics.util.FluidRenderUtil;
 import java.util.Arrays;
 import java.util.Random;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.item.ItemModelResolver;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.levelgen.SingleThreadedRandomSource;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import org.jspecify.annotations.Nullable;
 
 public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEntity, PipeRenderState> {
@@ -120,7 +120,6 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
                 var fluid = fluidHost.getResource();
                 var fill = (float) fluidHost.getAmount() / Constants.Fluids.CAPACITY;
 
-                var renderProps = IClientFluidTypeExtensions.of(fluid.getFluid());
                 var sprite = FluidRenderUtil.getStillSprite(fluid);
                 if (sprite != null && fill > 1e-5) {
                     hadFluidHost = true;
@@ -130,7 +129,9 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
                     }
                     state.fluid.fill = fill;
                     state.fluid.sprite = sprite;
-                    state.fluid.tintColor = renderProps.getTintColor(fluid.getFluid().defaultFluidState(), level, blockEntity.getBlockPos());
+                    state.fluid.tintColor = level instanceof ClientLevel clientLevel
+                            ? FluidRenderUtil.getTintInWorld(fluid, clientLevel, blockEntity.getBlockPos())
+                            : FluidRenderUtil.getTint(fluid);
                 }
             }
         }

@@ -18,7 +18,7 @@
  */
 package dev.technici4n.moderndynamics.client.screen;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -33,7 +33,7 @@ public class PlusMinusButton extends Button {
     }
 
     @Override
-    public void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         var x = 216 + (minus ? 0 : width);
         var y = 120;
         if (!isActive()) {

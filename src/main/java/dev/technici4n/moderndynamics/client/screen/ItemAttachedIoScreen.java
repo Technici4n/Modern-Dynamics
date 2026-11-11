@@ -24,7 +24,7 @@ import dev.technici4n.moderndynamics.attachment.settings.OversendingMode;
 import dev.technici4n.moderndynamics.attachment.settings.RoutingMode;
 import dev.technici4n.moderndynamics.gui.menu.ItemAttachedIoMenu;
 import java.util.List;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -123,7 +123,7 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (decMaxItemsInInventory != null && incMaxItemsInInventory != null) {
             decMaxItemsInInventory.active = menu.getMaxItemsInInventory() > 0;
             incMaxItemsInInventory.active = menu.getMaxItemsInInventory() < Integer.MAX_VALUE;
@@ -145,7 +145,7 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
             oversendingModeButton.setValue(menu.getOversendingMode());
         }
 
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
 
         // Render tooltips (except buttons, those are handled in the buttons themselves)
         if (maxItemsInInventoryTooltipRect != null && maxItemsInInventoryTooltipRect.contains(Math.round(mouseX), Math.round(mouseY))) {
@@ -155,13 +155,13 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
             guiGraphics.setTooltipForNextFrame(font, Component.translatable("gui.moderndynamics.setting.max_items_extracted.tooltip"), mouseX,
                     mouseY);
         } else {
-            this.renderTooltip(guiGraphics, mouseX, mouseY);
+            this.extractTooltip(guiGraphics, mouseX, mouseY);
         }
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float delta, int mouseX, int mouseY) {
-        super.renderBg(guiGraphics, delta, mouseX, mouseY);
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, delta);
 
         // Render current settings for max total items
         if (menu.isSettingSupported(Setting.MAX_ITEMS_IN_INVENTORY)) {
@@ -174,7 +174,7 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
         }
     }
 
-    private void renderMaxItemsInInventoryValue(GuiGraphics guiGraphics) {
+    private void renderMaxItemsInInventoryValue(GuiGraphicsExtractor guiGraphics) {
         var text = getMaxItemsInInventoryText();
         var width = font.width(text);
         var rect = new Rect2i(
@@ -182,11 +182,11 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
                 topPos + 18,
                 width,
                 font.lineHeight);
-        guiGraphics.drawString(font, text, rect.getX(), rect.getY(), 0xff404040, false);
+        guiGraphics.text(font, text, rect.getX(), rect.getY(), 0xff404040, false);
         maxItemsInInventoryTooltipRect = rect;
     }
 
-    private void renderMaxItemsExtractedValue(GuiGraphics guiGraphics) {
+    private void renderMaxItemsExtractedValue(GuiGraphicsExtractor guiGraphics) {
         var text = String.valueOf(menu.getMaxItemsExtracted());
         var width = font.width(text);
         var rect = new Rect2i(
@@ -194,7 +194,7 @@ public class ItemAttachedIoScreen extends AttachedIoScreen<ItemAttachedIoMenu> {
                 topPos + 46,
                 width,
                 font.lineHeight);
-        guiGraphics.drawString(font, text, rect.getX(), rect.getY(), 0xff404040, false);
+        guiGraphics.text(font, text, rect.getX(), rect.getY(), 0xff404040, false);
         maxItemsExtractedTooltipRect = rect;
     }
 

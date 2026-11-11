@@ -4,7 +4,7 @@ pluginManagement {
         mavenCentral()
     }
     plugins {
-        id 'net.neoforged.moddev' version '2.0.134'
+        id 'net.neoforged.moddev' version '2.0.148'
         id 'com.matthewprenger.cursegradle' version '1.4.0'
         id 'com.modrinth.minotaur' version '2.+'
         id 'dev.lukebemish.immaculate' version '0.1.16'

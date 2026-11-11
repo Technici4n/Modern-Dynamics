@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Renderable;
@@ -145,13 +145,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-    }
-
-    @Override
-    protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void extractTooltip(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         if (hoveredSlot != null && !hoveredSlot.hasItem() && hoveredSlot instanceof UpgradeSlot) {
             guiGraphics.setTooltipForNextFrame(font, List.of(
                     Component.translatable("gui.moderndynamics.tooltip.slot.upgrade"),
@@ -159,12 +153,12 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
                     Component.translatable("gui.moderndynamics.tooltip.slot.upgrade_desc2").withStyle(ChatFormatting.GOLD)),
                     Optional.empty(), mouseX, mouseY);
         } else {
-            super.renderTooltip(guiGraphics, mouseX, mouseY);
+            super.extractTooltip(guiGraphics, mouseX, mouseY);
         }
     }
 
     @Override
-    public void renderSlot(GuiGraphics guiGraphics, Slot slot, int mouseX, int mouseY) {
+    public void extractSlot(GuiGraphicsExtractor guiGraphics, Slot slot, int mouseX, int mouseY) {
         // Skip disabled slots
         if (slot instanceof ConfigSlot<?> configSlot && !configSlot.isActive()) {
             return;
@@ -175,7 +169,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
                 FluidAttachedIoScreen.drawFluidInGui(guiGraphics, fluidConfigSlot.getFilter(), slot.x, slot.y);
             }
         } else {
-            super.renderSlot(guiGraphics, slot, mouseX, mouseY);
+            super.extractSlot(guiGraphics, slot, mouseX, mouseY);
         }
     }
 
@@ -186,7 +180,8 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, partialTick);
         renderRedstoneTabBg(guiGraphics, partialTick);
 
         // Background
@@ -221,7 +216,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         }
     }
 
-    private void renderRedstoneTabBg(GuiGraphics guiGraphics, float partialTicks) {
+    private void renderRedstoneTabBg(GuiGraphicsExtractor guiGraphics, float partialTicks) {
 
         updateRedstoneTabRect(partialTicks);
 
@@ -250,29 +245,29 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
                 0xff611005);
 
         // Redstone Icon
-        guiGraphics.renderItem(
+        guiGraphics.item(
                 new ItemStack(Items.REDSTONE),
                 tabX + 2,
                 tabY + 3);
 
         var header = Component.translatable("gui.moderndynamics.setting.redstone_control.header");
-        guiGraphics.drawString(font, header, tabX + TAB_BORDER + 16, tabY + TAB_BORDER + 4, 0xffe1c92f);
+        guiGraphics.text(font, header, tabX + TAB_BORDER + 16, tabY + TAB_BORDER + 4, 0xffe1c92f);
 
         /* Draw a sub-header that indicates whether the attachment is currently operating based on the status or not */
         var subHeaderStatus = Component.translatable("gui.moderndynamics.setting.redstone_control.status_header");
-        guiGraphics.drawString(font, subHeaderStatus, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 42, 0xffaaafb8);
+        guiGraphics.text(font, subHeaderStatus, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 42, 0xffaaafb8);
         Component enabledStatusText;
         if (menu.isEnabledViaRedstone()) {
             enabledStatusText = Component.translatable("gui.moderndynamics.setting.redstone_control.enabled");
         } else {
             enabledStatusText = Component.translatable("gui.moderndynamics.setting.redstone_control.disabled");
         }
-        guiGraphics.drawString(font, enabledStatusText, tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 54, 0xff000000, false);
+        guiGraphics.text(font, enabledStatusText, tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 54, 0xff000000, false);
 
         /* Draw a sub-header that simply spells out the currently chosen redstone mode again */
         var subHeaderSetting = Component.translatable("gui.moderndynamics.setting.redstone_control.signal_required_header");
-        guiGraphics.drawString(font, subHeaderSetting, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 66, 0xffaaafb8);
-        guiGraphics.drawString(font, menu.getRedstoneMode().getTranslation(), tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 78, 0xff000000, false);
+        guiGraphics.text(font, subHeaderSetting, tabX + TAB_BORDER + 4, tabY + TAB_BORDER + 66, 0xffaaafb8);
+        guiGraphics.text(font, menu.getRedstoneMode().getTranslation(), tabX + TAB_BORDER + 12, tabY + TAB_BORDER + 78, 0xff000000, false);
 
         guiGraphics.disableScissor();
     }
@@ -396,7 +391,7 @@ public class AttachedIoScreen<T extends AttachedIoMenu<?>> extends AbstractConta
         }
 
         @Override
-        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
             if (redstoneTabCurrentOpen <= 0 && isInRedstoneTabRect(mouseX, mouseY)) {
                 var lines = List.<Component>of(
                         Component.translatable("gui.moderndynamics.setting.redstone_control.header")

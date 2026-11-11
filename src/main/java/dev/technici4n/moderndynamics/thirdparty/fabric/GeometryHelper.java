@@ -35,7 +35,7 @@ package dev.technici4n.moderndynamics.thirdparty.fabric;
 
 import static net.minecraft.util.Mth.equal;
 
-import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.Direction.AxisDirection;
