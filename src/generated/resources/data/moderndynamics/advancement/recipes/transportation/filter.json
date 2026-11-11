@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:filter"
+        "recipes": "moderndynamics:filter"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

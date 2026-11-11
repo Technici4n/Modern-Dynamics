@@ -29,6 +29,7 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.item.ModelRenderProperties;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.geometry.ItemQuads;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
@@ -40,11 +41,12 @@ import org.jspecify.annotations.Nullable;
 public record PipeModelSubPart(
         List<BakedQuad> quads,
         Supplier<Vector3fc[]> extents,
+        ItemQuads itemQuads,
         ModelRenderProperties renderProperties,
         @BakedQuad.MaterialFlags int materialFlags) implements BlockStateModelPart {
 
     public PipeModelSubPart(List<BakedQuad> quads, ModelRenderProperties renderProperties) {
-        this(quads, Suppliers.memoize(() -> computeExtents(quads)), renderProperties, computeMaterialFlags(quads));
+        this(quads, Suppliers.memoize(() -> computeExtents(quads)), ItemQuads.split(quads), renderProperties, computeMaterialFlags(quads));
     }
 
     private static int computeMaterialFlags(List<BakedQuad> quads) {
@@ -90,6 +92,6 @@ public record PipeModelSubPart(
     public void applyToLayer(ItemStackRenderState.LayerRenderState layer, ItemDisplayContext context) {
         layer.setExtents(extents);
         renderProperties.applyToLayer(layer, context);
-        layer.prepareQuadList().addAll(quads);
+        layer.setQuads(itemQuads);
     }
 }

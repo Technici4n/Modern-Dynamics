@@ -229,7 +229,8 @@ public interface QuadView {
                         new Material.Baked(sprite, false),
                         sprite.transparency(),
                         colorIndex(),
-                        hasShade(),
+                        // Unshaded quads use the UP direction, which has full brightness in the standard lighting
+                        hasShade() ? null : Direction.UP,
                         0 /* emission */,
                         false),
                 BakedNormals.of(packedNormal(0), packedNormal(1), packedNormal(2), packedNormal(3)),

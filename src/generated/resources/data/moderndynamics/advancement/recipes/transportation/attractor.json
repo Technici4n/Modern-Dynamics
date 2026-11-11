@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:attractor"
+        "recipes": "moderndynamics:attractor"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

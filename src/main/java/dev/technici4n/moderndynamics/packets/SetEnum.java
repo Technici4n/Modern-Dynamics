@@ -22,12 +22,11 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 record SetEnum<T extends Enum<T>>(Type<SetEnum<T>> type, int syncId, T value) implements CustomPacketPayload {
     public static <T extends Enum<T>> StreamCodec<FriendlyByteBuf, SetEnum<T>> codec(Type<SetEnum<T>> type, Class<T> enumClass) {
-        StreamCodec<FriendlyByteBuf, T> enumCodec = StreamCodec.of(
-                FriendlyByteBuf::writeEnum,
-                buf -> buf.readEnum(enumClass));
+        StreamCodec<FriendlyByteBuf, T> enumCodec = NeoForgeStreamCodecs.enumCodec(enumClass);
 
         return StreamCodec.composite(
                 ByteBufCodecs.VAR_INT,

@@ -35,7 +35,7 @@ package dev.technici4n.moderndynamics.thirdparty.fabric;
 
 import com.google.common.base.Preconditions;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.renderpearl.api.vertex.VertexFormat;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 

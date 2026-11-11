@@ -150,7 +150,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
             var attachment = getAttachment(direction);
             var child = attachments.addChild();
             if (attachment != null) {
-                child.store(AttachmentModelData.MAP_CODEC, attachment.getModelData());
+                child.store("data", AttachmentModelData.CODEC, attachment.getModelData());
             }
         }
     }
@@ -175,7 +175,7 @@ public abstract class PipeBlockEntity extends MdBlockEntity {
             int directionIndex = 0;
             for (var attachmentTag : attachmentTags) {
                 var direction = Direction.values()[directionIndex++];
-                attachments[direction.get3DDataValue()] = attachmentTag.read(AttachmentModelData.MAP_CODEC).orElse(null);
+                attachments[direction.get3DDataValue()] = attachmentTag.read("data", AttachmentModelData.CODEC).orElse(null);
             }
 
             clientModelData = ModelData.builder()
