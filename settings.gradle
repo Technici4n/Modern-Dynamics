@@ -2,10 +2,18 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
+        // Maintained CurseGradle fork that supports CurseForge environments (Client/Server)
+        maven {
+            url = 'https://maven.maxhenkel.de/repository/public'
+            content {
+                includeGroup 'de.maxhenkel.cursegradle'
+                includeGroup 'de.maxhenkel'
+            }
+        }
     }
     plugins {
         id 'net.neoforged.moddev' version '2.0.148'
-        id 'com.matthewprenger.cursegradle' version '1.4.0'
+        id 'de.maxhenkel.cursegradle' version '1.5.3'
         id 'com.modrinth.minotaur' version '2.+'
         id 'dev.lukebemish.immaculate' version '0.1.16'
     }

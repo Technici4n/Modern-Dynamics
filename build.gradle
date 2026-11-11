@@ -2,7 +2,7 @@ plugins {
     id 'net.neoforged.moddev'
     id 'maven-publish'
     id 'dev.lukebemish.immaculate'
-    id 'com.matthewprenger.cursegradle'
+    id 'de.maxhenkel.cursegradle'
     id "com.modrinth.minotaur"
 }
 
