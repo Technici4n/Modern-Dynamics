@@ -276,6 +276,8 @@ if (System.getenv("CURSEFORGE_API_KEY") && !version.endsWith("-SNAPSHOT")) {
             addGameVersion "26.1.2"
             addGameVersion "NeoForge"
             addGameVersion "Java 25"
+            addGameVersion "Client"
+            addGameVersion "Server"
 
             mainArtifact(jar.archiveFile) {
                 displayName = "Modern Dynamics v${version}"
