@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:wrench"
+        "recipes": "moderndynamics:wrench"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

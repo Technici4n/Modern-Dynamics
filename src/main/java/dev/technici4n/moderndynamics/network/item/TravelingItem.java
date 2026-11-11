@@ -97,8 +97,8 @@ public class TravelingItem {
         buf.writeDouble(getPathLength() - 1);
         buf.writeDouble(traveledDistance);
         int currentBlock = (int) Math.floor(traveledDistance);
-        buf.writeEnum(path.path[currentBlock]);
-        buf.writeEnum(path.path[currentBlock + 1]);
+        Direction.STREAM_CODEC.encode(buf, path.path[currentBlock]);
+        Direction.STREAM_CODEC.encode(buf, path.path[currentBlock + 1]);
         buf.writeDouble(getSpeed());
     }
 
@@ -109,8 +109,8 @@ public class TravelingItem {
                 buf.readInt(),
                 buf.readDouble(),
                 buf.readDouble(),
-                buf.readEnum(Direction.class),
-                buf.readEnum(Direction.class),
+                Direction.STREAM_CODEC.decode(buf),
+                Direction.STREAM_CODEC.decode(buf),
                 buf.readDouble());
     }
 }

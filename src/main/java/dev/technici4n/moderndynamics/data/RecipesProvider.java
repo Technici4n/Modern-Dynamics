@@ -19,18 +19,18 @@
 package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.init.MdItems;
-import java.util.concurrent.CompletableFuture;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.data.PackOutput;
+import dev.technici4n.moderndynamics.util.MdId;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Recipe;
 
 public class RecipesProvider extends RecipeProvider {
 
-    public RecipesProvider(HolderLookup.Provider registries, RecipeOutput output) {
-        super(registries, output);
+    public RecipesProvider(BootstrapContext<Recipe<?>> recipeOutput, BootstrapContext<Advancement> advancementOutput) {
+        super(recipeOutput, advancementOutput, MdId.MOD_ID);
     }
 
     @Override
@@ -107,21 +107,5 @@ public class RecipesProvider extends RecipeProvider {
                 .unlockedBy("has_item_pipe", has(MdItems.ITEM_PIPE))
                 .unlockedBy("has_fluid_pipe", has(MdItems.FLUID_PIPE))
                 .save(output);
-    }
-
-    public static final class Runner extends RecipeProvider.Runner {
-        public Runner(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
-            super(output, lookupProvider);
-        }
-
-        @Override
-        protected RecipeProvider createRecipeProvider(HolderLookup.Provider lookupProvider, RecipeOutput output) {
-            return new RecipesProvider(lookupProvider, output);
-        }
-
-        @Override
-        public String getName() {
-            return "NeoForge recipes";
-        }
     }
 }

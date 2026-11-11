@@ -19,44 +19,33 @@
 package dev.technici4n.moderndynamics.data;
 
 import dev.technici4n.moderndynamics.MdBlock;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.flag.FeatureFlagSet;
-import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.data.loot.LootTableSubProvider;
+import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 
 public class LootTablesProvider extends BlockLootSubProvider {
-    public static LootTableProvider create(PackOutput pOutput, CompletableFuture<HolderLookup.Provider> registries) {
-        return new LootTableProvider(
-                pOutput,
-                Set.of(),
-                List.of(
-                        new LootTableProvider.SubProviderEntry(LootTablesProvider::new, LootContextParamSets.BLOCK)),
-                registries);
+    public static LootTableProvider.SubProviderEntry entry() {
+        return new LootTableProvider.SubProviderEntry(LootTablesProvider::new, LootContextParamSets.BLOCK);
     }
 
-    protected LootTablesProvider(HolderLookup.Provider registries) {
-        super(Set.of(), FeatureFlagSet.of(), registries);
+    protected LootTablesProvider(LootTableSubProvider.Context output) {
+        super(Set.of(), FeatureFlags.DEFAULT_FLAGS, output);
+    }
+
+    @Override
+    protected Iterable<Block> getKnownBlocks() {
+        return BuiltInRegistries.BLOCK.stream().filter(block -> block instanceof MdBlock).toList();
     }
 
     @Override
     protected void generate() {
-    }
-
-    @Override
-    public void generate(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> output) {
-        for (var block : BuiltInRegistries.BLOCK) {
-            if (block instanceof MdBlock) {
-                block.getLootTable().ifPresent(tableId -> output.accept(tableId, createSingleItemTable(block)));
-            }
+        for (var block : getKnownBlocks()) {
+            dropSelf(block);
         }
     }
 }

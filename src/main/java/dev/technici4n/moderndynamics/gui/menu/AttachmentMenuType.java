@@ -55,7 +55,7 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
         var level = inv.player.level();
 
         var bet = BuiltInRegistries.BLOCK_ENTITY_TYPE.getValue(data.readIdentifier());
-        var side = data.readEnum(Direction.class);
+        var side = Direction.STREAM_CODEC.decode(data);
         var pos = data.readBlockPos();
         var item = BuiltInRegistries.ITEM.byId(data.readVarInt());
         if (!(item instanceof AttachmentItem attachmentItem)) {
@@ -97,7 +97,7 @@ public class AttachmentMenuType<A extends AttachedAttachment, T extends Abstract
 
     public static void writeScreenOpeningData(PipeBlockEntity pipe, Direction side, AttachedIo attachment, RegistryFriendlyByteBuf buf) {
         buf.writeIdentifier(BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(pipe.getType()));
-        buf.writeEnum(side);
+        Direction.STREAM_CODEC.encode(buf, side);
         buf.writeBlockPos(pipe.getBlockPos());
         buf.writeVarInt(BuiltInRegistries.ITEM.getId(attachment.getItem()));
         try (var reporter = new ProblemReporter.ScopedCollector(pipe.problemPath(), LOG)) {

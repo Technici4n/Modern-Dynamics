@@ -23,7 +23,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:machine_extender"
+        "recipes": "moderndynamics:machine_extender"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

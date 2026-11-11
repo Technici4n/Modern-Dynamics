@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:item_pipe"
+        "recipes": "moderndynamics:item_pipe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "moderndynamics:inhibitor"
+        "recipes": "moderndynamics:inhibitor"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

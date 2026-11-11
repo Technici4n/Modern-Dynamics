@@ -35,6 +35,7 @@ import net.minecraft.gametest.framework.TestData;
 import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 
 public final class MdGameTests {
@@ -62,6 +63,7 @@ public final class MdGameTests {
                 if (gametest != null) {
                     var testData = new TestData<>(
                             TEST_ENVIRONMENT_KEY,
+                            Level.OVERWORLD,
                             MdId.of("empty"),
                             gametest.timeoutTicks(),
                             gametest.setupTicks(),

@@ -155,7 +155,7 @@ public class PipeBlockEntityRenderer implements BlockEntityRenderer<PipeBlockEnt
             poseStack.translate(0, -0.15f, 0);
 
             // Cool rotation
-            poseStack.mulPose(Axis.YP.rotation(travelingItem.rotAngle));
+            poseStack.rotate(Axis.YP, travelingItem.rotAngle);
 
             // Render multiple items depending on stack size
             poseStack.translate(0, 0, -(travelingItem.renderCount - 1) * 0.1 / 2);
