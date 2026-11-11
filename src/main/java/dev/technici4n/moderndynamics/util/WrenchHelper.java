@@ -64,7 +64,7 @@ public class WrenchHelper {
                 Block.dropResources(state, level, pos, entity);
             }
             // Play a cool sound
-            var group = state.getSoundType();
+            var group = state.getSoundType(level, pos, player);
             level.playSound(player, pos, group.getBreakSound(), SoundSource.BLOCKS, (group.getVolume() + 1.0F) / 2.0F,
                     group.getPitch() * 0.8F);
             e.cancelWithResult(InteractionResult.SUCCESS);

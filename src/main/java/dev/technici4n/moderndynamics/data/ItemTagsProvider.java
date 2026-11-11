@@ -32,6 +32,6 @@ public class ItemTagsProvider extends net.neoforged.neoforge.common.data.ItemTag
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
-        this.tag(MdTags.WRENCHES).add(MdItems.WRENCH.get());
+        this.tag(MdTags.WRENCHES).add(MdItems.WRENCH.getKey());
     }
 }

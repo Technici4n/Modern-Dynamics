@@ -39,8 +39,7 @@ import dev.technici4n.moderndynamics.util.MdId;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.ShapeRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.BlockOutlineRenderState;
 import net.minecraft.client.renderer.state.level.LevelRenderState;
@@ -151,7 +150,7 @@ public final class ModernDynamicsClient {
 
                 var hitSide = pipe.hitTestAttachments(hitPosInBlock);
                 if (hitSide != null) {
-                    evt.getCustomRenderers().add(new OutlineRenderer(
+                    evt.addCustomRenderer(new OutlineRenderer(
                             hitSide,
                             (pos.getX() - camera.position().x),
                             (pos.getY() - camera.position().y),
@@ -164,19 +163,19 @@ public final class ModernDynamicsClient {
     record OutlineRenderer(Direction hitSide, double x, double y, double z) implements CustomBlockOutlineRenderer {
         @Override
         public boolean render(BlockOutlineRenderState renderState,
-                MultiBufferSource.BufferSource buffer,
+                SubmitNodeCollector submitNodeCollector,
                 PoseStack poseStack,
-                boolean translucentPass,
                 LevelRenderState levelRenderState) {
-            ShapeRenderer.renderShape(
+            poseStack.pushPose();
+            poseStack.translate(x, y, z);
+            submitNodeCollector.submitShapeOutline(
                     poseStack,
-                    buffer.getBuffer(RenderTypes.lines()),
                     PipeBoundingBoxes.CONNECTOR_SHAPES[hitSide.ordinal()],
-                    x,
-                    y,
-                    z,
+                    RenderTypes.lines(),
                     ARGB.black(0.4F),
-                    7);
+                    7,
+                    renderState.isTranslucent());
+            poseStack.popPose();
             return true;
         }
     }
