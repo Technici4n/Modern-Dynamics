@@ -273,7 +273,7 @@ if (System.getenv("CURSEFORGE_API_KEY") && !version.endsWith("-SNAPSHOT")) {
             changelogType = "markdown"
             delegate.changelog = changelog
 
-            addGameVersion "26.1.2"
+            addGameVersion project.minecraft_version
             addGameVersion "NeoForge"
             addGameVersion "Java 25"
             addGameVersion "Client"
@@ -301,7 +301,7 @@ if (System.getenv("MODRINTH_API_KEY") && !version.endsWith("-SNAPSHOT")) {
         delegate.changelog = changelog
         versionType = releaseChannel.toUpperCase()
         uploadFile = jar.archiveFile
-        gameVersions = ["26.1.2"]
+        gameVersions = [project.minecraft_version]
         loaders = ["neoforge"]
     }
 }
