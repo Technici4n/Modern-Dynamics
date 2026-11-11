@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "e": "minecraft:ender_pearl",
     "m": "minecraft:iron_ingot",
@@ -13,7 +12,6 @@
     " p "
   ],
   "result": {
-    "count": 1,
     "id": "moderndynamics:attractor"
   }
 }
