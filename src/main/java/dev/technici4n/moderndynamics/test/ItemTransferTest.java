@@ -18,9 +18,11 @@
  */
 package dev.technici4n.moderndynamics.test;
 
+import dev.technici4n.moderndynamics.attachment.attached.ItemAttachedIo;
 import dev.technici4n.moderndynamics.init.MdBlocks;
 import dev.technici4n.moderndynamics.init.MdItems;
 import dev.technici4n.moderndynamics.test.framework.MdGameTestHelper;
+import java.util.concurrent.atomic.AtomicReference;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -90,5 +92,77 @@ public class ItemTransferTest {
                     }
                 })
                 .thenSucceed();
+    }
+
+    /**
+     * When a traveling stack can only be partially inserted at the end of its path,
+     * only the leftover may be stuffed into the attachment there.
+     * <p>
+     * An upgraded extractor sends a single stack of 16 to a target that is then filled up.
+     * The stack is sent back to the source, which by then only has room for 4 of them.
+     */
+    @MdGameTest(timeoutTicks = 1000)
+    public void testPartialDeliveryStuffsOnlyLeftover(MdGameTestHelper helper) {
+        var sourcePos = new BlockPos(0, 1, 0);
+        helper.setBlock(sourcePos, Blocks.CHEST.defaultBlockState());
+        var source = helper.getBlockEntity(sourcePos, ChestBlockEntity.class);
+        source.setItem(0, new ItemStack(Items.DIAMOND, 16));
+
+        var extractor = new AtomicReference<ItemAttachedIo>();
+        helper.pipe(new BlockPos(1, 1, 0), MdBlocks.ITEM_PIPE)
+                .attachment(Direction.WEST, MdItems.EXTRACTOR)
+                .configureItemIo(Direction.WEST, io -> {
+                    // 4 + 6 * 5 = 34 items per operation: the whole stack leaves in one go
+                    io.setUpgrade(0, new ItemStack(Items.HOPPER, 6));
+                    io.setMaxItemsExtracted(16);
+                    extractor.set(io);
+                });
+        helper.pipe(new BlockPos(2, 1, 0), MdBlocks.ITEM_PIPE);
+
+        var targetPos = new BlockPos(3, 1, 0);
+        helper.setBlock(targetPos, Blocks.CHEST.defaultBlockState());
+        var target = helper.getBlockEntity(targetPos, ChestBlockEntity.class);
+
+        helper.startSequence()
+                // Wait until the whole stack was extracted and is traveling
+                .thenWaitUntil(() -> {
+                    if (!source.isEmpty()) {
+                        helper.fail("Expected source chest to be emptied", sourcePos);
+                    }
+                })
+                .thenExecute(() -> {
+                    // The target rejects the stack, so it travels back to the source...
+                    for (int i = 0; i < target.getContainerSize(); ++i) {
+                        target.setItem(i, new ItemStack(Items.DIRT, 64));
+                    }
+                    // ... which only has room for 4 diamonds by then.
+                    source.setItem(0, new ItemStack(Items.DIAMOND, 60));
+                    for (int i = 1; i < source.getContainerSize(); ++i) {
+                        source.setItem(i, new ItemStack(Items.DIRT, 64));
+                    }
+                })
+                // Wait until the stack came back (inserted or stuffed)
+                .thenWaitUntil(() -> {
+                    if (insertedDiamonds(source) + stuffedCount(extractor.get()) < 16) {
+                        helper.fail("Expected the stack to come back", sourcePos);
+                    }
+                })
+                .thenExecute(() -> {
+                    if (insertedDiamonds(source) != 4) {
+                        helper.fail("Expected 4 diamonds to be inserted, got " + insertedDiamonds(source), sourcePos);
+                    }
+                    if (stuffedCount(extractor.get()) != 12) {
+                        helper.fail("Expected 12 stuffed diamonds, got " + stuffedCount(extractor.get()), sourcePos);
+                    }
+                })
+                .thenSucceed();
+    }
+
+    private static int insertedDiamonds(ChestBlockEntity chest) {
+        return chest.getItem(0).getCount() - 60;
+    }
+
+    private static int stuffedCount(ItemAttachedIo io) {
+        return io.getStuffedItems().values().stream().mapToInt(Integer::intValue).sum();
     }
 }
