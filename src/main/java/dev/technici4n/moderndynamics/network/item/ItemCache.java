@@ -92,7 +92,7 @@ public class ItemCache extends NetworkCache<ItemHost, ItemCache> {
             }
 
             if (checkedPathsConsumer != null) {
-                checkedPathsConsumer.addEntry(nextPathIndex);
+                checkedPathsConsumer.addEntry(nextPathIndex, tx);
             }
 
             return totalInserted;

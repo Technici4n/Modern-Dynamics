@@ -18,11 +18,19 @@
  */
 package dev.technici4n.moderndynamics.network.item;
 
-public class MaxParticipant {
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+
+/**
+ * Tracks the maximum of the entries added to it, e.g. how many paths were checked by an extractor.
+ * Entries added in a transaction that is rolled back are reverted.
+ */
+public class MaxParticipant extends SnapshotJournal<Integer> {
     private int max = 0;
 
-    public void addEntry(int amount) {
+    public void addEntry(int amount, TransactionContext transaction) {
         if (amount > max) {
+            updateSnapshots(transaction);
             max = amount;
         }
     }
@@ -31,11 +39,13 @@ public class MaxParticipant {
         return max;
     }
 
+    @Override
     protected Integer createSnapshot() {
         return max;
     }
 
-    protected void readSnapshot(Integer snapshot) {
+    @Override
+    protected void revertToSnapshot(Integer snapshot) {
         max = snapshot;
     }
 }
