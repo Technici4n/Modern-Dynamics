@@ -372,7 +372,7 @@ public class ItemHost extends NodeHost {
         var attachment = getAttachment(item.path.path[item.getPathLength() - 1]);
         if (leftover > 0 && attachment instanceof ItemAttachedIo io && io.getType() != IoAttachmentType.FILTER) {
             boolean wasStuffed = io.isStuffed();
-            io.getStuffedItems().merge(item.resource, item.amount, Integer::sum);
+            io.getStuffedItems().merge(item.resource, leftover, Integer::sum);
             pipe.setChanged();
             if (wasStuffed != io.isStuffed()) {
                 pipe.sync();
@@ -387,7 +387,7 @@ public class ItemHost extends NodeHost {
                         item.speedMultiplier,
                         item.getPathLength() - 1 - Math.floor(item.traveledDistance)));
             } else {
-                DropHelper.dropStack(pipe, item.resource, item.amount - inserted);
+                DropHelper.dropStack(pipe, item.resource, leftover);
             }
         }
     }
